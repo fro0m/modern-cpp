@@ -301,6 +301,28 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
             </h2>
             <p className="text-blue-800 leading-relaxed">{topic.useCase}</p>
           </div>
+
+          {/* Reference Documentation */}
+          {topic.referenceUrl && (
+            <div className="bg-purple-50 rounded-xl p-6 border border-purple-200">
+              <h2 className="text-2xl font-semibold text-purple-900 mb-4 flex items-center">
+                <ExternalLink className="h-6 w-6 mr-2" />
+                Reference Documentation
+              </h2>
+              <p className="text-purple-800 mb-3">
+                Learn more about this feature from the official C++ reference:
+              </p>
+              <a 
+                href={topic.referenceUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View on cppreference.com
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Exercise Section */}

@@ -6,6 +6,7 @@ export interface CppFeature {
   codeExample: string;
   explanation: string;
   useCase: string;
+  referenceUrl?: string; // Optional cppreference.com link
 }
 
 export interface Exercise {

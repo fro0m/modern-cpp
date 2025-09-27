@@ -54,7 +54,8 @@ int main() {
     return 0;
 }`,
     explanation: 'Generic lambdas introduced in C++14 allow lambda parameters to use auto, making them work with multiple types without explicit template syntax. This enables writing more flexible and reusable lambda expressions.',
-    useCase: 'Perfect for creating reusable lambda expressions that work with multiple types, especially useful in STL algorithms and functional programming patterns.'
+    useCase: 'Perfect for creating reusable lambda expressions that work with multiple types, especially useful in STL algorithms and functional programming patterns.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/lambda'
   },
   {
     id: 'variable-templates',
@@ -114,7 +115,8 @@ int main() {
     return 0;
 }`,
     explanation: 'Variable templates allow you to create template variables, making it easier to define compile-time constants and simplify type trait usage. They provide a more concise syntax compared to traditional approaches.',
-    useCase: 'Ideal for mathematical constants that need different precision for different types, and for creating more readable type trait checks in template metaprogramming.'
+    useCase: 'Ideal for mathematical constants that need different precision for different types, and for creating more readable type trait checks in template metaprogramming.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/variable_template'
   },
   {
     id: 'return-type-deduction',
@@ -209,7 +211,8 @@ int main() {
     return 0;
 }`,
     explanation: 'C++14 extended auto return type deduction to regular functions (not just lambdas). The compiler automatically deduces the return type from return statements, making code more maintainable and enabling easier refactoring.',
-    useCase: 'Excellent for template functions where the return type depends on template parameters, and for simplifying function signatures when the return type is obvious from the implementation.'
+    useCase: 'Excellent for template functions where the return type depends on template parameters, and for simplifying function signatures when the return type is obvious from the implementation.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/function#Return_type_deduction'
   },
 
   // C++17 Features (Enhanced with more detailed comments)
@@ -298,7 +301,8 @@ int main() {
     return 0;
 }`,
     explanation: 'Structured bindings allow you to decompose objects like tuples, pairs, arrays, and structs into individual named variables in a single declaration. This feature makes code more readable by eliminating the need for std::get<> or manual member access.',
-    useCase: 'Perfect for unpacking return values from functions that return multiple values, iterating over maps with readable key-value names, and working with structured data without verbose syntax.'
+    useCase: 'Perfect for unpacking return values from functions that return multiple values, iterating over maps with readable key-value names, and working with structured data without verbose syntax.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/structured_binding'
   },
   {
     id: 'std-optional',
@@ -416,7 +420,8 @@ int main() {
     return 0;
 }`,
     explanation: 'std::optional represents a value that may or may not be present, providing a type-safe alternative to null pointers or special sentinel values. It eliminates the ambiguity of whether a function succeeded or failed, making error handling more explicit and safer.',
-    useCase: 'Ideal for functions that may fail to return a meaningful value (like parsing, searching, or mathematical operations), configuration values that might not be set, and any scenario where you want to avoid exceptions or null pointer issues.'
+    useCase: 'Ideal for functions that may fail to return a meaningful value (like parsing, searching, or mathematical operations), configuration values that might not be set, and any scenario where you want to avoid exceptions or null pointer issues.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/optional'
   },
   {
     id: 'if-constexpr',
@@ -557,7 +562,8 @@ int main() {
     return 0;
 }`,
     explanation: 'if constexpr allows conditional compilation based on compile-time conditions, enabling different code paths without template specialization. Unlike regular if statements, only the matching branch is compiled, preventing compilation errors in unused branches and enabling more efficient generic code.',
-    useCase: 'Essential for writing generic code that behaves differently based on type traits, template parameters, or other compile-time conditions. Perfect for creating type-safe generic algorithms and avoiding the complexity of SFINAE or template specialization.'
+    useCase: 'Essential for writing generic code that behaves differently based on type traits, template parameters, or other compile-time conditions. Perfect for creating type-safe generic algorithms and avoiding the complexity of SFINAE or template specialization.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/if'
   },
 
   // C++20 Features (Enhanced)
@@ -745,7 +751,8 @@ int main() {
     return 0;
 }`,
     explanation: 'Concepts provide a way to specify requirements on template parameters, making templates more readable and providing better error messages. They allow you to express what operations a type must support, leading to more self-documenting and maintainable generic code.',
-    useCase: 'Essential for creating self-documenting generic code with clear constraints, better compilation errors, and enabling concept-based overloading. Perfect for library development where you need to clearly specify what types are acceptable.'
+    useCase: 'Essential for creating self-documenting generic code with clear constraints, better compilation errors, and enabling concept-based overloading. Perfect for library development where you need to clearly specify what types are acceptable.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/constraints'
   },
   {
     id: 'ranges',
@@ -914,7 +921,8 @@ int main() {
     return 0;
 }`,
     explanation: 'The Ranges library provides a new way to work with sequences of data using composable views and algorithms. Views are lazy - they don\'t perform computation until you iterate over them, enabling efficient chaining of operations and working with infinite sequences.',
-    useCase: 'Enables functional programming patterns with lazy evaluation, making complex data transformations more readable and efficient. Perfect for data processing pipelines, filtering and transforming collections, and working with large datasets where you only need part of the result.'
+    useCase: 'Enables functional programming patterns with lazy evaluation, making complex data transformations more readable and efficient. Perfect for data processing pipelines, filtering and transforming collections, and working with large datasets where you only need part of the result.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
   },
 
   // C++23 Features (Enhanced)
@@ -1170,7 +1178,8 @@ int main() {
     return 0;
 }`,
     explanation: 'std::expected provides a type-safe way to handle operations that can fail, containing either a value or an error. Unlike exceptions, errors are part of the type system, making error handling explicit and allowing you to know exactly what can go wrong and why.',
-    useCase: 'Perfect for error handling in systems where exceptions are not desired, APIs that can fail in predictable ways, parsing operations, file I/O, network operations, and any scenario where you want explicit, type-safe error handling with detailed error information.'
+    useCase: 'Perfect for error handling in systems where exceptions are not desired, APIs that can fail in predictable ways, parsing operations, file I/O, network operations, and any scenario where you want explicit, type-safe error handling with detailed error information.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/expected'
   },
   {
     id: 'ranges-to',
@@ -1195,7 +1204,8 @@ int main() {
     return 0;
 }`,
     explanation: 'std::ranges::to provides a convenient way to materialize range views into concrete containers. This eliminates the need for manual iteration or using algorithms like std::copy to convert lazy range views into actual container objects.',
-    useCase: `Essential for converting the result of range operations into specific container types for storage, further processing, or API compatibility. Perfect for data processing pipelines where you need the final result in a particular container format, and for performance-critical code where you want to minimize intermediate allocations.`
+    useCase: `Essential for converting the result of range operations into specific container types for storage, further processing, or API compatibility. Perfect for data processing pipelines where you need the final result in a particular container format, and for performance-critical code where you want to minimize intermediate allocations.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
   },
 
   // === TEMPLATE METAPROGRAMMING FEATURES ===
