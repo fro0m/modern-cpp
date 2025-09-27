@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Trophy, Target, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Exercise, Standard } from '../types';
+import { Exercise, Standard, CppFeature } from '../types';
 import { exercises } from '../data/exercises';
+import { cppFeatures } from '../data/features';
 import StandardSelector from './StandardSelector';
 import CodeEditor from './CodeEditor';
 

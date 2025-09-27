@@ -54,7 +54,8 @@ int main() {
     return 0;
 }`,
     explanation: 'Generic lambdas introduced in C++14 allow lambda parameters to use auto, making them work with multiple types without explicit template syntax. This enables writing more flexible and reusable lambda expressions.',
-    useCase: 'Perfect for creating reusable lambda expressions that work with multiple types, especially useful in STL algorithms and functional programming patterns.'
+    useCase: 'Perfect for creating reusable lambda expressions that work with multiple types, especially useful in STL algorithms and functional programming patterns.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/lambda'
   },
   {
     id: 'variable-templates',
@@ -114,7 +115,8 @@ int main() {
     return 0;
 }`,
     explanation: 'Variable templates allow you to create template variables, making it easier to define compile-time constants and simplify type trait usage. They provide a more concise syntax compared to traditional approaches.',
-    useCase: 'Ideal for mathematical constants that need different precision for different types, and for creating more readable type trait checks in template metaprogramming.'
+    useCase: 'Ideal for mathematical constants that need different precision for different types, and for creating more readable type trait checks in template metaprogramming.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/variable_template'
   },
   {
     id: 'return-type-deduction',
@@ -209,7 +211,262 @@ int main() {
     return 0;
 }`,
     explanation: 'C++14 extended auto return type deduction to regular functions (not just lambdas). The compiler automatically deduces the return type from return statements, making code more maintainable and enabling easier refactoring.',
-    useCase: 'Excellent for template functions where the return type depends on template parameters, and for simplifying function signatures when the return type is obvious from the implementation.'
+    useCase: 'Excellent for template functions where the return type depends on template parameters, and for simplifying function signatures when the return type is obvious from the implementation.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/function#Return_type_deduction'
+  },
+  {
+    id: 'std-make-unique',
+    title: 'std::make_unique',
+    standard: 'cpp14',
+    description: 'Safe and efficient creation of unique_ptr objects',
+    codeExample: `#include <iostream>
+#include <memory>
+#include <vector>
+#include <string>
+
+// === BASIC CLASSES FOR DEMONSTRATION ===
+class Resource {
+private:
+    std::string name_;
+    int id_;
+    
+public:
+    Resource(const std::string& name, int id) : name_(name), id_(id) {
+        std::cout << "Resource '" << name_ << "' (id: " << id_ << ") created\\n";
+    }
+    
+    ~Resource() {
+        std::cout << "Resource '" << name_ << "' (id: " << id_ << ") destroyed\\n";
+    }
+    
+    void use() const {
+        std::cout << "Using resource '" << name_ << "' (id: " << id_ << ")\\n";
+    }
+    
+    const std::string& name() const { return name_; }
+    int id() const { return id_; }
+};
+
+class DatabaseConnection {
+private:
+    std::string connection_string_;
+    bool connected_;
+    
+public:
+    DatabaseConnection(const std::string& conn_str) 
+        : connection_string_(conn_str), connected_(true) {
+        std::cout << "Database connected to: " << conn_str << "\\n";
+    }
+    
+    ~DatabaseConnection() {
+        if (connected_) {
+            std::cout << "Database connection closed\\n";
+        }
+    }
+    
+    void disconnect() {
+        connected_ = false;
+        std::cout << "Database manually disconnected\\n";
+    }
+    
+    void query(const std::string& sql) const {
+        if (connected_) {
+            std::cout << "Executing query: " << sql << "\\n";
+        } else {
+            std::cout << "Cannot execute query: disconnected\\n";
+        }
+    }
+};
+
+// === FACTORY FUNCTIONS ===
+std::unique_ptr<Resource> create_resource(const std::string& name, int id) {
+    // Safe creation - exception safe
+    return std::make_unique<Resource>(name, id);
+}
+
+std::unique_ptr<DatabaseConnection> connect_to_database(const std::string& db_name) {
+    return std::make_unique<DatabaseConnection>("postgresql://" + db_name);
+}
+
+// === RESOURCE MANAGER ===
+class ResourceManager {
+private:
+    std::vector<std::unique_ptr<Resource>> resources_;
+    
+public:
+    void add_resource(const std::string& name, int id) {
+        // Direct emplacement with make_unique
+        resources_.push_back(std::make_unique<Resource>(name, id));
+    }
+    
+    Resource* get_resource(int id) {
+        for (auto& resource : resources_) {
+            if (resource->id() == id) {
+                return resource.get();
+            }
+        }
+        return nullptr;
+    }
+    
+    std::unique_ptr<Resource> take_resource(int id) {
+        for (auto it = resources_.begin(); it != resources_.end(); ++it) {
+            if ((*it)->id() == id) {
+                auto resource = std::move(*it);
+                resources_.erase(it);
+                return resource;
+            }
+        }
+        return nullptr;
+    }
+    
+    void list_resources() const {
+        std::cout << "Managed resources:\\n";
+        for (const auto& resource : resources_) {
+            std::cout << "  - " << resource->name() << " (id: " << resource->id() << ")\\n";
+        }
+    }
+    
+    size_t count() const { return resources_.size(); }
+};
+
+// === ARRAY CREATION ===
+template<typename T>
+std::unique_ptr<T[]> make_unique_array(size_t size) {
+    return std::make_unique<T[]>(size);
+}
+
+int main() {
+    std::cout << "=== Basic make_unique Usage ===\\n";
+    
+    // === BASIC USAGE VS NEW ===
+    // Old way (not recommended)
+    // std::unique_ptr<Resource> old_way(new Resource("OldResource", 1));
+    
+    // New way (recommended)
+    auto resource1 = std::make_unique<Resource>("NewResource", 1);
+    resource1->use();
+    
+    // === EXCEPTION SAFETY DEMONSTRATION ===
+    std::cout << "\\n=== Exception Safety ===\\n";
+    try {
+        // This is exception safe - if Resource constructor throws,
+        // no memory is leaked
+        auto safe_resource = std::make_unique<Resource>("SafeResource", 2);
+        safe_resource->use();
+        
+        // Simulate an exception after construction
+        // throw std::runtime_error("Simulated error");
+        
+    } catch (const std::exception& e) {
+        std::cout << "Exception caught: " << e.what() << "\\n";
+        std::cout << "No memory leak occurred!\\n";
+    }
+    
+    // === FACTORY FUNCTIONS ===
+    std::cout << "\\n=== Factory Functions ===\\n";
+    auto db_resource = create_resource("DatabaseResource", 3);
+    auto db_connection = connect_to_database("myapp_db");
+    
+    db_resource->use();
+    db_connection->query("SELECT * FROM users");
+    
+    // === RESOURCE MANAGER ===
+    std::cout << "\\n=== Resource Manager ===\\n";
+    ResourceManager manager;
+    
+    manager.add_resource("WebServer", 10);
+    manager.add_resource("FileHandler", 11);
+    manager.add_resource("Logger", 12);
+    
+    manager.list_resources();
+    std::cout << "Total resources: " << manager.count() << "\\n";
+    
+    // Get resource reference (still managed)
+    if (auto* logger = manager.get_resource(12)) {
+        logger->use();
+    }
+    
+    // Take ownership (removes from manager)
+    auto taken_resource = manager.take_resource(11);
+    std::cout << "\\nAfter taking resource 11:\\n";
+    manager.list_resources();
+    
+    if (taken_resource) {
+        taken_resource->use();
+    }
+    
+    // === ARRAYS WITH MAKE_UNIQUE ===
+    std::cout << "\\n=== Arrays with make_unique ===\\n";
+    
+    // C++14: Array version
+    auto int_array = std::make_unique<int[]>(5);
+    for (int i = 0; i < 5; ++i) {
+        int_array[i] = i * i;
+    }
+    
+    std::cout << "Array values: ";
+    for (int i = 0; i < 5; ++i) {
+        std::cout << int_array[i] << " ";
+    }
+    std::cout << "\\n";
+    
+    // === CONTAINER OF UNIQUE_PTRS ===
+    std::cout << "\\n=== Container of unique_ptrs ===\\n";
+    std::vector<std::unique_ptr<Resource>> resource_collection;
+    
+    // Add multiple resources
+    for (int i = 20; i < 23; ++i) {
+        resource_collection.push_back(
+            std::make_unique<Resource>("CollectionItem" + std::to_string(i), i)
+        );
+    }
+    
+    std::cout << "Using collection resources:\\n";
+    for (const auto& resource : resource_collection) {
+        resource->use();
+    }
+    
+    // === MOVE SEMANTICS ===
+    std::cout << "\\n=== Move Semantics ===\\n";
+    auto moveable_resource = std::make_unique<Resource>("MovableResource", 30);
+    moveable_resource->use();
+    
+    // Transfer ownership
+    auto new_owner = std::move(moveable_resource);
+    // moveable_resource is now nullptr
+    
+    if (new_owner) {
+        new_owner->use();
+    }
+    
+    if (!moveable_resource) {
+        std::cout << "Original pointer is now empty\\n";
+    }
+    
+    // === COMPARISON WITH SHARED_PTR ===
+    std::cout << "\\n=== Comparison with shared_ptr ===\\n";
+    
+    // Use make_unique when you need exclusive ownership
+    auto unique_res = std::make_unique<Resource>("UniqueOwner", 40);
+    
+    // Use make_shared when you need shared ownership
+    auto shared_res = std::make_shared<Resource>("SharedOwner", 41);
+    auto shared_copy = shared_res; // Reference count: 2
+    
+    std::cout << "shared_ptr reference count: " << shared_res.use_count() << "\\n";
+    
+    unique_res->use();
+    shared_res->use();
+    
+    std::cout << "\\n=== Automatic Cleanup ===\\n";
+    std::cout << "Resources will be automatically cleaned up...\\n";
+    
+    return 0;
+    // All unique_ptrs automatically clean up here
+}`,
+    explanation: 'std::make_unique provides a safe and efficient way to create std::unique_ptr objects. It offers exception safety, prevents memory leaks, and is more readable than using new directly. It also enables perfect forwarding of constructor arguments.',
+    useCase: 'Essential for modern C++ memory management, factory functions, RAII patterns, and any scenario where you need single ownership semantics. Prefer make_unique over direct new to ensure exception safety and cleaner code.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/memory/unique_ptr/make_unique'
   },
 
   // C++17 Features (Enhanced with more detailed comments)
@@ -298,7 +555,8 @@ int main() {
     return 0;
 }`,
     explanation: 'Structured bindings allow you to decompose objects like tuples, pairs, arrays, and structs into individual named variables in a single declaration. This feature makes code more readable by eliminating the need for std::get<> or manual member access.',
-    useCase: 'Perfect for unpacking return values from functions that return multiple values, iterating over maps with readable key-value names, and working with structured data without verbose syntax.'
+    useCase: 'Perfect for unpacking return values from functions that return multiple values, iterating over maps with readable key-value names, and working with structured data without verbose syntax.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/structured_binding'
   },
   {
     id: 'std-optional',
@@ -416,7 +674,8 @@ int main() {
     return 0;
 }`,
     explanation: 'std::optional represents a value that may or may not be present, providing a type-safe alternative to null pointers or special sentinel values. It eliminates the ambiguity of whether a function succeeded or failed, making error handling more explicit and safer.',
-    useCase: 'Ideal for functions that may fail to return a meaningful value (like parsing, searching, or mathematical operations), configuration values that might not be set, and any scenario where you want to avoid exceptions or null pointer issues.'
+    useCase: 'Ideal for functions that may fail to return a meaningful value (like parsing, searching, or mathematical operations), configuration values that might not be set, and any scenario where you want to avoid exceptions or null pointer issues.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/optional'
   },
   {
     id: 'if-constexpr',
@@ -557,7 +816,531 @@ int main() {
     return 0;
 }`,
     explanation: 'if constexpr allows conditional compilation based on compile-time conditions, enabling different code paths without template specialization. Unlike regular if statements, only the matching branch is compiled, preventing compilation errors in unused branches and enabling more efficient generic code.',
-    useCase: 'Essential for writing generic code that behaves differently based on type traits, template parameters, or other compile-time conditions. Perfect for creating type-safe generic algorithms and avoiding the complexity of SFINAE or template specialization.'
+    useCase: 'Essential for writing generic code that behaves differently based on type traits, template parameters, or other compile-time conditions. Perfect for creating type-safe generic algorithms and avoiding the complexity of SFINAE or template specialization.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/if'
+  },
+  {
+    id: 'std-string-view',
+    title: 'std::string_view',
+    standard: 'cpp17',
+    description: 'Non-owning string references for efficient string operations',
+    codeExample: `#include <iostream>
+#include <string>
+#include <string_view>
+#include <vector>
+
+// === BASIC STRING_VIEW USAGE ===
+// Function that accepts any string-like object
+void print_info(std::string_view sv) {
+    std::cout << "String: '" << sv << "'\\n";
+    std::cout << "Length: " << sv.length() << "\\n";
+    std::cout << "Empty: " << (sv.empty() ? "yes" : "no") << "\\n";
+}
+
+// === STRING PARSING WITH STRING_VIEW ===
+std::vector<std::string_view> split(std::string_view str, char delimiter) {
+    std::vector<std::string_view> tokens;
+    size_t start = 0;
+    
+    while (true) {
+        size_t end = str.find(delimiter, start);
+        tokens.push_back(str.substr(start, end - start));
+        
+        if (end == std::string_view::npos) break;
+        start = end + 1;
+    }
+    
+    return tokens;
+}
+
+// === EFFICIENT TEXT PROCESSING ===
+class TextProcessor {
+public:
+    // No copies, works with any string type
+    bool contains_keyword(std::string_view text, std::string_view keyword) {
+        return text.find(keyword) != std::string_view::npos;
+    }
+    
+    // Extract file extension without copying
+    std::string_view get_extension(std::string_view filename) {
+        size_t dot_pos = filename.find_last_of('.');
+        if (dot_pos == std::string_view::npos) {
+            return {}; // Empty string_view
+        }
+        return filename.substr(dot_pos);
+    }
+    
+    // Count words efficiently
+    size_t count_words(std::string_view text) {
+        if (text.empty()) return 0;
+        
+        size_t count = 0;
+        bool in_word = false;
+        
+        for (char c : text) {
+            if (std::isspace(c)) {
+                in_word = false;
+            } else if (!in_word) {
+                in_word = true;
+                ++count;
+            }
+        }
+        return count;
+    }
+};
+
+int main() {
+    // === WORKS WITH DIFFERENT STRING TYPES ===
+    std::string str = "Hello, World!";
+    const char* cstr = "C-style string";
+    char array[] = "Character array";
+    
+    std::cout << "=== String View with Different Types ===\\n";
+    print_info(str);        // std::string
+    print_info(cstr);       // const char*
+    print_info(array);      // char array
+    print_info("literal");  // string literal
+    
+    // === SUBSTRING WITHOUT COPYING ===
+    std::string text = "The quick brown fox jumps over the lazy dog";
+    std::string_view view = text;
+    std::string_view word = view.substr(4, 5); // "quick" - no copy!
+    
+    std::cout << "\\n=== Substring Operations ===\\n";
+    std::cout << "Original: " << text << "\\n";
+    std::cout << "Substring: " << word << "\\n";
+    
+    // === TEXT SPLITTING ===
+    std::cout << "\\n=== Text Splitting ===\\n";
+    std::string csv = "apple,banana,cherry,date";
+    auto tokens = split(csv, ',');
+    
+    std::cout << "CSV tokens: ";
+    for (auto token : tokens) {
+        std::cout << "'" << token << "' ";
+    }
+    std::cout << "\\n";
+    
+    // === TEXT PROCESSING ===
+    std::cout << "\\n=== Text Processing ===\\n";
+    TextProcessor processor;
+    std::string document = "This is a sample document.txt with some content";
+    
+    std::cout << "Contains 'sample': " << processor.contains_keyword(document, "sample") << "\\n";
+    std::cout << "Extension: " << processor.get_extension("document.txt") << "\\n";
+    std::cout << "Word count: " << processor.count_words(document) << "\\n";
+    
+    // === PERFORMANCE COMPARISON DEMONSTRATION ===
+    std::cout << "\\n=== Performance Benefits ===\\n";
+    std::cout << "string_view avoids copies and allocations\\n";
+    std::cout << "Perfect for read-only string operations\\n";
+    std::cout << "Works seamlessly with existing string APIs\\n";
+    
+    return 0;
+}`,
+    explanation: 'std::string_view provides a non-owning reference to a string, allowing efficient string operations without copying data. It can reference any contiguous sequence of characters and provides a read-only view into existing string data.',
+    useCase: 'Perfect for function parameters that only read strings, parsing operations where you need to extract substrings without copying, and APIs that work with multiple string types. Essential for performance-critical code that processes large amounts of text.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/string/basic_string_view'
+  },
+  {
+    id: 'std-variant',
+    title: 'std::variant',
+    standard: 'cpp17',
+    description: 'Type-safe union for holding values of different types',
+    codeExample: `#include <iostream>
+#include <string>
+#include <variant>
+#include <vector>
+
+// === BASIC VARIANT USAGE ===
+using Value = std::variant<int, double, std::string>;
+
+void print_value(const Value& v) {
+    // Using std::visit with a lambda
+    std::visit([](const auto& value) {
+        std::cout << "Value: " << value << " (type: " << typeid(value).name() << ")\\n";
+    }, v);
+}
+
+// === VISITOR PATTERN ===
+struct ValueProcessor {
+    void operator()(int i) const {
+        std::cout << "Processing integer: " << i << "\\n";
+    }
+    
+    void operator()(double d) const {
+        std::cout << "Processing double: " << d << "\\n";
+    }
+    
+    void operator()(const std::string& s) const {
+        std::cout << "Processing string: '" << s << "' (length: " << s.length() << ")\\n";
+    }
+};
+
+// === ERROR HANDLING WITH VARIANT ===
+enum class ErrorType { NetworkError, FileError, ParseError };
+
+using Result = std::variant<std::string, ErrorType>;
+
+Result fetch_data(int id) {
+    if (id < 0) return ErrorType::ParseError;
+    if (id > 1000) return ErrorType::NetworkError;
+    return std::string("Data for ID: " + std::to_string(id));
+}
+
+// === MATHEMATICAL EXPRESSION EVALUATOR ===
+struct Number { double value; };
+struct Add { double left, right; };
+struct Multiply { double left, right; };
+
+using Expression = std::variant<Number, Add, Multiply>;
+
+double evaluate(const Expression& expr) {
+    return std::visit([](const auto& e) -> double {
+        using T = std::decay_t<decltype(e)>;
+        if constexpr (std::is_same_v<T, Number>) {
+            return e.value;
+        } else if constexpr (std::is_same_v<T, Add>) {
+            return e.left + e.right;
+        } else if constexpr (std::is_same_v<T, Multiply>) {
+            return e.left * e.right;
+        }
+    }, expr);
+}
+
+int main() {
+    // === BASIC USAGE ===
+    std::cout << "=== Basic Variant Usage ===\\n";
+    Value v1 = 42;
+    Value v2 = 3.14;
+    Value v3 = std::string("Hello");
+    
+    print_value(v1);
+    print_value(v2);
+    print_value(v3);
+    
+    // === TYPE CHECKING ===
+    std::cout << "\\n=== Type Checking ===\\n";
+    std::cout << "v1 holds int: " << std::holds_alternative<int>(v1) << "\\n";
+    std::cout << "v1 holds string: " << std::holds_alternative<std::string>(v1) << "\\n";
+    std::cout << "Current index of v2: " << v2.index() << "\\n";
+    
+    // === ACCESSING VALUES ===
+    std::cout << "\\n=== Accessing Values ===\\n";
+    try {
+        int val = std::get<int>(v1);
+        std::cout << "Got int value: " << val << "\\n";
+        
+        // This will throw std::bad_variant_access
+        // std::string bad = std::get<std::string>(v1);
+    } catch (const std::bad_variant_access& e) {
+        std::cout << "Bad variant access: " << e.what() << "\\n";
+    }
+    
+    // Safe access with get_if
+    if (auto ptr = std::get_if<double>(&v2)) {
+        std::cout << "Safely got double: " << *ptr << "\\n";
+    }
+    
+    // === VISITOR PATTERN ===
+    std::cout << "\\n=== Visitor Pattern ===\\n";
+    std::visit(ValueProcessor{}, v1);
+    std::visit(ValueProcessor{}, v2);
+    std::visit(ValueProcessor{}, v3);
+    
+    // === ERROR HANDLING ===
+    std::cout << "\\n=== Error Handling ===\\n";
+    auto results = {fetch_data(42), fetch_data(-1), fetch_data(1500)};
+    
+    for (const auto& result : results) {
+        std::visit([](const auto& r) {
+            using T = std::decay_t<decltype(r)>;
+            if constexpr (std::is_same_v<T, std::string>) {
+                std::cout << "Success: " << r << "\\n";
+            } else {
+                std::cout << "Error occurred (type: " << static_cast<int>(r) << ")\\n";
+            }
+        }, result);
+    }
+    
+    // === EXPRESSION EVALUATOR ===
+    std::cout << "\\n=== Expression Evaluator ===\\n";
+    std::vector<Expression> expressions = {
+        Number{5.0},
+        Add{3.0, 4.0},
+        Multiply{2.0, 6.0}
+    };
+    
+    for (const auto& expr : expressions) {
+        std::cout << "Result: " << evaluate(expr) << "\\n";
+    }
+    
+    return 0;
+}`,
+    explanation: 'std::variant is a type-safe union that can hold a value of one of several specified types. It knows which type it currently holds and provides safe access mechanisms. Combined with std::visit, it enables powerful pattern matching and visitor patterns.',
+    useCase: 'Excellent for representing data that can be one of several types (like JSON values), implementing state machines, error handling without exceptions, and building recursive data structures like expression trees or parsers.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/variant'
+  },
+  {
+    id: 'std-any',
+    title: 'std::any',
+    standard: 'cpp17',
+    description: 'Type-safe container for single values of any type',
+    codeExample: `#include <iostream>
+#include <any>
+#include <string>
+#include <vector>
+#include <map>
+#include <typeinfo>
+
+// === BASIC ANY USAGE ===
+void print_any_info(const std::any& a) {
+    if (a.has_value()) {
+        std::cout << "Type: " << a.type().name() << "\\n";
+        std::cout << "Has value: true\\n";
+    } else {
+        std::cout << "Empty std::any\\n";
+    }
+}
+
+// === GENERIC CONTAINER WITH ANY ===
+class PropertyBag {
+private:
+    std::map<std::string, std::any> properties_;
+    
+public:
+    template<typename T>
+    void set(const std::string& key, T&& value) {
+        properties_[key] = std::forward<T>(value);
+    }
+    
+    template<typename T>
+    T get(const std::string& key) const {
+        auto it = properties_.find(key);
+        if (it == properties_.end()) {
+            throw std::runtime_error("Key not found: " + key);
+        }
+        
+        try {
+            return std::any_cast<T>(it->second);
+        } catch (const std::bad_any_cast& e) {
+            throw std::runtime_error("Type mismatch for key: " + key);
+        }
+    }
+    
+    template<typename T>
+    bool try_get(const std::string& key, T& value) const {
+        auto it = properties_.find(key);
+        if (it == properties_.end()) return false;
+        
+        try {
+            value = std::any_cast<T>(it->second);
+            return true;
+        } catch (const std::bad_any_cast&) {
+            return false;
+        }
+    }
+    
+    bool has(const std::string& key) const {
+        return properties_.find(key) != properties_.end();
+    }
+    
+    void remove(const std::string& key) {
+        properties_.erase(key);
+    }
+    
+    void list_properties() const {
+        std::cout << "Properties:\\n";
+        for (const auto& [key, value] : properties_) {
+            std::cout << "  " << key << " -> " << value.type().name() << "\\n";
+        }
+    }
+};
+
+// === EVENT SYSTEM WITH ANY ===
+struct Event {
+    std::string type;
+    std::any data;
+    
+    template<typename T>
+    Event(std::string t, T&& d) : type(std::move(t)), data(std::forward<T>(d)) {}
+    
+    template<typename T>
+    T get_data() const {
+        return std::any_cast<T>(data);
+    }
+    
+    template<typename T>
+    bool try_get_data(T& result) const {
+        try {
+            result = std::any_cast<T>(data);
+            return true;
+        } catch (const std::bad_any_cast&) {
+            return false;
+        }
+    }
+};
+
+class EventHandler {
+public:
+    void handle_event(const Event& event) {
+        std::cout << "Handling event: " << event.type << "\\n";
+        
+        if (event.type == "user_input") {
+            auto input = event.get_data<std::string>();
+            std::cout << "  User typed: " << input << "\\n";
+        } else if (event.type == "mouse_click") {
+            auto pos = event.get_data<std::pair<int, int>>();
+            std::cout << "  Mouse clicked at: (" << pos.first << ", " << pos.second << ")\\n";
+        } else if (event.type == "file_loaded") {
+            auto info = event.get_data<std::pair<std::string, size_t>>();
+            std::cout << "  File loaded: " << info.first << " (" << info.second << " bytes)\\n";
+        }
+    }
+};
+
+// === SCRIPTING/CONFIG SYSTEM ===
+class ConfigValue {
+private:
+    std::any value_;
+    
+public:
+    template<typename T>
+    ConfigValue(T&& val) : value_(std::forward<T>(val)) {}
+    
+    ConfigValue() = default; // Empty config value
+    
+    template<typename T>
+    T as() const {
+        return std::any_cast<T>(value_);
+    }
+    
+    template<typename T>
+    T as_or(T&& default_val) const {
+        try {
+            return std::any_cast<T>(value_);
+        } catch (const std::bad_any_cast&) {
+            return std::forward<T>(default_val);
+        }
+    }
+    
+    bool empty() const { return !value_.has_value(); }
+    std::string type_name() const { return value_.type().name(); }
+    
+    // Conversion operators for common types
+    operator int() const { return as<int>(); }
+    operator double() const { return as<double>(); }
+    operator std::string() const { return as<std::string>(); }
+    operator bool() const { return as<bool>(); }
+};
+
+int main() {
+    // === BASIC ANY USAGE ===
+    std::cout << "=== Basic std::any Usage ===\\n";
+    
+    std::any empty_any;
+    std::any int_any = 42;
+    std::any string_any = std::string("Hello, Any!");
+    std::any vec_any = std::vector<int>{1, 2, 3, 4, 5};
+    
+    print_any_info(empty_any);
+    print_any_info(int_any);
+    print_any_info(string_any);
+    
+    // === TYPE CASTING ===
+    std::cout << "\\n=== Type Casting ===\\n";
+    try {
+        int value = std::any_cast<int>(int_any);
+        std::cout << "Integer value: " << value << "\\n";
+        
+        std::string str = std::any_cast<std::string>(string_any);
+        std::cout << "String value: " << str << "\\n";
+        
+        auto vec = std::any_cast<std::vector<int>>(vec_any);
+        std::cout << "Vector size: " << vec.size() << "\\n";
+        
+        // This will throw std::bad_any_cast
+        // double bad = std::any_cast<double>(int_any);
+    } catch (const std::bad_any_cast& e) {
+        std::cout << "Bad cast: " << e.what() << "\\n";
+    }
+    
+    // === PROPERTY BAG USAGE ===
+    std::cout << "\\n=== Property Bag System ===\\n";
+    PropertyBag config;
+    
+    config.set("width", 1920);
+    config.set("height", 1080);
+    config.set("fullscreen", true);
+    config.set("title", std::string("My Application"));
+    config.set("version", 1.5);
+    
+    config.list_properties();
+    
+    // Retrieve values
+    int width = config.get<int>("width");
+    bool fullscreen = config.get<bool>("fullscreen");
+    std::string title = config.get<std::string>("title");
+    
+    std::cout << "\\nConfiguration:\\n";
+    std::cout << "  Resolution: " << width << "x" << config.get<int>("height") << "\\n";
+    std::cout << "  Fullscreen: " << (fullscreen ? "yes" : "no") << "\\n";
+    std::cout << "  Title: " << title << "\\n";
+    
+    // Safe retrieval
+    double fps;
+    if (config.try_get("fps", fps)) {
+        std::cout << "  FPS: " << fps << "\\n";
+    } else {
+        std::cout << "  FPS: not set\\n";
+    }
+    
+    // === EVENT SYSTEM ===
+    std::cout << "\\n=== Event System ===\\n";
+    EventHandler handler;
+    
+    std::vector<Event> events = {
+        Event("user_input", std::string("Hello World!")),
+        Event("mouse_click", std::make_pair(150, 200)),
+        Event("file_loaded", std::make_pair(std::string("data.txt"), size_t(1024)))
+    };
+    
+    for (const auto& event : events) {
+        handler.handle_event(event);
+    }
+    
+    // === CONFIG SYSTEM ===
+    std::cout << "\\n=== Config System ===\\n";
+    std::map<std::string, ConfigValue> settings = {
+        {"max_connections", 100},
+        {"timeout", 30.5},
+        {"debug_mode", true},
+        {"server_name", std::string("localhost")},
+        {"ports", std::vector<int>{8080, 8443, 9090}}
+    };
+    
+    std::cout << "Settings:\\n";
+    for (const auto& [key, value] : settings) {
+        if (!value.empty()) {
+            std::cout << "  " << key << " (" << value.type_name() << ")\\n";
+        }
+    }
+    
+    // Usage with defaults
+    int max_conn = settings["max_connections"].as_or(50);
+    double timeout = settings["timeout"].as_or(15.0);
+    bool debug = settings["debug_mode"].as_or(false);
+    
+    std::cout << "\\nProcessed settings:\\n";
+    std::cout << "  Max connections: " << max_conn << "\\n";
+    std::cout << "  Timeout: " << timeout << "s\\n";
+    std::cout << "  Debug mode: " << (debug ? "enabled" : "disabled") << "\\n";
+    
+    return 0;
+}`,
+    explanation: 'std::any can hold any type of value and provides type-safe access to the stored value. Unlike std::variant which has a fixed set of possible types, std::any can store any type, making it useful for dynamic typing scenarios, plugin systems, and generic data containers.',
+    useCase: 'Perfect for configuration systems, event handling with diverse payload types, plugin interfaces, scripting language bindings, and any scenario where you need to store and retrieve values of unknown types at compile time.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/any'
   },
 
   // C++20 Features (Enhanced)
@@ -745,7 +1528,8 @@ int main() {
     return 0;
 }`,
     explanation: 'Concepts provide a way to specify requirements on template parameters, making templates more readable and providing better error messages. They allow you to express what operations a type must support, leading to more self-documenting and maintainable generic code.',
-    useCase: 'Essential for creating self-documenting generic code with clear constraints, better compilation errors, and enabling concept-based overloading. Perfect for library development where you need to clearly specify what types are acceptable.'
+    useCase: 'Essential for creating self-documenting generic code with clear constraints, better compilation errors, and enabling concept-based overloading. Perfect for library development where you need to clearly specify what types are acceptable.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/constraints'
   },
   {
     id: 'ranges',
@@ -914,7 +1698,382 @@ int main() {
     return 0;
 }`,
     explanation: 'The Ranges library provides a new way to work with sequences of data using composable views and algorithms. Views are lazy - they don\'t perform computation until you iterate over them, enabling efficient chaining of operations and working with infinite sequences.',
-    useCase: 'Enables functional programming patterns with lazy evaluation, making complex data transformations more readable and efficient. Perfect for data processing pipelines, filtering and transforming collections, and working with large datasets where you only need part of the result.'
+    useCase: 'Enables functional programming patterns with lazy evaluation, making complex data transformations more readable and efficient. Perfect for data processing pipelines, filtering and transforming collections, and working with large datasets where you only need part of the result.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
+  },
+  {
+    id: 'std-span',
+    title: 'std::span',
+    standard: 'cpp20',
+    description: 'Non-owning view over a contiguous sequence of objects',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <array>
+#include <span>
+#include <algorithm>
+
+// === BASIC SPAN USAGE ===
+void print_elements(std::span<const int> data) {
+    std::cout << "Elements: ";
+    for (int value : data) {
+        std::cout << value << " ";
+    }
+    std::cout << " (size: " << data.size() << ")\\n";
+}
+
+// === SPAN WITH DIFFERENT CONTAINERS ===
+void process_data(std::span<int> data) {
+    // Works with any contiguous container
+    std::cout << "Processing " << data.size() << " elements\\n";
+    
+    // Can modify elements (if not const span)
+    for (auto& element : data) {
+        element *= 2;
+    }
+    
+    // Subspan operations
+    if (!data.empty()) {
+        auto first_half = data.first(data.size() / 2);
+        auto second_half = data.last(data.size() / 2);
+        
+        std::cout << "First half size: " << first_half.size() << "\\n";
+        std::cout << "Second half size: " << second_half.size() << "\\n";
+    }
+}
+
+// === MATRIX OPERATIONS WITH SPAN ===
+class Matrix {
+private:
+    std::vector<double> data_;
+    size_t rows_, cols_;
+    
+public:
+    Matrix(size_t rows, size_t cols) : rows_(rows), cols_(cols), data_(rows * cols) {}
+    
+    // Return a span for a specific row
+    std::span<double> row(size_t r) {
+        return std::span(data_).subspan(r * cols_, cols_);
+    }
+    
+    std::span<const double> row(size_t r) const {
+        return std::span(data_).subspan(r * cols_, cols_);
+    }
+    
+    size_t rows() const { return rows_; }
+    size_t cols() const { return cols_; }
+    
+    // Fill matrix with values
+    void fill_sequence() {
+        std::iota(data_.begin(), data_.end(), 1.0);
+    }
+};
+
+void print_matrix_row(std::span<const double> row, size_t row_num) {
+    std::cout << "Row " << row_num << ": ";
+    for (double value : row) {
+        std::cout << value << " ";
+    }
+    std::cout << "\\n";
+}
+
+// === SAFE ARRAY ACCESS ===
+class SafeBuffer {
+private:
+    std::vector<uint8_t> buffer_;
+    
+public:
+    SafeBuffer(size_t size) : buffer_(size) {
+        std::iota(buffer_.begin(), buffer_.end(), 1);
+    }
+    
+    // Return span instead of raw pointer
+    std::span<uint8_t> data() { return buffer_; }
+    std::span<const uint8_t> data() const { return buffer_; }
+    
+    // Safe substring access
+    std::span<const uint8_t> segment(size_t offset, size_t length) const {
+        if (offset >= buffer_.size()) return {};
+        length = std::min(length, buffer_.size() - offset);
+        return std::span(buffer_).subspan(offset, length);
+    }
+};
+
+int main() {
+    // === WORKS WITH DIFFERENT CONTAINER TYPES ===
+    std::cout << "=== Span with Different Containers ===\\n";
+    
+    // C-style array
+    int c_array[] = {1, 2, 3, 4, 5};
+    print_elements(c_array);
+    
+    // std::array
+    std::array<int, 4> std_array = {10, 20, 30, 40};
+    print_elements(std_array);
+    
+    // std::vector
+    std::vector<int> vec = {100, 200, 300, 400, 500, 600};
+    print_elements(vec);
+    
+    // Subset of vector
+    print_elements(std::span(vec).subspan(1, 3)); // Elements at index 1,2,3
+    
+    // === PROCESSING DATA ===
+    std::cout << "\\n=== Data Processing ===\\n";
+    std::vector<int> numbers = {1, 2, 3, 4, 5, 6, 7, 8};
+    std::cout << "Before: ";
+    print_elements(numbers);
+    
+    process_data(numbers);
+    std::cout << "After: ";
+    print_elements(numbers);
+    
+    // === MATRIX EXAMPLE ===
+    std::cout << "\\n=== Matrix Operations ===\\n";
+    Matrix matrix(3, 4);
+    matrix.fill_sequence();
+    
+    for (size_t i = 0; i < matrix.rows(); ++i) {
+        print_matrix_row(matrix.row(i), i);
+    }
+    
+    // Modify a specific row
+    auto row1 = matrix.row(1);
+    std::fill(row1.begin(), row1.end(), 99.0);
+    std::cout << "After modifying row 1:\\n";
+    print_matrix_row(matrix.row(1), 1);
+    
+    // === SAFE BUFFER ACCESS ===
+    std::cout << "\\n=== Safe Buffer Access ===\\n";
+    SafeBuffer buffer(10);
+    
+    auto full_data = buffer.data();
+    std::cout << "Full buffer: ";
+    for (auto byte : full_data) {
+        std::cout << static_cast<int>(byte) << " ";
+    }
+    std::cout << "\\n";
+    
+    auto segment = buffer.segment(3, 4);
+    std::cout << "Segment [3:7): ";
+    for (auto byte : segment) {
+        std::cout << static_cast<int>(byte) << " ";
+    }
+    std::cout << "\\n";
+    
+    // === SPAN PROPERTIES ===
+    std::cout << "\\n=== Span Properties ===\\n";
+    std::cout << "Span is lightweight (size: " << sizeof(std::span<int>) << " bytes)\\n";
+    std::cout << "No memory allocation or copying\\n";
+    std::cout << "Type-safe and bounds-aware\\n";
+    
+    return 0;
+}`,
+    explanation: 'std::span provides a non-owning view over a contiguous sequence of objects, similar to string_view but for any type. It encapsulates a pointer and size, providing safe access to arrays, vectors, and other contiguous containers without owning the memory.',
+    useCase: 'Perfect for function parameters that work with any contiguous container, safe array manipulation, implementing views over data structures (like matrix rows), and avoiding raw pointer parameters in APIs while maintaining performance.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/container/span'
+  },
+  {
+    id: 'consteval',
+    title: 'consteval',
+    standard: 'cpp20',
+    description: 'Immediate functions that must be evaluated at compile time',
+    codeExample: `#include <iostream>
+#include <string_view>
+#include <array>
+
+// === BASIC CONSTEVAL FUNCTIONS ===
+// consteval functions MUST be evaluated at compile time
+consteval int factorial(int n) {
+    if (n < 0) throw "Negative factorial not supported";
+    return (n <= 1) ? 1 : n * factorial(n - 1);
+}
+
+consteval double power_of_two(int exp) {
+    if (exp < 0) throw "Negative exponent not supported";
+    double result = 1.0;
+    for (int i = 0; i < exp; ++i) {
+        result *= 2.0;
+    }
+    return result;
+}
+
+// === COMPILE-TIME STRING PROCESSING ===
+consteval size_t string_length(const char* str) {
+    size_t len = 0;
+    while (str[len] != '\\0') {
+        ++len;
+    }
+    return len;
+}
+
+consteval bool is_palindrome(std::string_view str) {
+    if (str.empty()) return true;
+    
+    size_t left = 0;
+    size_t right = str.length() - 1;
+    
+    while (left < right) {
+        if (str[left] != str[right]) {
+            return false;
+        }
+        ++left;
+        --right;
+    }
+    return true;
+}
+
+// === COMPILE-TIME CONFIGURATION ===
+enum class BuildType { Debug, Release, Test };
+
+consteval BuildType get_build_type() {
+    #ifdef DEBUG
+        return BuildType::Debug;
+    #elif defined(TEST)
+        return BuildType::Test;
+    #else
+        return BuildType::Release;
+    #endif
+}
+
+consteval const char* get_build_name() {
+    switch (get_build_type()) {
+        case BuildType::Debug: return "Debug Build";
+        case BuildType::Release: return "Release Build";
+        case BuildType::Test: return "Test Build";
+    }
+}
+
+// === COMPILE-TIME VALIDATION ===
+template<size_t N>
+consteval std::array<int, N> generate_fibonacci() {
+    static_assert(N > 0, "Array size must be positive");
+    
+    std::array<int, N> result{};
+    if (N >= 1) result[0] = 0;
+    if (N >= 2) result[1] = 1;
+    
+    for (size_t i = 2; i < N; ++i) {
+        result[i] = result[i-1] + result[i-2];
+    }
+    return result;
+}
+
+consteval bool is_power_of_two(size_t n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+
+// Template that only accepts power-of-two sizes
+template<size_t Size>
+    requires is_power_of_two(Size)
+class PowerOfTwoBuffer {
+private:
+    std::array<int, Size> data_{};
+    
+public:
+    constexpr size_t size() const { return Size; }
+    constexpr size_t capacity() const { return Size; }
+    
+    constexpr int& operator[](size_t index) { return data_[index]; }
+    constexpr const int& operator[](size_t index) const { return data_[index]; }
+};
+
+// === COMPILE-TIME HASH FUNCTION ===
+consteval size_t compile_time_hash(std::string_view str) {
+    size_t hash = 5381;
+    for (char c : str) {
+        hash = ((hash << 5) + hash) + c;
+    }
+    return hash;
+}
+
+// === CONSTEVAL VS CONSTEXPR DEMONSTRATION ===
+constexpr int constexpr_func(int n) {
+    // Can be evaluated at compile time OR runtime
+    return n * n;
+}
+
+consteval int consteval_func(int n) {
+    // MUST be evaluated at compile time
+    return n * n * n;
+}
+
+int main() {
+    // === COMPILE-TIME CALCULATIONS ===
+    std::cout << "=== Compile-Time Calculations ===\\n";
+    
+    // These are all computed at compile time
+    constexpr int fact5 = factorial(5);
+    constexpr double pow2_10 = power_of_two(10);
+    constexpr size_t hello_len = string_length("Hello, World!");
+    
+    std::cout << "factorial(5) = " << fact5 << "\\n";
+    std::cout << "2^10 = " << pow2_10 << "\\n";
+    std::cout << "Length of 'Hello, World!' = " << hello_len << "\\n";
+    
+    // === COMPILE-TIME STRING VALIDATION ===
+    std::cout << "\\n=== Compile-Time String Validation ===\\n";
+    constexpr bool is_racecar = is_palindrome("racecar");
+    constexpr bool is_hello = is_palindrome("hello");
+    
+    std::cout << "'racecar' is palindrome: " << is_racecar << "\\n";
+    std::cout << "'hello' is palindrome: " << is_hello << "\\n";
+    
+    // === BUILD CONFIGURATION ===
+    std::cout << "\\n=== Build Configuration ===\\n";
+    std::cout << "Build type: " << get_build_name() << "\\n";
+    
+    // === COMPILE-TIME DATA STRUCTURES ===
+    std::cout << "\\n=== Compile-Time Data Structures ===\\n";
+    constexpr auto fib_sequence = generate_fibonacci<10>();
+    
+    std::cout << "First 10 Fibonacci numbers: ";
+    for (int num : fib_sequence) {
+        std::cout << num << " ";
+    }
+    std::cout << "\\n";
+    
+    // === CONSTEVAL CONSTRAINTS ===
+    std::cout << "\\n=== Consteval Constraints ===\\n";
+    
+    // These work - power of two sizes
+    PowerOfTwoBuffer<8> buffer8;     // 8 is 2^3
+    PowerOfTwoBuffer<16> buffer16;   // 16 is 2^4
+    
+    // This would cause compilation error:
+    // PowerOfTwoBuffer<10> buffer10;  // 10 is not a power of 2
+    
+    std::cout << "PowerOfTwoBuffer<8> size: " << buffer8.size() << "\\n";
+    std::cout << "PowerOfTwoBuffer<16> size: " << buffer16.size() << "\\n";
+    
+    // === COMPILE-TIME HASH ===
+    std::cout << "\\n=== Compile-Time Hash ===\\n";
+    constexpr size_t hash1 = compile_time_hash("Hello");
+    constexpr size_t hash2 = compile_time_hash("World");
+    
+    std::cout << "Hash of 'Hello': " << hash1 << "\\n";
+    std::cout << "Hash of 'World': " << hash2 << "\\n";
+    
+    // === CONSTEVAL VS CONSTEXPR ===
+    std::cout << "\\n=== consteval vs constexpr ===\\n";
+    
+    // Both can be used at compile time
+    constexpr int ce1 = constexpr_func(5);  // Compile time
+    constexpr int ce2 = consteval_func(5);  // Compile time (required)
+    
+    // Only constexpr can be used at runtime
+    int runtime_val = 7;
+    int ce3 = constexpr_func(runtime_val);   // Runtime evaluation OK
+    // int ce4 = consteval_func(runtime_val);  // ERROR: must be compile time
+    
+    std::cout << "constexpr_func(5) = " << ce1 << "\\n";
+    std::cout << "consteval_func(5) = " << ce2 << "\\n";
+    std::cout << "constexpr_func(runtime_val) = " << ce3 << "\\n";
+    
+    return 0;
+}`,
+    explanation: 'consteval declares immediate functions that must be evaluated at compile time. Unlike constexpr functions that can run at either compile time or runtime, consteval functions are guaranteed to execute during compilation, making them perfect for compile-time computations and validation.',
+    useCase: 'Essential for compile-time configuration, validation of template parameters, generating compile-time constants, implementing compile-time parsers or DSLs, and ensuring certain computations never impact runtime performance.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/consteval'
   },
 
   // C++23 Features (Enhanced)
@@ -1170,7 +2329,8 @@ int main() {
     return 0;
 }`,
     explanation: 'std::expected provides a type-safe way to handle operations that can fail, containing either a value or an error. Unlike exceptions, errors are part of the type system, making error handling explicit and allowing you to know exactly what can go wrong and why.',
-    useCase: 'Perfect for error handling in systems where exceptions are not desired, APIs that can fail in predictable ways, parsing operations, file I/O, network operations, and any scenario where you want explicit, type-safe error handling with detailed error information.'
+    useCase: 'Perfect for error handling in systems where exceptions are not desired, APIs that can fail in predictable ways, parsing operations, file I/O, network operations, and any scenario where you want explicit, type-safe error handling with detailed error information.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/expected'
   },
   {
     id: 'ranges-to',
@@ -1195,7 +2355,8 @@ int main() {
     return 0;
 }`,
     explanation: 'std::ranges::to provides a convenient way to materialize range views into concrete containers. This eliminates the need for manual iteration or using algorithms like std::copy to convert lazy range views into actual container objects.',
-    useCase: `Essential for converting the result of range operations into specific container types for storage, further processing, or API compatibility. Perfect for data processing pipelines where you need the final result in a particular container format, and for performance-critical code where you want to minimize intermediate allocations.`
+    useCase: `Essential for converting the result of range operations into specific container types for storage, further processing, or API compatibility. Perfect for data processing pipelines where you need the final result in a particular container format, and for performance-critical code where you want to minimize intermediate allocations.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
   },
 
   // === TEMPLATE METAPROGRAMMING FEATURES ===
