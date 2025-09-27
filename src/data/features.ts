@@ -565,6 +565,268 @@ int main() {
     useCase: 'Essential for writing generic code that behaves differently based on type traits, template parameters, or other compile-time conditions. Perfect for creating type-safe generic algorithms and avoiding the complexity of SFINAE or template specialization.',
     referenceUrl: 'https://en.cppreference.com/w/cpp/language/if'
   },
+  {
+    id: 'std-string-view',
+    title: 'std::string_view',
+    standard: 'cpp17',
+    description: 'Non-owning string references for efficient string operations',
+    codeExample: `#include <iostream>
+#include <string>
+#include <string_view>
+#include <vector>
+
+// === BASIC STRING_VIEW USAGE ===
+// Function that accepts any string-like object
+void print_info(std::string_view sv) {
+    std::cout << "String: '" << sv << "'\\n";
+    std::cout << "Length: " << sv.length() << "\\n";
+    std::cout << "Empty: " << (sv.empty() ? "yes" : "no") << "\\n";
+}
+
+// === STRING PARSING WITH STRING_VIEW ===
+std::vector<std::string_view> split(std::string_view str, char delimiter) {
+    std::vector<std::string_view> tokens;
+    size_t start = 0;
+    
+    while (true) {
+        size_t end = str.find(delimiter, start);
+        tokens.push_back(str.substr(start, end - start));
+        
+        if (end == std::string_view::npos) break;
+        start = end + 1;
+    }
+    
+    return tokens;
+}
+
+// === EFFICIENT TEXT PROCESSING ===
+class TextProcessor {
+public:
+    // No copies, works with any string type
+    bool contains_keyword(std::string_view text, std::string_view keyword) {
+        return text.find(keyword) != std::string_view::npos;
+    }
+    
+    // Extract file extension without copying
+    std::string_view get_extension(std::string_view filename) {
+        size_t dot_pos = filename.find_last_of('.');
+        if (dot_pos == std::string_view::npos) {
+            return {}; // Empty string_view
+        }
+        return filename.substr(dot_pos);
+    }
+    
+    // Count words efficiently
+    size_t count_words(std::string_view text) {
+        if (text.empty()) return 0;
+        
+        size_t count = 0;
+        bool in_word = false;
+        
+        for (char c : text) {
+            if (std::isspace(c)) {
+                in_word = false;
+            } else if (!in_word) {
+                in_word = true;
+                ++count;
+            }
+        }
+        return count;
+    }
+};
+
+int main() {
+    // === WORKS WITH DIFFERENT STRING TYPES ===
+    std::string str = "Hello, World!";
+    const char* cstr = "C-style string";
+    char array[] = "Character array";
+    
+    std::cout << "=== String View with Different Types ===\\n";
+    print_info(str);        // std::string
+    print_info(cstr);       // const char*
+    print_info(array);      // char array
+    print_info("literal");  // string literal
+    
+    // === SUBSTRING WITHOUT COPYING ===
+    std::string text = "The quick brown fox jumps over the lazy dog";
+    std::string_view view = text;
+    std::string_view word = view.substr(4, 5); // "quick" - no copy!
+    
+    std::cout << "\\n=== Substring Operations ===\\n";
+    std::cout << "Original: " << text << "\\n";
+    std::cout << "Substring: " << word << "\\n";
+    
+    // === TEXT SPLITTING ===
+    std::cout << "\\n=== Text Splitting ===\\n";
+    std::string csv = "apple,banana,cherry,date";
+    auto tokens = split(csv, ',');
+    
+    std::cout << "CSV tokens: ";
+    for (auto token : tokens) {
+        std::cout << "'" << token << "' ";
+    }
+    std::cout << "\\n";
+    
+    // === TEXT PROCESSING ===
+    std::cout << "\\n=== Text Processing ===\\n";
+    TextProcessor processor;
+    std::string document = "This is a sample document.txt with some content";
+    
+    std::cout << "Contains 'sample': " << processor.contains_keyword(document, "sample") << "\\n";
+    std::cout << "Extension: " << processor.get_extension("document.txt") << "\\n";
+    std::cout << "Word count: " << processor.count_words(document) << "\\n";
+    
+    // === PERFORMANCE COMPARISON DEMONSTRATION ===
+    std::cout << "\\n=== Performance Benefits ===\\n";
+    std::cout << "string_view avoids copies and allocations\\n";
+    std::cout << "Perfect for read-only string operations\\n";
+    std::cout << "Works seamlessly with existing string APIs\\n";
+    
+    return 0;
+}`,
+    explanation: 'std::string_view provides a non-owning reference to a string, allowing efficient string operations without copying data. It can reference any contiguous sequence of characters and provides a read-only view into existing string data.',
+    useCase: 'Perfect for function parameters that only read strings, parsing operations where you need to extract substrings without copying, and APIs that work with multiple string types. Essential for performance-critical code that processes large amounts of text.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/string/basic_string_view'
+  },
+  {
+    id: 'std-variant',
+    title: 'std::variant',
+    standard: 'cpp17',
+    description: 'Type-safe union for holding values of different types',
+    codeExample: `#include <iostream>
+#include <string>
+#include <variant>
+#include <vector>
+
+// === BASIC VARIANT USAGE ===
+using Value = std::variant<int, double, std::string>;
+
+void print_value(const Value& v) {
+    // Using std::visit with a lambda
+    std::visit([](const auto& value) {
+        std::cout << "Value: " << value << " (type: " << typeid(value).name() << ")\\n";
+    }, v);
+}
+
+// === VISITOR PATTERN ===
+struct ValueProcessor {
+    void operator()(int i) const {
+        std::cout << "Processing integer: " << i << "\\n";
+    }
+    
+    void operator()(double d) const {
+        std::cout << "Processing double: " << d << "\\n";
+    }
+    
+    void operator()(const std::string& s) const {
+        std::cout << "Processing string: '" << s << "' (length: " << s.length() << ")\\n";
+    }
+};
+
+// === ERROR HANDLING WITH VARIANT ===
+enum class ErrorType { NetworkError, FileError, ParseError };
+
+using Result = std::variant<std::string, ErrorType>;
+
+Result fetch_data(int id) {
+    if (id < 0) return ErrorType::ParseError;
+    if (id > 1000) return ErrorType::NetworkError;
+    return std::string("Data for ID: " + std::to_string(id));
+}
+
+// === MATHEMATICAL EXPRESSION EVALUATOR ===
+struct Number { double value; };
+struct Add { double left, right; };
+struct Multiply { double left, right; };
+
+using Expression = std::variant<Number, Add, Multiply>;
+
+double evaluate(const Expression& expr) {
+    return std::visit([](const auto& e) -> double {
+        using T = std::decay_t<decltype(e)>;
+        if constexpr (std::is_same_v<T, Number>) {
+            return e.value;
+        } else if constexpr (std::is_same_v<T, Add>) {
+            return e.left + e.right;
+        } else if constexpr (std::is_same_v<T, Multiply>) {
+            return e.left * e.right;
+        }
+    }, expr);
+}
+
+int main() {
+    // === BASIC USAGE ===
+    std::cout << "=== Basic Variant Usage ===\\n";
+    Value v1 = 42;
+    Value v2 = 3.14;
+    Value v3 = std::string("Hello");
+    
+    print_value(v1);
+    print_value(v2);
+    print_value(v3);
+    
+    // === TYPE CHECKING ===
+    std::cout << "\\n=== Type Checking ===\\n";
+    std::cout << "v1 holds int: " << std::holds_alternative<int>(v1) << "\\n";
+    std::cout << "v1 holds string: " << std::holds_alternative<std::string>(v1) << "\\n";
+    std::cout << "Current index of v2: " << v2.index() << "\\n";
+    
+    // === ACCESSING VALUES ===
+    std::cout << "\\n=== Accessing Values ===\\n";
+    try {
+        int val = std::get<int>(v1);
+        std::cout << "Got int value: " << val << "\\n";
+        
+        // This will throw std::bad_variant_access
+        // std::string bad = std::get<std::string>(v1);
+    } catch (const std::bad_variant_access& e) {
+        std::cout << "Bad variant access: " << e.what() << "\\n";
+    }
+    
+    // Safe access with get_if
+    if (auto ptr = std::get_if<double>(&v2)) {
+        std::cout << "Safely got double: " << *ptr << "\\n";
+    }
+    
+    // === VISITOR PATTERN ===
+    std::cout << "\\n=== Visitor Pattern ===\\n";
+    std::visit(ValueProcessor{}, v1);
+    std::visit(ValueProcessor{}, v2);
+    std::visit(ValueProcessor{}, v3);
+    
+    // === ERROR HANDLING ===
+    std::cout << "\\n=== Error Handling ===\\n";
+    auto results = {fetch_data(42), fetch_data(-1), fetch_data(1500)};
+    
+    for (const auto& result : results) {
+        std::visit([](const auto& r) {
+            using T = std::decay_t<decltype(r)>;
+            if constexpr (std::is_same_v<T, std::string>) {
+                std::cout << "Success: " << r << "\\n";
+            } else {
+                std::cout << "Error occurred (type: " << static_cast<int>(r) << ")\\n";
+            }
+        }, result);
+    }
+    
+    // === EXPRESSION EVALUATOR ===
+    std::cout << "\\n=== Expression Evaluator ===\\n";
+    std::vector<Expression> expressions = {
+        Number{5.0},
+        Add{3.0, 4.0},
+        Multiply{2.0, 6.0}
+    };
+    
+    for (const auto& expr : expressions) {
+        std::cout << "Result: " << evaluate(expr) << "\\n";
+    }
+    
+    return 0;
+}`,
+    explanation: 'std::variant is a type-safe union that can hold a value of one of several specified types. It knows which type it currently holds and provides safe access mechanisms. Combined with std::visit, it enables powerful pattern matching and visitor patterns.',
+    useCase: 'Excellent for representing data that can be one of several types (like JSON values), implementing state machines, error handling without exceptions, and building recursive data structures like expression trees or parsers.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/variant'
+  },
 
   // C++20 Features (Enhanced)
   {
@@ -923,6 +1185,380 @@ int main() {
     explanation: 'The Ranges library provides a new way to work with sequences of data using composable views and algorithms. Views are lazy - they don\'t perform computation until you iterate over them, enabling efficient chaining of operations and working with infinite sequences.',
     useCase: 'Enables functional programming patterns with lazy evaluation, making complex data transformations more readable and efficient. Perfect for data processing pipelines, filtering and transforming collections, and working with large datasets where you only need part of the result.',
     referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
+  },
+  {
+    id: 'std-span',
+    title: 'std::span',
+    standard: 'cpp20',
+    description: 'Non-owning view over a contiguous sequence of objects',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <array>
+#include <span>
+#include <algorithm>
+
+// === BASIC SPAN USAGE ===
+void print_elements(std::span<const int> data) {
+    std::cout << "Elements: ";
+    for (int value : data) {
+        std::cout << value << " ";
+    }
+    std::cout << " (size: " << data.size() << ")\\n";
+}
+
+// === SPAN WITH DIFFERENT CONTAINERS ===
+void process_data(std::span<int> data) {
+    // Works with any contiguous container
+    std::cout << "Processing " << data.size() << " elements\\n";
+    
+    // Can modify elements (if not const span)
+    for (auto& element : data) {
+        element *= 2;
+    }
+    
+    // Subspan operations
+    if (!data.empty()) {
+        auto first_half = data.first(data.size() / 2);
+        auto second_half = data.last(data.size() / 2);
+        
+        std::cout << "First half size: " << first_half.size() << "\\n";
+        std::cout << "Second half size: " << second_half.size() << "\\n";
+    }
+}
+
+// === MATRIX OPERATIONS WITH SPAN ===
+class Matrix {
+private:
+    std::vector<double> data_;
+    size_t rows_, cols_;
+    
+public:
+    Matrix(size_t rows, size_t cols) : rows_(rows), cols_(cols), data_(rows * cols) {}
+    
+    // Return a span for a specific row
+    std::span<double> row(size_t r) {
+        return std::span(data_).subspan(r * cols_, cols_);
+    }
+    
+    std::span<const double> row(size_t r) const {
+        return std::span(data_).subspan(r * cols_, cols_);
+    }
+    
+    size_t rows() const { return rows_; }
+    size_t cols() const { return cols_; }
+    
+    // Fill matrix with values
+    void fill_sequence() {
+        std::iota(data_.begin(), data_.end(), 1.0);
+    }
+};
+
+void print_matrix_row(std::span<const double> row, size_t row_num) {
+    std::cout << "Row " << row_num << ": ";
+    for (double value : row) {
+        std::cout << value << " ";
+    }
+    std::cout << "\\n";
+}
+
+// === SAFE ARRAY ACCESS ===
+class SafeBuffer {
+private:
+    std::vector<uint8_t> buffer_;
+    
+public:
+    SafeBuffer(size_t size) : buffer_(size) {
+        std::iota(buffer_.begin(), buffer_.end(), 1);
+    }
+    
+    // Return span instead of raw pointer
+    std::span<uint8_t> data() { return buffer_; }
+    std::span<const uint8_t> data() const { return buffer_; }
+    
+    // Safe substring access
+    std::span<const uint8_t> segment(size_t offset, size_t length) const {
+        if (offset >= buffer_.size()) return {};
+        length = std::min(length, buffer_.size() - offset);
+        return std::span(buffer_).subspan(offset, length);
+    }
+};
+
+int main() {
+    // === WORKS WITH DIFFERENT CONTAINER TYPES ===
+    std::cout << "=== Span with Different Containers ===\\n";
+    
+    // C-style array
+    int c_array[] = {1, 2, 3, 4, 5};
+    print_elements(c_array);
+    
+    // std::array
+    std::array<int, 4> std_array = {10, 20, 30, 40};
+    print_elements(std_array);
+    
+    // std::vector
+    std::vector<int> vec = {100, 200, 300, 400, 500, 600};
+    print_elements(vec);
+    
+    // Subset of vector
+    print_elements(std::span(vec).subspan(1, 3)); // Elements at index 1,2,3
+    
+    // === PROCESSING DATA ===
+    std::cout << "\\n=== Data Processing ===\\n";
+    std::vector<int> numbers = {1, 2, 3, 4, 5, 6, 7, 8};
+    std::cout << "Before: ";
+    print_elements(numbers);
+    
+    process_data(numbers);
+    std::cout << "After: ";
+    print_elements(numbers);
+    
+    // === MATRIX EXAMPLE ===
+    std::cout << "\\n=== Matrix Operations ===\\n";
+    Matrix matrix(3, 4);
+    matrix.fill_sequence();
+    
+    for (size_t i = 0; i < matrix.rows(); ++i) {
+        print_matrix_row(matrix.row(i), i);
+    }
+    
+    // Modify a specific row
+    auto row1 = matrix.row(1);
+    std::fill(row1.begin(), row1.end(), 99.0);
+    std::cout << "After modifying row 1:\\n";
+    print_matrix_row(matrix.row(1), 1);
+    
+    // === SAFE BUFFER ACCESS ===
+    std::cout << "\\n=== Safe Buffer Access ===\\n";
+    SafeBuffer buffer(10);
+    
+    auto full_data = buffer.data();
+    std::cout << "Full buffer: ";
+    for (auto byte : full_data) {
+        std::cout << static_cast<int>(byte) << " ";
+    }
+    std::cout << "\\n";
+    
+    auto segment = buffer.segment(3, 4);
+    std::cout << "Segment [3:7): ";
+    for (auto byte : segment) {
+        std::cout << static_cast<int>(byte) << " ";
+    }
+    std::cout << "\\n";
+    
+    // === SPAN PROPERTIES ===
+    std::cout << "\\n=== Span Properties ===\\n";
+    std::cout << "Span is lightweight (size: " << sizeof(std::span<int>) << " bytes)\\n";
+    std::cout << "No memory allocation or copying\\n";
+    std::cout << "Type-safe and bounds-aware\\n";
+    
+    return 0;
+}`,
+    explanation: 'std::span provides a non-owning view over a contiguous sequence of objects, similar to string_view but for any type. It encapsulates a pointer and size, providing safe access to arrays, vectors, and other contiguous containers without owning the memory.',
+    useCase: 'Perfect for function parameters that work with any contiguous container, safe array manipulation, implementing views over data structures (like matrix rows), and avoiding raw pointer parameters in APIs while maintaining performance.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/container/span'
+  },
+  {
+    id: 'consteval',
+    title: 'consteval',
+    standard: 'cpp20',
+    description: 'Immediate functions that must be evaluated at compile time',
+    codeExample: `#include <iostream>
+#include <string_view>
+#include <array>
+
+// === BASIC CONSTEVAL FUNCTIONS ===
+// consteval functions MUST be evaluated at compile time
+consteval int factorial(int n) {
+    if (n < 0) throw "Negative factorial not supported";
+    return (n <= 1) ? 1 : n * factorial(n - 1);
+}
+
+consteval double power_of_two(int exp) {
+    if (exp < 0) throw "Negative exponent not supported";
+    double result = 1.0;
+    for (int i = 0; i < exp; ++i) {
+        result *= 2.0;
+    }
+    return result;
+}
+
+// === COMPILE-TIME STRING PROCESSING ===
+consteval size_t string_length(const char* str) {
+    size_t len = 0;
+    while (str[len] != '\\0') {
+        ++len;
+    }
+    return len;
+}
+
+consteval bool is_palindrome(std::string_view str) {
+    if (str.empty()) return true;
+    
+    size_t left = 0;
+    size_t right = str.length() - 1;
+    
+    while (left < right) {
+        if (str[left] != str[right]) {
+            return false;
+        }
+        ++left;
+        --right;
+    }
+    return true;
+}
+
+// === COMPILE-TIME CONFIGURATION ===
+enum class BuildType { Debug, Release, Test };
+
+consteval BuildType get_build_type() {
+    #ifdef DEBUG
+        return BuildType::Debug;
+    #elif defined(TEST)
+        return BuildType::Test;
+    #else
+        return BuildType::Release;
+    #endif
+}
+
+consteval const char* get_build_name() {
+    switch (get_build_type()) {
+        case BuildType::Debug: return "Debug Build";
+        case BuildType::Release: return "Release Build";
+        case BuildType::Test: return "Test Build";
+    }
+}
+
+// === COMPILE-TIME VALIDATION ===
+template<size_t N>
+consteval std::array<int, N> generate_fibonacci() {
+    static_assert(N > 0, "Array size must be positive");
+    
+    std::array<int, N> result{};
+    if (N >= 1) result[0] = 0;
+    if (N >= 2) result[1] = 1;
+    
+    for (size_t i = 2; i < N; ++i) {
+        result[i] = result[i-1] + result[i-2];
+    }
+    return result;
+}
+
+consteval bool is_power_of_two(size_t n) {
+    return n > 0 && (n & (n - 1)) == 0;
+}
+
+// Template that only accepts power-of-two sizes
+template<size_t Size>
+    requires is_power_of_two(Size)
+class PowerOfTwoBuffer {
+private:
+    std::array<int, Size> data_{};
+    
+public:
+    constexpr size_t size() const { return Size; }
+    constexpr size_t capacity() const { return Size; }
+    
+    constexpr int& operator[](size_t index) { return data_[index]; }
+    constexpr const int& operator[](size_t index) const { return data_[index]; }
+};
+
+// === COMPILE-TIME HASH FUNCTION ===
+consteval size_t compile_time_hash(std::string_view str) {
+    size_t hash = 5381;
+    for (char c : str) {
+        hash = ((hash << 5) + hash) + c;
+    }
+    return hash;
+}
+
+// === CONSTEVAL VS CONSTEXPR DEMONSTRATION ===
+constexpr int constexpr_func(int n) {
+    // Can be evaluated at compile time OR runtime
+    return n * n;
+}
+
+consteval int consteval_func(int n) {
+    // MUST be evaluated at compile time
+    return n * n * n;
+}
+
+int main() {
+    // === COMPILE-TIME CALCULATIONS ===
+    std::cout << "=== Compile-Time Calculations ===\\n";
+    
+    // These are all computed at compile time
+    constexpr int fact5 = factorial(5);
+    constexpr double pow2_10 = power_of_two(10);
+    constexpr size_t hello_len = string_length("Hello, World!");
+    
+    std::cout << "factorial(5) = " << fact5 << "\\n";
+    std::cout << "2^10 = " << pow2_10 << "\\n";
+    std::cout << "Length of 'Hello, World!' = " << hello_len << "\\n";
+    
+    // === COMPILE-TIME STRING VALIDATION ===
+    std::cout << "\\n=== Compile-Time String Validation ===\\n";
+    constexpr bool is_racecar = is_palindrome("racecar");
+    constexpr bool is_hello = is_palindrome("hello");
+    
+    std::cout << "'racecar' is palindrome: " << is_racecar << "\\n";
+    std::cout << "'hello' is palindrome: " << is_hello << "\\n";
+    
+    // === BUILD CONFIGURATION ===
+    std::cout << "\\n=== Build Configuration ===\\n";
+    std::cout << "Build type: " << get_build_name() << "\\n";
+    
+    // === COMPILE-TIME DATA STRUCTURES ===
+    std::cout << "\\n=== Compile-Time Data Structures ===\\n";
+    constexpr auto fib_sequence = generate_fibonacci<10>();
+    
+    std::cout << "First 10 Fibonacci numbers: ";
+    for (int num : fib_sequence) {
+        std::cout << num << " ";
+    }
+    std::cout << "\\n";
+    
+    // === CONSTEVAL CONSTRAINTS ===
+    std::cout << "\\n=== Consteval Constraints ===\\n";
+    
+    // These work - power of two sizes
+    PowerOfTwoBuffer<8> buffer8;     // 8 is 2^3
+    PowerOfTwoBuffer<16> buffer16;   // 16 is 2^4
+    
+    // This would cause compilation error:
+    // PowerOfTwoBuffer<10> buffer10;  // 10 is not a power of 2
+    
+    std::cout << "PowerOfTwoBuffer<8> size: " << buffer8.size() << "\\n";
+    std::cout << "PowerOfTwoBuffer<16> size: " << buffer16.size() << "\\n";
+    
+    // === COMPILE-TIME HASH ===
+    std::cout << "\\n=== Compile-Time Hash ===\\n";
+    constexpr size_t hash1 = compile_time_hash("Hello");
+    constexpr size_t hash2 = compile_time_hash("World");
+    
+    std::cout << "Hash of 'Hello': " << hash1 << "\\n";
+    std::cout << "Hash of 'World': " << hash2 << "\\n";
+    
+    // === CONSTEVAL VS CONSTEXPR ===
+    std::cout << "\\n=== consteval vs constexpr ===\\n";
+    
+    // Both can be used at compile time
+    constexpr int ce1 = constexpr_func(5);  // Compile time
+    constexpr int ce2 = consteval_func(5);  // Compile time (required)
+    
+    // Only constexpr can be used at runtime
+    int runtime_val = 7;
+    int ce3 = constexpr_func(runtime_val);   // Runtime evaluation OK
+    // int ce4 = consteval_func(runtime_val);  // ERROR: must be compile time
+    
+    std::cout << "constexpr_func(5) = " << ce1 << "\\n";
+    std::cout << "consteval_func(5) = " << ce2 << "\\n";
+    std::cout << "constexpr_func(runtime_val) = " << ce3 << "\\n";
+    
+    return 0;
+}`,
+    explanation: 'consteval declares immediate functions that must be evaluated at compile time. Unlike constexpr functions that can run at either compile time or runtime, consteval functions are guaranteed to execute during compilation, making them perfect for compile-time computations and validation.',
+    useCase: 'Essential for compile-time configuration, validation of template parameters, generating compile-time constants, implementing compile-time parsers or DSLs, and ensuring certain computations never impact runtime performance.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/consteval'
   },
 
   // C++23 Features (Enhanced)
