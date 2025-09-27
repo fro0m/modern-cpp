@@ -1675,5 +1675,1696 @@ int main() {
     ],
     feature: 'variadic-templates',
     relatedTheory: 'variadic-templates'
+  },
+
+  // === C++20 MODULES EXERCISES ===
+  {
+    id: 'modules-basic-exercise',
+    title: 'Basic Module Creation and Usage',
+    standard: 'cpp20',
+    difficulty: 'beginner',
+    description: 'Create a simple module with exported functions and use it in a main program.',
+    starterCode: `// File: math_operations.cppm (Module Interface)
+export module math_operations;
+
+import <iostream>;
+
+// TODO: Export a function called 'add' that takes two integers and returns their sum
+
+// TODO: Export a function called 'multiply' that takes two doubles and returns their product
+
+// TODO: Export a class called 'Calculator' with methods for basic arithmetic
+// Include: add(double, double), subtract(double, double), multiply(double, double), divide(double, double)
+
+// TODO: Create a non-exported helper function called 'validate_input' that checks if a number is finite
+
+// File: main.cpp (Module User)
+import math_operations;
+import <iostream>;
+
+int main() {
+    // TODO: Use the exported add function
+    std::cout << "5 + 3 = " << /* TODO: call add function */ << std::endl;
+    
+    // TODO: Use the exported multiply function  
+    std::cout << "2.5 * 4.0 = " << /* TODO: call multiply function */ << std::endl;
+    
+    // TODO: Create a Calculator instance and perform operations
+    // Calculator calc;
+    // std::cout << "Calculator: 10 + 5 = " << calc.add(10, 5) << std::endl;
+    // std::cout << "Calculator: 15 - 3 = " << calc.subtract(15, 3) << std::endl;
+    // std::cout << "Calculator: 4 * 7 = " << calc.multiply(4, 7) << std::endl;
+    // std::cout << "Calculator: 20 / 4 = " << calc.divide(20, 4) << std::endl;
+    
+    return 0;
+}`,
+    expectedOutput: '5 + 3 = 8\n2.5 * 4.0 = 10\nCalculator: 10 + 5 = 15\nCalculator: 15 - 3 = 12\nCalculator: 4 * 7 = 28\nCalculator: 20 / 4 = 5',
+    hints: [
+      'Use "export" keyword before functions/classes you want to make available',
+      'Module interface file typically has .cppm extension', 
+      'Import standard library modules with import <header>',
+      'Functions without export keyword are internal to the module',
+      'Calculator class should validate division by zero',
+      'Use the validate_input helper for input checking'
+    ],
+    feature: 'modules',
+    relatedTheory: 'modules'
+  },
+  
+  {
+    id: 'modules-advanced-exercise',
+    title: 'Module Partitions and Complex Exports',
+    standard: 'cpp20', 
+    difficulty: 'advanced',
+    description: 'Create a graphics module with partitions for shapes, colors, and rendering, then use them together.',
+    starterCode: `// File: graphics.cppm (Main module interface)
+export module graphics;
+
+// TODO: Export import partitions for shapes, colors, and rendering
+// export import :shapes;
+// export import :colors; 
+// export import :rendering;
+
+// TODO: Export a Scene class that uses components from all partitions
+
+// File: graphics-shapes.cppm (Shapes partition)
+export module graphics:shapes;
+
+import <memory>;
+import <vector>;
+
+// TODO: Export Point class with x, y coordinates
+// TODO: Export abstract Shape base class with virtual area() and draw() methods
+// TODO: Export Circle class inheriting from Shape
+// TODO: Export Rectangle class inheriting from Shape
+// TODO: Export a ShapeFactory class with static methods to create shapes
+
+// File: graphics-colors.cppm (Colors partition) 
+export module graphics:colors;
+
+// TODO: Export Color class with RGB values
+// TODO: Export predefined color constants (RED, GREEN, BLUE, WHITE, BLACK)
+// TODO: Export ColorPalette class to manage color schemes
+
+// File: graphics-rendering.cppm (Rendering partition)
+export module graphics:rendering;
+
+import :shapes;
+import :colors;
+import <vector>;
+
+// TODO: Export Renderer class that can render shapes with colors
+// TODO: Export RenderTarget class for different output targets
+
+// File: main.cpp (Using the complete graphics module)
+import graphics;
+import <iostream>;
+
+int main() {
+    // TODO: Create a Scene with various shapes and colors
+    // TODO: Add circles and rectangles with different colors
+    // TODO: Render the complete scene
+    // TODO: Display total area of all shapes
+    
+    std::cout << "Graphics module demo completed!" << std::endl;
+    return 0;
+}`,
+    expectedOutput: 'Created scene with 3 shapes\nRendering circle at (10, 20) with color RGB(255, 0, 0)\nRendering rectangle at (0, 0) with color RGB(0, 255, 0)\nRendering circle at (30, 40) with color RGB(0, 0, 255)\nTotal scene area: 628.32\nGraphics module demo completed!',
+    hints: [
+      'Module partitions use "module name:partition" syntax',
+      'Export import partitions in the main module interface',
+      'Partitions can import other partitions with "import :partition"',
+      'Scene should manage a collection of shape-color pairs',
+      'Use std::unique_ptr for shape polymorphism',
+      'ShapeFactory can use make_unique for type-safe creation',
+      'Color class should support RGB values and comparison'
+    ],
+    feature: 'modules', 
+    relatedTheory: 'modules'
+  },
+
+  // === C++20 COROUTINES EXERCISES ===
+  {
+    id: 'coroutines-generator-exercise',
+    title: 'Create a Fibonacci Generator',
+    standard: 'cpp20',
+    difficulty: 'intermediate', 
+    description: 'Implement a coroutine-based Fibonacci generator that can produce infinite Fibonacci numbers lazily.',
+    starterCode: `#include <coroutine>
+#include <iostream>
+
+// TODO: Define a Generator class template
+// It should have:
+// - promise_type with get_return_object(), initial_suspend(), final_suspend(), yield_value()
+// - Iterator support for range-based loops
+// - RAII destructor that calls destroy() on the coroutine handle
+
+template<typename T>
+class Generator {
+    // TODO: Implement promise_type
+    
+    // TODO: Implement iterator for range-based for loops
+    
+public:
+    // TODO: Constructor taking coroutine_handle
+    
+    // TODO: Destructor
+    
+    // TODO: Move semantics (delete copy, implement move)
+    
+    // TODO: begin() and end() methods for iteration
+};
+
+// TODO: Implement fibonacci() coroutine that yields Fibonacci numbers
+// Generator<long long> fibonacci() {
+//     long long a = 0, b = 1;
+//     while (true) {
+//         co_yield a;
+//         auto next = a + b;
+//         a = b;
+//         b = next;
+//     }
+// }
+
+// TODO: Implement prime_numbers() coroutine that yields prime numbers
+// Generator<int> prime_numbers() {
+//     auto is_prime = [](int n) {
+//         if (n < 2) return false;
+//         for (int i = 2; i * i <= n; ++i) {
+//             if (n % i == 0) return false;
+//         }
+//         return true;
+//     };
+//     
+//     for (int n = 2; ; ++n) {
+//         if (is_prime(n)) {
+//             co_yield n;
+//         }
+//     }
+// }
+
+int main() {
+    std::cout << "First 10 Fibonacci numbers: ";
+    auto fib = fibonacci();
+    int count = 0;
+    for (auto value : fib) {
+        std::cout << value << " ";
+        if (++count >= 10) break;
+    }
+    std::cout << std::endl;
+    
+    std::cout << "First 10 prime numbers: ";  
+    auto primes = prime_numbers();
+    count = 0;
+    for (auto value : primes) {
+        std::cout << value << " ";
+        if (++count >= 10) break;
+    }
+    std::cout << std::endl;
+    
+    return 0;
+}`,
+    expectedOutput: 'First 10 Fibonacci numbers: 0 1 1 2 3 5 8 13 21 34 \nFirst 10 prime numbers: 2 3 5 7 11 13 17 19 23 29 ',
+    hints: [
+      'promise_type needs get_return_object(), initial_suspend(), final_suspend(), unhandled_exception()',
+      'yield_value() should store the value and return suspend_always{}',
+      'initial_suspend() typically returns suspend_always{} for generators',
+      'final_suspend() should return suspend_always{} for cleanup safety',
+      'Iterator needs operator*(), operator++(), and operator!=',
+      'Use coroutine_handle<promise_type> to manage the coroutine state',
+      'Remember to call destroy() in the destructor if handle is valid'
+    ],
+    feature: 'coroutines',
+    relatedTheory: 'coroutines'
+  },
+
+  {
+    id: 'coroutines-async-task-exercise', 
+    title: 'Async Task Processing Pipeline',
+    standard: 'cpp20',
+    difficulty: 'advanced',
+    description: 'Create an async task system with co_await for processing data through multiple stages.',
+    starterCode: `#include <coroutine>
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <string>
+#include <vector>
+
+// TODO: Implement Task<T> coroutine type for async operations
+// Should support:
+// - promise_type with appropriate suspend/resume behavior
+// - get() method to retrieve result (blocking if not ready)
+// - is_ready() method to check completion status
+
+template<typename T>
+class Task {
+    // TODO: Implement promise_type
+    
+    // TODO: Implement Task management
+};
+
+// TODO: Implement AsyncProcessor class with the following async methods:
+// - Task<std::string> fetch_data(int id) - simulates fetching data
+// - Task<std::string> transform_data(const std::string& data) - transforms the data  
+// - Task<bool> save_data(const std::string& data) - saves processed data
+
+class AsyncProcessor {
+public:
+    // TODO: Async method to fetch data (simulate 100ms delay)
+    // Task<std::string> fetch_data(int id) {
+    //     co_await std::suspend_for(100ms); // Simulate network delay
+    //     co_return "Data_" + std::to_string(id);
+    // }
+    
+    // TODO: Async method to transform data (simulate 50ms processing)
+    // Task<std::string> transform_data(const std::string& data) {
+    //     co_await std::suspend_for(50ms); // Simulate processing time
+    //     co_return "Processed_" + data;
+    // }
+    
+    // TODO: Async method to save data (simulate 75ms I/O)
+    // Task<bool> save_data(const std::string& data) {
+    //     co_await std::suspend_for(75ms); // Simulate I/O delay
+    //     std::cout << "Saved: " << data << std::endl;
+    //     co_return true;
+    // }
+    
+    // TODO: High-level async pipeline method
+    // Task<bool> process_pipeline(int id) {
+    //     auto raw_data = co_await fetch_data(id);
+    //     auto processed_data = co_await transform_data(raw_data);
+    //     auto success = co_await save_data(processed_data);
+    //     co_return success;
+    // }
+};
+
+// TODO: Implement a suspend_for awaitable for time delays
+// struct suspend_for {
+//     std::chrono::milliseconds duration;
+//     
+//     bool await_ready() const { return duration.count() <= 0; }
+//     
+//     void await_suspend(std::coroutine_handle<> handle) const {
+//         std::thread([handle, this]() {
+//             std::this_thread::sleep_for(duration);
+//             handle.resume();
+//         }).detach();
+//     }
+//     
+//     void await_resume() const {}
+// };
+
+int main() {
+    AsyncProcessor processor;
+    
+    std::cout << "Starting async processing pipeline..." << std::endl;
+    
+    // TODO: Process multiple items concurrently
+    std::vector<Task<bool>> tasks;
+    for (int i = 1; i <= 3; ++i) {
+        tasks.push_back(processor.process_pipeline(i));
+    }
+    
+    // TODO: Wait for all tasks to complete
+    std::cout << "Processing " << tasks.size() << " items..." << std::endl;
+    
+    for (auto& task : tasks) {
+        bool success = task.get(); // This should block until ready
+        std::cout << "Task completed: " << (success ? "Success" : "Failed") << std::endl;
+    }
+    
+    std::cout << "All processing completed!" << std::endl;
+    return 0;
+}`,
+    expectedOutput: 'Starting async processing pipeline...\nProcessing 3 items...\nSaved: Processed_Data_1\nTask completed: Success\nSaved: Processed_Data_2\nTask completed: Success\nSaved: Processed_Data_3\nTask completed: Success\nAll processing completed!',
+    hints: [
+      'Task promise_type should handle return_value() and store the result',
+      'Use std::suspend_never for initial_suspend() to start immediately',
+      'get() method should block until coroutine is done(), then return the result',
+      'suspend_for needs to resume the handle after the specified duration',
+      'co_await can be used to chain async operations sequentially',
+      'Each async method simulates work with different delay times',
+      'Tasks can run concurrently when created but await sequentially'
+    ],
+    feature: 'coroutines',
+    relatedTheory: 'coroutines'
+  },
+
+  // === EXECUTION POLICIES EXERCISES ===
+  {
+    id: 'execution-policies-basic-exercise',
+    title: 'Parallel STL Algorithms Performance Comparison',
+    standard: 'cpp17',
+    difficulty: 'beginner', 
+    description: 'Compare performance of sequential vs parallel execution policies on large datasets.',
+    starterCode: `#include <execution>
+#include <algorithm>
+#include <numeric>
+#include <vector>
+#include <chrono>
+#include <iostream>
+#include <random>
+
+class PerformanceComparator {
+private:
+    std::vector<int> large_dataset_;
+    
+public:
+    PerformanceComparator(size_t size = 10000000) {
+        // TODO: Initialize large_dataset_ with random integers
+        // Use std::random_device, std::mt19937, and std::uniform_int_distribution<int>
+    }
+    
+    void compare_sort_performance() {
+        std::cout << "=== Sort Performance Comparison ===" << std::endl;
+        
+        // TODO: Compare std::sort with different execution policies
+        // 1. Sequential: std::execution::seq
+        // 2. Parallel: std::execution::par  
+        // 3. Parallel unsequenced: std::execution::par_unseq
+        
+        // Measure and print time for each version
+        // Make copies of data for each test to ensure fair comparison
+    }
+    
+    void compare_transform_performance() {
+        std::cout << "\\n=== Transform Performance Comparison ===" << std::endl;
+        
+        std::vector<double> results(large_dataset_.size());
+        
+        // TODO: Create a complex transformation function (e.g., mathematical computation)
+        auto expensive_function = [](int x) {
+            // Simulate expensive computation
+            double result = x;
+            for (int i = 0; i < 100; ++i) {
+                result = std::sin(result) * std::cos(result) + std::sqrt(std::abs(result));
+            }
+            return result;
+        };
+        
+        // TODO: Compare std::transform with different execution policies
+        // Time each version and display results
+    }
+    
+    void compare_reduce_performance() {
+        std::cout << "\\n=== Reduce Performance Comparison ===" << std::endl;
+        
+        // TODO: Compare std::reduce vs std::accumulate
+        // 1. std::accumulate (always sequential)
+        // 2. std::reduce with seq policy
+        // 3. std::reduce with par policy
+        // 4. std::reduce with par_unseq policy
+        
+        // Print results and verify they're all equal
+    }
+    
+    // TODO: Implement benchmark_function template
+    template<typename Func>
+    double benchmark_function(const std::string& name, Func&& func) {
+        // Measure execution time of func and return duration in milliseconds
+        // Print the benchmark name and time
+    }
+};
+
+// TODO: Implement financial calculations using parallel algorithms
+class FinancialCalculator {
+public:
+    // TODO: Calculate portfolio value using parallel transform_reduce
+    static double calculate_portfolio_value(const std::vector<double>& prices, 
+                                          const std::vector<int>& quantities) {
+        // Use std::transform_reduce with parallel execution policy
+        // Multiply each price by quantity and sum the results
+    }
+    
+    // TODO: Calculate moving average using parallel algorithms
+    static std::vector<double> calculate_moving_average(const std::vector<double>& prices, 
+                                                       int window_size) {
+        // Use parallel algorithms to compute moving averages efficiently
+        // Return vector of moving averages
+    }
+    
+    // TODO: Find outliers using parallel algorithms  
+    static std::vector<size_t> find_outliers(const std::vector<double>& data, 
+                                            double threshold = 2.0) {
+        // Use parallel algorithms to find indices of outliers
+        // Outlier: data point more than threshold standard deviations from mean
+    }
+};
+
+int main() {
+    std::cout << "Hardware concurrency: " << std::thread::hardware_concurrency() << " threads" << std::endl;
+    
+    // TODO: Create PerformanceComparator and run benchmarks
+    
+    // TODO: Test financial calculations
+    std::vector<double> stock_prices = {100.0, 150.0, 75.0, 200.0, 125.0};
+    std::vector<int> quantities = {100, 200, 300, 50, 150};
+    
+    // Calculate and display portfolio value
+    
+    // TODO: Generate sample price data and calculate moving averages
+    
+    // TODO: Find outliers in sample data
+    
+    return 0;
+}`,
+    expectedOutput: 'Hardware concurrency: 8 threads\n=== Sort Performance Comparison ===\nSequential sort: 1250ms\nParallel sort: 425ms\nParallel unsequenced sort: 380ms\n\n=== Transform Performance Comparison ===\nSequential transform: 850ms\nParallel transform: 285ms\nParallel unsequenced transform: 260ms\n\n=== Reduce Performance Comparison ===\nAccumulate: 45ms\nSequential reduce: 42ms\nParallel reduce: 15ms\nParallel unsequenced reduce: 12ms\n\nPortfolio value: $43750.00\nMoving average calculated for 1000 data points\nFound 25 outliers in dataset',
+    hints: [
+      'Use std::execution::seq, std::execution::par, and std::execution::par_unseq',
+      'std::chrono::high_resolution_clock for timing measurements', 
+      'Make data copies before each sort to ensure fair comparison',
+      'std::transform_reduce can multiply and sum in one operation',
+      'Use std::generate to create test data with random number generators',
+      'Moving average needs std::transform with index-based access',
+      'Outlier detection: calculate mean and standard deviation first'
+    ],
+    feature: 'execution-policies',
+    relatedTheory: 'execution-policies'
+  },
+
+  // === CTAD EXERCISES ===  
+  {
+    id: 'ctad-basic-exercise',
+    title: 'Class Template Argument Deduction Basics',
+    standard: 'cpp17',
+    difficulty: 'beginner',
+    description: 'Practice CTAD with standard library containers and custom classes.',
+    starterCode: `#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+#include <pair>
+#include <optional>
+#include <array>
+
+// TODO: Create a custom Pair class that works with CTAD
+template<typename T, typename U>
+class Pair {
+private:
+    T first_;
+    U second_;
+    
+public:
+    // TODO: Add constructors that enable CTAD
+    
+    // TODO: Add getters
+    const T& first() const { return first_; }
+    const U& second() const { return second_; }
+    
+    void print() const {
+        std::cout << "(" << first_ << ", " << second_ << ")";
+    }
+};
+
+// TODO: Add deduction guide if needed
+
+// TODO: Create a custom Container class with CTAD support
+template<typename T, typename Allocator = std::allocator<T>>
+class Container {
+private:
+    std::vector<T, Allocator> data_;
+    
+public:
+    // TODO: Add constructors that work with CTAD
+    // Support: default, initializer_list, range construction
+    
+    void push_back(const T& value) { data_.push_back(value); }
+    size_t size() const { return data_.size(); }
+    
+    void print() const {
+        std::cout << "[";
+        for (size_t i = 0; i < data_.size(); ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << data_[i];
+        }
+        std::cout << "]";
+    }
+};
+
+// TODO: Add deduction guides for Container
+
+// TODO: Create a Point class for 2D/3D points with CTAD
+template<typename T, size_t Dimensions = 2>  
+class Point {
+private:
+    std::array<T, Dimensions> coordinates_;
+    
+public:
+    // TODO: Add constructor for CTAD
+    
+    T& operator[](size_t index) { return coordinates_[index]; }
+    const T& operator[](size_t index) const { return coordinates_[index]; }
+    
+    constexpr size_t dimensions() const { return Dimensions; }
+    
+    void print() const {
+        std::cout << "(";
+        for (size_t i = 0; i < Dimensions; ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << coordinates_[i];
+        }
+        std::cout << ")";
+    }
+};
+
+// TODO: Add deduction guides for Point
+
+int main() {
+    std::cout << "=== Standard Library CTAD ===" << std::endl;
+    
+    // TODO: Use CTAD with standard library containers
+    // std::vector numbers{1, 2, 3, 4, 5};  // Should deduce vector<int>
+    // std::pair coordinates{3.14, 2.71};   // Should deduce pair<double, double>
+    // std::optional value{42};             // Should deduce optional<int>
+    
+    std::cout << "\\n=== Custom Class CTAD ===" << std::endl;
+    
+    // TODO: Use CTAD with custom Pair class
+    // Pair p1{10, 20};           // Should deduce Pair<int, int>
+    // Pair p2{"hello", 3.14};    // Should deduce Pair<const char*, double>
+    
+    // TODO: Use CTAD with custom Container class  
+    // Container c1{1, 2, 3, 4, 5};           // Should deduce Container<int>
+    // Container c2{1.1, 2.2, 3.3};           // Should deduce Container<double>
+    
+    // TODO: Use CTAD with Point class
+    // Point p2d{1.0, 2.0};           // Should deduce Point<double, 2>
+    // Point p3d{1.0, 2.0, 3.0};      // Should deduce Point<double, 3>
+    
+    // TODO: Print all created objects to verify types and values
+    
+    std::cout << "\\nCTAD Demo completed!" << std::endl;
+    return 0;
+}`,
+    expectedOutput: '=== Standard Library CTAD ===\nvector<int> size: 5\npair: (3.14, 2.71)\noptional has value: 42\n\n=== Custom Class CTAD ===\nPair p1: (10, 20)\nPair p2: (hello, 3.14)\nContainer c1: [1, 2, 3, 4, 5]\nContainer c2: [1.1, 2.2, 3.3]\nPoint p2d (2D): (1, 2)\nPoint p3d (3D): (1, 2, 3)\n\nCTAD Demo completed!',
+    hints: [
+      'CTAD works automatically for many standard library types',
+      'Custom classes need constructors that can deduce template parameters',
+      'Deduction guides use: template<...> ClassName(...) -> ClassName<...>',
+      'Initializer list constructors enable CTAD with braced initialization',
+      'Range constructors need iterator-based deduction guides',
+      'Point class needs variadic constructor for different dimensions'
+    ],
+    feature: 'ctad',
+    relatedTheory: 'ctad'
+  },
+
+  // === FOLD EXPRESSIONS EXERCISES ===
+  {
+    id: 'fold-expressions-basic-exercise',
+    title: 'Variadic Template Operations with Fold Expressions',
+    standard: 'cpp17',
+    difficulty: 'intermediate',
+    description: 'Use fold expressions to implement various operations on parameter packs.',
+    starterCode: `#include <iostream>
+#include <string>
+#include <vector>
+#include <type_traits>
+
+// TODO: Implement sum function using fold expressions
+template<typename... Args>
+auto sum(Args... args) {
+    // Use unary right fold: (args + ...)
+}
+
+// TODO: Implement all_true function using fold expressions  
+template<typename... Args>
+bool all_true(Args... args) {
+    // Use fold expression with && operator
+}
+
+// TODO: Implement print_all function using fold expressions
+template<typename... Args>
+void print_all(Args... args) {
+    // Use fold expression with comma operator
+    // Print each argument followed by a space
+}
+
+// TODO: Implement count_positive function
+template<typename... Args>
+size_t count_positive(Args... args) {
+    // Use fold expression to count positive numbers
+    // Hint: use conditional expression (arg > 0 ? 1 : 0)
+}
+
+// TODO: Implement push_all function
+template<typename Container, typename... Args>
+void push_all(Container& container, Args... args) {
+    // Use fold expression to push all arguments to container
+}
+
+// TODO: Implement are_all_same function
+template<typename T, typename... Args>
+constexpr bool are_all_same() {
+    // Use fold expression with && and std::is_same_v
+}
+
+// TODO: Implement min_value function
+template<typename T, typename... Args>
+T min_value(T first, Args... args) {
+    // Use fold expression to find minimum value
+    // Hint: use binary left fold with custom comparison
+}
+
+// TODO: Implement string_concat function
+template<typename... Args>
+std::string string_concat(Args... args) {
+    std::string result;
+    // Use fold expression to concatenate all string arguments
+}
+
+// TODO: Implement multiply_all function with initial value
+template<typename T, typename... Args>  
+T multiply_all(T initial, Args... args) {
+    // Use binary fold expression: (initial * ... * args)
+}
+
+// === TEST CLASS FOR TYPE OPERATIONS ===
+class TestClass {
+    int value_;
+public:
+    TestClass(int v) : value_(v) {}
+    int value() const { return value_; }
+    bool operator>(const TestClass& other) const { return value_ > other.value_; }
+    bool operator<(const TestClass& other) const { return value_ < other.value_; }
+};
+
+int main() {
+    std::cout << "=== Fold Expressions Demo ===" << std::endl;
+    
+    // TODO: Test sum function
+    std::cout << "sum(1, 2, 3, 4, 5) = " << /* TODO */ << std::endl;
+    std::cout << "sum(1.5, 2.5, 3.0) = " << /* TODO */ << std::endl;
+    
+    // TODO: Test all_true function  
+    std::cout << "all_true(true, true, true) = " << /* TODO */ << std::endl;
+    std::cout << "all_true(true, false, true) = " << /* TODO */ << std::endl;
+    
+    // TODO: Test print_all function
+    std::cout << "print_all output: ";
+    // TODO: call print_all with various arguments
+    
+    // TODO: Test count_positive function
+    std::cout << "count_positive(1, -2, 3, -4, 5, 0) = " << /* TODO */ << std::endl;
+    
+    // TODO: Test push_all function
+    std::vector<int> vec;
+    // TODO: use push_all to add elements
+    std::cout << "Vector after push_all: ";
+    for (const auto& v : vec) {
+        std::cout << v << " ";
+    }
+    std::cout << std::endl;
+    
+    // TODO: Test are_all_same function
+    std::cout << "are_all_same<int, int, int>() = " << /* TODO */ << std::endl;
+    std::cout << "are_all_same<int, double, int>() = " << /* TODO */ << std::endl;
+    
+    // TODO: Test min_value function
+    std::cout << "min_value(5, 2, 8, 1, 9) = " << /* TODO */ << std::endl;
+    
+    // TODO: Test string_concat function
+    std::cout << "string_concat result: " << /* TODO */ << std::endl;
+    
+    // TODO: Test multiply_all function
+    std::cout << "multiply_all(2, 3, 4, 5) = " << /* TODO */ << std::endl;
+    
+    return 0;
+}`,
+    expectedOutput: '=== Fold Expressions Demo ===\nsum(1, 2, 3, 4, 5) = 15\nsum(1.5, 2.5, 3.0) = 7\nall_true(true, true, true) = 1\nall_true(true, false, true) = 0\nprint_all output: Hello world from fold expressions \ncount_positive(1, -2, 3, -4, 5, 0) = 3\nVector after push_all: 10 20 30 40 50 \nare_all_same<int, int, int>() = 1\nare_all_same<int, double, int>() = 0\nmin_value(5, 2, 8, 1, 9) = 1\nstring_concat result: C++17 fold expressions are awesome!\nmultiply_all(2, 3, 4, 5) = 120',
+    hints: [
+      'Unary right fold: (pack op ...) expands to: a op (b op (c op ...))',
+      'Unary left fold: (... op pack) expands to: ((... op a) op b) op c',
+      'Binary right fold: (pack op ... op init) includes initial value',
+      'Use comma operator for side effects: ((std::cout << args << " "), ...)',
+      'Conditional in fold: ((args > 0 ? 1 : 0) + ...) counts conditions',
+      'Type traits work with fold: (std::is_same_v<T, Args> && ...)',
+      'Custom comparison: (first = (first < args ? first : args), ...)'
+    ],
+    feature: 'fold-expressions',  
+    relatedTheory: 'fold-expressions'
+  },
+
+  // === TEMPLATE SPECIALIZATION EXERCISES ===
+  {
+    id: 'template-specialization-exercise',
+    title: 'Custom Container with Template Specialization',
+    standard: 'templates',
+    difficulty: 'advanced',
+    description: 'Create a generic container with specialized versions for bool, pointers, and strings.',
+    starterCode: `#include <iostream>
+#include <vector>
+#include <bitset>
+#include <string>
+#include <memory>
+
+// TODO: Implement primary template for SpecializedContainer
+template<typename T, size_t N>
+class SpecializedContainer {
+private:
+    // TODO: Use appropriate storage for general types
+    
+public:
+    // TODO: Implement basic container interface
+    // - Default constructor
+    // - void set(size_t index, const T& value) 
+    // - T get(size_t index) const
+    // - size_t size() const
+    // - void print() const
+};
+
+// TODO: Create partial specialization for bool (bit-packed storage)
+template<size_t N>
+class SpecializedContainer<bool, N> {
+private:
+    // TODO: Use std::bitset for efficient bool storage
+    
+public:
+    // TODO: Implement specialized interface for bool
+    // Include additional methods:
+    // - void flip(size_t index)
+    // - size_t count() const - count true values
+};
+
+// TODO: Create partial specialization for pointer types  
+template<typename T, size_t N>
+class SpecializedContainer<T*, N> {
+private:
+    // TODO: Use array of pointers with null checking
+    
+public:
+    // TODO: Implement specialized interface for pointers
+    // Include additional methods:
+    // - size_t null_count() const
+    // - bool is_valid(size_t index) const
+    // - void reset(size_t index) - set to nullptr
+};
+
+// TODO: Create full specialization for std::string
+template<size_t N>
+class SpecializedContainer<std::string, N> {
+private:
+    // TODO: Use vector of strings with length tracking
+    
+public:
+    // TODO: Implement specialized interface for strings
+    // Include additional methods:
+    // - size_t total_length() const
+    // - std::string concatenate_all() const
+    // - void append_to_all(const std::string& suffix)
+};
+
+// TODO: Create a TypeInfo template with specializations
+template<typename T>
+struct TypeInfo {
+    static const char* name() { return "unknown"; }
+    static constexpr bool is_numeric() { return false; }
+    static constexpr bool is_container() { return false; }
+};
+
+// TODO: Add specializations for TypeInfo
+// - Numeric types (int, float, double): is_numeric = true
+// - Container types (std::vector, std::string): is_container = true  
+// - Pointer types: name = "pointer"
+
+// TODO: Implement function template print_type_info with specializations
+template<typename T>
+void print_type_info(const T& value) {
+    // TODO: Print general type information
+}
+
+// TODO: Add function template specializations for different categories
+
+int main() {
+    std::cout << "=== Template Specialization Demo ===" << std::endl;
+    
+    // TODO: Test general container (int)
+    std::cout << "\\n=== General Container (int) ===" << std::endl;
+    SpecializedContainer<int, 5> int_container;
+    // TODO: Set some values and print
+    
+    // TODO: Test bool specialization
+    std::cout << "\\n=== Bool Specialization ===" << std::endl;  
+    SpecializedContainer<bool, 8> bool_container;
+    // TODO: Set some bool values, flip some, count true values
+    
+    // TODO: Test pointer specialization
+    std::cout << "\\n=== Pointer Specialization ===" << std::endl;
+    SpecializedContainer<int*, 4> pointer_container;
+    // TODO: Set some pointers (including nullptrs), check validity
+    
+    // TODO: Test string specialization
+    std::cout << "\\n=== String Specialization ===" << std::endl;
+    SpecializedContainer<std::string, 3> string_container;
+    // TODO: Set some strings, get total length, concatenate
+    
+    // TODO: Test TypeInfo specializations
+    std::cout << "\\n=== Type Information ===" << std::endl;
+    print_type_info(42);
+    print_type_info(3.14);
+    print_type_info(std::string("hello"));
+    print_type_info(std::vector<int>{1, 2, 3});
+    
+    return 0;
+}`,
+    expectedOutput: '=== Template Specialization Demo ===\n\n=== General Container (int) ===\nGeneral container: [10, 20, 30, 0, 0]\nContainer size: 5\n\n=== Bool Specialization ===\nBool container: [1, 0, 1, 1, 0, 0, 0, 0]\nTrue count: 3\nAfter flipping index 1: [1, 1, 1, 1, 0, 0, 0, 0]\nTrue count: 4\n\n=== Pointer Specialization ===\nPointer container validity: [1, 0, 1, 0]\nNull count: 2\nValid pointers: 2\n\n=== String Specialization ===\nString container: [hello, world, cpp]\nTotal length: 13\nConcatenated: helloworldcpp\nAfter appending "!": [hello!, world!, cpp!]\n\n=== Type Information ===\nType: int, numeric: true, container: false\nType: double, numeric: true, container: false\nType: string, numeric: false, container: true\nType: vector, numeric: false, container: true',
+    hints: [
+      'Primary template should use T data_[N] for storage',
+      'Bool specialization: use std::bitset<N> for bit-packed storage',
+      'Pointer specialization: check for nullptr in operations',
+      'String specialization: track total character count efficiently',
+      'TypeInfo needs template<> for full specializations',
+      'Use std::enable_if or concepts for conditional specializations',
+      'Function template specializations need template<> syntax'
+    ],
+    feature: 'template-specialization',
+    relatedTheory: 'template-specialization'
+  },
+
+  // === DEDUCING THIS EXERCISES ===
+  {
+    id: 'deducing-this-exercise',
+    title: 'Fluent Interface with Deducing This',
+    standard: 'cpp23',
+    difficulty: 'intermediate', 
+    description: 'Create a fluent interface builder using deducing this to eliminate const/non-const overload duplication.',
+    starterCode: `#include <iostream>
+#include <string>
+#include <vector>
+#include <memory>
+
+// TODO: Implement a ConfigBuilder class using deducing this
+// It should build a configuration object with fluent interface
+class ConfigBuilder {
+private:
+    std::string name_;
+    int port_ = 8080;
+    bool debug_mode_ = false;
+    std::vector<std::string> features_;
+    double timeout_ = 30.0;
+    
+public:
+    // TODO: Implement set_name using deducing this
+    // template<typename Self>
+    // auto&& set_name(this Self&& self, std::string name) {
+    //     self.name_ = std::move(name);
+    //     return std::forward<Self>(self);
+    // }
+    
+    // TODO: Implement set_port using deducing this
+    
+    // TODO: Implement enable_debug using deducing this
+    
+    // TODO: Implement add_feature using deducing this
+    
+    // TODO: Implement set_timeout using deducing this
+    
+    // TODO: Implement build method that returns a Config object
+    // Should work with both const and non-const, lvalue and rvalue
+    
+    // TODO: Add a print method using deducing this for const/non-const
+};
+
+// TODO: Create a simple Config struct to hold the built configuration
+struct Config {
+    std::string name;
+    int port;
+    bool debug_mode;
+    std::vector<std::string> features;
+    double timeout;
+    
+    void print() const {
+        std::cout << "Config: " << name << ", port: " << port 
+                  << ", debug: " << debug_mode << ", timeout: " << timeout << "s\\n";
+        std::cout << "Features: ";
+        for (const auto& feature : features) {
+            std::cout << feature << " ";
+        }
+        std::cout << "\\n";
+    }
+};
+
+// TODO: Implement a DataProcessor class using deducing this
+template<typename T>
+class DataProcessor {
+private:
+    std::vector<T> data_;
+    std::string processor_name_;
+    
+public:
+    DataProcessor(std::string name) : processor_name_(std::move(name)) {}
+    
+    // TODO: Implement add_data using deducing this
+    template<typename Self>
+    auto&& add_data(this Self&& self, T value) {
+        // TODO: Add value to data_ and return forwarded self
+    }
+    
+    // TODO: Implement transform using deducing this
+    template<typename Self, typename Func>
+    auto&& transform(this Self&& self, Func func) {
+        // TODO: Apply func to each element in data_
+    }
+    
+    // TODO: Implement filter using deducing this  
+    template<typename Self, typename Predicate>
+    auto&& filter(this Self&& self, Predicate pred) {
+        // TODO: Keep only elements that satisfy pred
+    }
+    
+    // TODO: Implement get_data using deducing this (const/non-const access)
+    template<typename Self>
+    auto&& get_data(this Self&& self) {
+        // TODO: Return reference to data_ with proper forwarding
+    }
+    
+    void print() const {
+        std::cout << processor_name_ << " data: ";
+        for (const auto& item : data_) {
+            std::cout << item << " ";
+        }
+        std::cout << "\\n";
+    }
+};
+
+// TODO: Implement a Tree class using deducing this for navigation
+template<typename T>
+class Tree {
+private:
+    T value_;
+    std::vector<std::unique_ptr<Tree<T>>> children_;
+    
+public:
+    Tree(T value) : value_(std::move(value)) {}
+    
+    // TODO: Implement add_child using deducing this
+    template<typename Self>
+    auto&& add_child(this Self&& self, T child_value) {
+        // TODO: Add new child and return forwarded self
+    }
+    
+    // TODO: Implement visit using deducing this
+    template<typename Self, typename Visitor>
+    void visit(this Self&& self, Visitor&& visitor) {
+        // TODO: Apply visitor to this node and all children recursively
+    }
+    
+    const T& value() const { return value_; }
+    size_t child_count() const { return children_.size(); }
+};
+
+int main() {
+    std::cout << "=== Deducing This Demo ===" << std::endl;
+    
+    // TODO: Test ConfigBuilder with method chaining
+    std::cout << "\\n=== Config Builder ===" << std::endl;
+    
+    // Test lvalue chaining
+    ConfigBuilder builder;
+    // TODO: Chain multiple setter calls
+    auto config1 = /* TODO: build config with chaining */;
+    config1.print();
+    
+    // Test rvalue chaining  
+    auto config2 = ConfigBuilder{}
+        /* TODO: chain methods here */
+        .build();
+    config2.print();
+    
+    // TODO: Test DataProcessor with method chaining
+    std::cout << "\\n=== Data Processor ===" << std::endl;
+    DataProcessor<int> processor("NumberProcessor");
+    
+    // TODO: Chain add_data, transform, and filter operations
+    processor.add_data(1).add_data(2).add_data(3).add_data(4).add_data(5);
+    processor.print();
+    
+    processor.transform([](int& x) { x *= 2; }).filter([](const int& x) { return x > 4; });
+    processor.print();
+    
+    // TODO: Test Tree with method chaining  
+    std::cout << "\\n=== Tree Building ===" << std::endl;
+    Tree<std::string> root("root");
+    root.add_child("child1").add_child("child2").add_child("child3");
+    
+    std::cout << "Tree traversal: ";
+    root.visit([](const std::string& value) {
+        std::cout << value << " ";
+    });
+    std::cout << "\\n";
+    
+    std::cout << "Root has " << root.child_count() << " children\\n";
+    
+    return 0;
+}`,
+    expectedOutput: '=== Deducing This Demo ===\n\n=== Config Builder ===\nConfig: WebServer, port: 8080, debug: 1, timeout: 45s\nFeatures: logging auth ssl \nConfig: APIServer, port: 9000, debug: 0, timeout: 60s\nFeatures: caching monitoring \n\n=== Data Processor ===\nNumberProcessor data: 1 2 3 4 5 \nNumberProcessor data: 6 8 10 \n\n=== Tree Building ===\nTree traversal: root child1 child2 child3 \nRoot has 3 children',
+    hints: [
+      'Deducing this parameter: template<typename Self> auto&& func(this Self&& self)',
+      'Perfect forwarding: return std::forward<Self>(self) for chaining',
+      'Works with const/non-const, lvalue/rvalue automatically',
+      'build() method can be overloaded for different value categories',
+      'DataProcessor transform should modify elements in-place',
+      'Tree visit should be recursive on children',
+      'Use make_unique for child node creation'
+    ],
+    feature: 'deducing-this',
+    relatedTheory: 'deducing-this'
+  },
+
+  // === std::filesystem EXERCISES ===
+  {
+    id: 'filesystem-exercise',
+    title: 'Project File Organizer',
+    standard: 'cpp17',
+    difficulty: 'intermediate',
+    description: 'Create a file organizer that scans directories, categorizes files, and creates organized structure.',
+    starterCode: `#include <filesystem>
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+#include <fstream>
+
+namespace fs = std::filesystem;
+
+class ProjectOrganizer {
+private:
+    fs::path base_path_;
+    std::map<std::string, std::vector<fs::path>> categorized_files_;
+    
+public:
+    ProjectOrganizer(const fs::path& base_path) : base_path_(base_path) {}
+    
+    // TODO: Implement scan_directory method
+    void scan_directory(const fs::path& dir_path) {
+        // TODO: Use fs::recursive_directory_iterator to scan all files
+        // Categorize files by extension into categorized_files_ map
+        // Categories: "cpp" (.cpp, .cc, .cxx), "headers" (.h, .hpp), 
+        //           "text" (.txt, .md), "data" (.json, .xml, .csv), "other"
+    }
+    
+    // TODO: Implement create_organized_structure method  
+    void create_organized_structure() {
+        // TODO: Create organized directory structure:
+        // base_path_/organized/cpp/
+        // base_path_/organized/headers/
+        // base_path_/organized/text/  
+        // base_path_/organized/data/
+        // base_path_/organized/other/
+        
+        // Use fs::create_directories for nested directory creation
+    }
+    
+    // TODO: Implement copy_files method
+    void copy_files() {
+        // TODO: Copy files to their respective organized directories
+        // Use fs::copy_file with appropriate copy options
+        // Handle potential errors with try-catch
+    }
+    
+    // TODO: Implement generate_report method
+    void generate_report() const {
+        // TODO: Create a report file with:
+        // - Total files processed
+        // - Files per category
+        // - Largest files in each category
+        // - Directory structure summary
+    }
+    
+    // TODO: Implement get_file_info method
+    void get_file_info(const fs::path& file_path) const {
+        // TODO: Display detailed file information:
+        // - File size in bytes
+        // - Last modification time
+        // - File permissions
+        // - File type (regular file, directory, symlink, etc.)
+    }
+    
+    void print_statistics() const {
+        std::cout << "\\n=== File Statistics ===" << std::endl;
+        for (const auto& [category, files] : categorized_files_) {
+            std::cout << category << ": " << files.size() << " files" << std::endl;
+        }
+    }
+};
+
+// TODO: Implement utility functions
+class FileUtils {
+public:
+    // TODO: Calculate directory size recursively
+    static std::uintmax_t calculate_directory_size(const fs::path& dir_path) {
+        // Use fs::recursive_directory_iterator and fs::file_size
+    }
+    
+    // TODO: Find files by pattern (e.g., "*.cpp")
+    static std::vector<fs::path> find_files_by_pattern(const fs::path& dir_path, 
+                                                       const std::string& pattern) {
+        // Find files matching the given pattern
+        // For simplicity, just check if filename contains the pattern
+    }
+    
+    // TODO: Get directory space information
+    static void print_space_info(const fs::path& dir_path) {
+        // Use fs::space to get capacity, free, and available space
+        // Display in human-readable format (GB, MB, KB)
+    }
+    
+    // TODO: Create backup of important files
+    static void backup_files(const std::vector<fs::path>& files, 
+                           const fs::path& backup_dir) {
+        // Create backup directory and copy files with timestamp suffix
+    }
+};
+
+// TODO: Create sample files for testing
+void create_sample_files(const fs::path& test_dir) {
+    // TODO: Create directory structure with sample files
+    // test_dir/src/main.cpp
+    // test_dir/src/utils.cpp  
+    // test_dir/include/app.h
+    // test_dir/include/utils.hpp
+    // test_dir/docs/readme.txt
+    // test_dir/docs/manual.md
+    // test_dir/data/config.json
+    // test_dir/data/users.xml
+    // test_dir/misc/notes.txt
+    
+    // Use fs::create_directories and std::ofstream to create files
+}
+
+void cleanup_test_files(const fs::path& test_dir) {
+    // TODO: Remove all created test files and directories
+    // Use fs::remove_all for recursive removal
+}
+
+int main() {
+    std::cout << "=== Project File Organizer ===" << std::endl;
+    
+    // TODO: Set up test environment
+    fs::path test_directory = fs::current_path() / "test_project";
+    
+    try {
+        // TODO: Create sample file structure
+        std::cout << "Creating sample file structure..." << std::endl;
+        create_sample_files(test_directory);
+        
+        // TODO: Initialize organizer and scan files
+        ProjectOrganizer organizer(test_directory);
+        std::cout << "\\nScanning directory: " << test_directory << std::endl;
+        organizer.scan_directory(test_directory);
+        organizer.print_statistics();
+        
+        // TODO: Create organized structure
+        std::cout << "\\nCreating organized structure..." << std::endl;
+        organizer.create_organized_structure();
+        
+        // TODO: Copy files to organized structure
+        std::cout << "Copying files..." << std::endl;
+        organizer.copy_files();
+        
+        // TODO: Generate report
+        std::cout << "Generating report..." << std::endl;
+        organizer.generate_report();
+        
+        // TODO: Test utility functions
+        std::cout << "\\n=== Utility Functions ===" << std::endl;
+        
+        auto dir_size = FileUtils::calculate_directory_size(test_directory);
+        std::cout << "Directory size: " << dir_size << " bytes" << std::endl;
+        
+        auto cpp_files = FileUtils::find_files_by_pattern(test_directory, ".cpp");
+        std::cout << "Found " << cpp_files.size() << " C++ files" << std::endl;
+        
+        FileUtils::print_space_info(fs::current_path());
+        
+        // TODO: Display file information for a sample file
+        if (!cpp_files.empty()) {
+            std::cout << "\\nFile information for: " << cpp_files[0] << std::endl;
+            organizer.get_file_info(cpp_files[0]);
+        }
+        
+    } catch (const fs::filesystem_error& e) {
+        std::cout << "Filesystem error: " << e.what() << std::endl;
+    }
+    
+    // TODO: Cleanup test files
+    std::cout << "\\nCleaning up test files..." << std::endl;
+    cleanup_test_files(test_directory);
+    
+    std::cout << "File organization completed!" << std::endl;
+    return 0;
+}`,
+    expectedOutput: '=== Project File Organizer ===\nCreating sample file structure...\nCreated test_project with sample files\n\nScanning directory: test_project\nScanned 8 files total\n\n=== File Statistics ===\ncpp: 2 files\nheaders: 2 files\ntext: 3 files\ndata: 2 files\nother: 0 files\n\nCreating organized structure...\nCreated organized directories\n\nCopying files...\nCopied 8 files to organized structure\n\nGenerating report...\nReport generated: file_organization_report.txt\n\n=== Utility Functions ===\nDirectory size: 2048 bytes\nFound 2 C++ files\nSpace info - Total: 500GB, Free: 250GB, Available: 240GB\n\nFile information for: test_project/src/main.cpp\nFile size: 156 bytes\nLast modified: 2024-01-15 10:30:45\nPermissions: rw-r--r--\nFile type: regular file\n\nCleaning up test files...\nRemoved test_project directory\nFile organization completed!',
+    hints: [
+      'Use fs::recursive_directory_iterator for scanning all subdirectories',
+      'fs::path::extension() returns file extension including the dot',
+      'fs::create_directories creates parent directories if they don\'t exist',
+      'fs::copy_file needs copy_options for overwrite behavior',
+      'fs::file_size returns std::uintmax_t, handle errors with error_code',
+      'fs::last_write_time returns file_time_type, convert for display',
+      'Use fs::status() to get file permissions and type information'
+    ],
+    feature: 'filesystem',
+    relatedTheory: 'filesystem'
+  },
+
+  // === constinit EXERCISES ===
+  {
+    id: 'constinit-exercise',
+    title: 'Configuration System with constinit',
+    standard: 'cpp20',
+    difficulty: 'intermediate',
+    description: 'Create a compile-time initialized configuration system using constinit for zero-overhead globals.',
+    starterCode: `#include <iostream>
+#include <atomic>
+#include <array>
+#include <string_view>
+#include <chrono>
+
+// TODO: Define application constants using constinit
+// constinit const char* APP_NAME = "MyApp";
+// constinit const char* APP_VERSION = "1.0.0";
+// constinit int APP_BUILD_NUMBER = 1001;
+
+// TODO: Define mathematical constants using constinit
+// constinit double PI = 3.141592653589793;
+// constinit double E = 2.718281828459045;
+
+// TODO: Define system limits using constinit
+// constinit int MAX_CONNECTIONS = 1000;
+// constinit size_t BUFFER_SIZE = 8192;
+// constinit double TIMEOUT_SECONDS = 30.0;
+
+// TODO: Create compile-time lookup table using constinit
+constexpr std::array<int, 10> generate_squares() {
+    std::array<int, 10> squares{};
+    for (int i = 0; i < 10; ++i) {
+        squares[i] = i * i;
+    }
+    return squares;
+}
+
+// TODO: Use constinit for the lookup table
+// constinit auto SQUARE_LOOKUP = generate_squares();
+
+// TODO: Create atomic counters with constinit
+// constinit std::atomic<int> request_counter{0};
+// constinit std::atomic<size_t> bytes_processed{0};
+// constinit std::atomic<bool> system_ready{false};
+
+// TODO: Thread-local variables with constinit
+// thread_local constinit int thread_id = 0;
+// thread_local constinit double thread_workload = 0.0;
+
+// TODO: Create a Logger class with constinit static members
+class Logger {
+private:
+    // TODO: Add constinit static members
+    // static constinit std::atomic<int> log_count_{0};
+    // static constinit bool initialized_{false};
+    
+public:
+    static void initialize() {
+        // TODO: Set initialized_ to true and log initialization
+    }
+    
+    static void log(std::string_view message) {
+        // TODO: Increment counter and print log with count
+    }
+    
+    static bool is_initialized() {
+        // TODO: Return initialization status
+    }
+    
+    static int get_count() {
+        // TODO: Return current log count
+    }
+};
+
+// TODO: Define the static constinit members outside the class
+
+// TODO: Create a Performance class for benchmarking
+class Performance {
+private:
+    // TODO: Add constinit static timing variables
+    // static constinit std::atomic<uint64_t> total_operations_{0};
+    // static constinit std::atomic<uint64_t> total_time_ns_{0};
+    
+public:
+    // TODO: Implement record_operation method
+    static void record_operation(uint64_t duration_ns) {
+        // TODO: Update atomic counters
+    }
+    
+    // TODO: Implement print_stats method  
+    static void print_stats() {
+        // TODO: Calculate and print average operation time
+    }
+    
+    // TODO: Implement reset_stats method
+    static void reset_stats() {
+        // TODO: Reset all counters to zero
+    }
+};
+
+// TODO: Define Performance static members
+
+// TODO: Create ConfigManager template with constinit defaults
+template<typename T>
+class ConfigManager {
+public:
+    // TODO: Add constinit static default values for different types
+    // For T=int: default_value = 0
+    // For T=double: default_value = 0.0  
+    // For T=bool: default_value = false
+    // static constinit T default_value;
+    
+    static T get_default() {
+        // TODO: Return default_value
+    }
+    
+    static void print_default() {
+        // TODO: Print the default value with type information
+    }
+};
+
+// TODO: Define template specializations for ConfigManager
+
+// TODO: Create a compile-time string hash function
+constexpr uint64_t hash_string(std::string_view str) {
+    // TODO: Implement simple hash function (FNV or similar)
+    uint64_t hash = 14695981039346656037ULL; // FNV offset basis
+    for (char c : str) {
+        hash ^= static_cast<uint64_t>(c);
+        hash *= 1099511628211ULL; // FNV prime
+    }
+    return hash;
+}
+
+// TODO: Create constinit hash values for common strings
+// constinit auto HASH_ERROR = hash_string("ERROR");
+// constinit auto HASH_WARNING = hash_string("WARNING");
+// constinit auto HASH_INFO = hash_string("INFO");
+
+void simulate_work(int thread_num) {
+    // TODO: Set thread-local variables
+    // TODO: Simulate work and update thread workload
+    // TODO: Use Performance::record_operation to track timing
+    
+    std::cout << "Thread " << thread_num << " completed work" << std::endl;
+}
+
+int main() {
+    std::cout << "=== constinit Demo ===" << std::endl;
+    
+    // TODO: Print application constants
+    std::cout << "\\n=== Application Constants ===" << std::endl;
+    // Print APP_NAME, APP_VERSION, APP_BUILD_NUMBER
+    
+    // TODO: Print mathematical constants
+    std::cout << "\\n=== Mathematical Constants ===" << std::endl;
+    // Print PI and E values
+    
+    // TODO: Print system limits
+    std::cout << "\\n=== System Configuration ===" << std::endl;
+    // Print MAX_CONNECTIONS, BUFFER_SIZE, TIMEOUT_SECONDS
+    
+    // TODO: Test lookup table
+    std::cout << "\\n=== Lookup Table ===" << std::endl;
+    std::cout << "Squares: ";
+    // Print first 5 values from SQUARE_LOOKUP
+    
+    // TODO: Test atomic operations
+    std::cout << "\\n=== Atomic Operations ===" << std::endl;
+    // Increment request_counter, add to bytes_processed, set system_ready
+    // Print the values
+    
+    // TODO: Test Logger
+    std::cout << "\\n=== Logger Test ===" << std::endl;
+    Logger::initialize();
+    Logger::log("Application started");
+    Logger::log("Processing data");  
+    Logger::log("Operation completed");
+    std::cout << "Log count: " << Logger::get_count() << std::endl;
+    
+    // TODO: Test Performance tracking
+    std::cout << "\\n=== Performance Tracking ===" << std::endl;
+    for (int i = 0; i < 100; ++i) {
+        auto start = std::chrono::high_resolution_clock::now();
+        // Simulate work
+        volatile int sum = 0;
+        for (int j = 0; j < 1000; ++j) {
+            sum += j;
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+        Performance::record_operation(duration.count());
+    }
+    Performance::print_stats();
+    
+    // TODO: Test ConfigManager defaults
+    std::cout << "\\n=== Config Manager Defaults ===" << std::endl;
+    ConfigManager<int>::print_default();
+    ConfigManager<double>::print_default();
+    ConfigManager<bool>::print_default();
+    
+    // TODO: Print compile-time hash values
+    std::cout << "\\n=== Compile-time Hashes ===" << std::endl;
+    // Print HASH_ERROR, HASH_WARNING, HASH_INFO
+    
+    std::cout << "\\nconstinit demo completed!" << std::endl;
+    return 0;
+}`,
+    expectedOutput: '=== constinit Demo ===\n\n=== Application Constants ===\nApp: MyApp v1.0.0 (build 1001)\n\n=== Mathematical Constants ===\nPI = 3.14159\nE = 2.71828\n\n=== System Configuration ===\nMax connections: 1000\nBuffer size: 8192 bytes\nTimeout: 30 seconds\n\n=== Lookup Table ===\nSquares: 0 1 4 9 16\n\n=== Atomic Operations ===\nRequest counter: 5\nBytes processed: 1024\nSystem ready: true\n\n=== Logger Test ===\nLogger initialized\n[1] Application started\n[2] Processing data\n[3] Operation completed\nLog count: 3\n\n=== Performance Tracking ===\nOperations: 100\nAverage time: 1250 ns\n\n=== Config Manager Defaults ===\nint default: 0\ndouble default: 0\nbool default: false\n\n=== Compile-time Hashes ===\nERROR hash: 0x1234567890ABCDEF\nWARNING hash: 0xFEDCBA0987654321\nINFO hash: 0x1111222233334444\n\nconstinit demo completed!',
+    hints: [
+      'constinit ensures compile-time initialization, preventing runtime overhead',
+      'Atomic types can be constinit initialized with braced initialization',
+      'Thread-local constinit variables are initialized per thread',
+      'Static constinit members need definition outside the class',
+      'Lookup tables should use constexpr functions for generation',
+      'Template specializations for ConfigManager need explicit values',
+      'Hash functions should be constexpr to work with constinit'
+    ],
+    feature: 'constinit',
+    relatedTheory: 'constinit'
+  },
+
+  // === SPACESHIP OPERATOR EXERCISES ===
+  {
+    id: 'spaceship-operator-exercise',
+    title: 'Financial Instrument Comparison System',
+    standard: 'cpp20',
+    difficulty: 'advanced',
+    description: 'Create a comprehensive comparison system for financial instruments using the spaceship operator.',
+    starterCode: `#include <compare>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+// TODO: Create enum for asset classes
+enum class AssetClass {
+    Stock, Bond, Commodity, Currency, Derivative
+};
+
+// TODO: Implement Money class with spaceship operator
+class Money {
+private:
+    double amount_;
+    std::string currency_;
+    
+public:
+    Money(double amount, std::string currency) 
+        : amount_(amount), currency_(std::move(currency)) {}
+    
+    // TODO: Implement spaceship operator
+    // Compare by currency first (alphabetical), then by amount
+    auto operator<=>(const Money& other) const {
+        // TODO: Implement comparison logic
+    }
+    
+    // TODO: Implement equality operator
+    bool operator==(const Money& other) const = default;
+    
+    double amount() const { return amount_; }
+    const std::string& currency() const { return currency_; }
+};
+
+// TODO: Implement StockPrice class with partial ordering (handles NaN prices)
+class StockPrice {
+private:
+    double price_;
+    std::string symbol_;
+    
+public:
+    StockPrice(std::string symbol, double price)
+        : price_(price), symbol_(std::move(symbol)) {}
+    
+    // TODO: Implement spaceship operator with partial ordering
+    // Handle NaN prices (invalid/suspended stocks)
+    std::partial_ordering operator<=>(const StockPrice& other) const {
+        // TODO: First compare by symbol, then handle NaN in price comparison
+    }
+    
+    bool operator==(const StockPrice& other) const {
+        // TODO: Handle NaN equality properly
+    }
+    
+    const std::string& symbol() const { return symbol_; }
+    double price() const { return price_; }
+    bool is_valid() const { return !std::isnan(price_); }
+};
+
+// TODO: Implement FinancialInstrument class with complex ordering
+class FinancialInstrument {
+private:
+    std::string symbol_;
+    AssetClass asset_class_;
+    Money market_value_;
+    double risk_rating_; // 1.0 = low risk, 10.0 = high risk
+    
+public:
+    FinancialInstrument(std::string symbol, AssetClass asset_class,
+                       Money market_value, double risk_rating)
+        : symbol_(std::move(symbol)), asset_class_(asset_class),
+          market_value_(std::move(market_value)), risk_rating_(risk_rating) {}
+    
+    // TODO: Implement complex multi-criteria spaceship operator
+    // Priority order: 1) Asset class, 2) Market value (descending), 3) Risk (ascending), 4) Symbol
+    std::strong_ordering operator<=>(const FinancialInstrument& other) const {
+        // TODO: Implement multi-level comparison
+    }
+    
+    bool operator==(const FinancialInstrument& other) const = default;
+    
+    // Getters
+    const std::string& symbol() const { return symbol_; }
+    AssetClass asset_class() const { return asset_class_; }
+    const Money& market_value() const { return market_value_; }
+    double risk_rating() const { return risk_rating_; }
+    
+    void print() const {
+        const char* class_names[] = {"Stock", "Bond", "Commodity", "Currency", "Derivative"};
+        std::cout << symbol_ << " (" << class_names[static_cast<int>(asset_class_)] 
+                  << ") - Value: " << market_value_.amount() << " " << market_value_.currency()
+                  << ", Risk: " << risk_rating_;
+    }
+};
+
+// TODO: Implement Portfolio class that can be compared
+class Portfolio {
+private:
+    std::string name_;
+    std::vector<FinancialInstrument> instruments_;
+    
+public:
+    Portfolio(std::string name) : name_(std::move(name)) {}
+    
+    void add_instrument(FinancialInstrument instrument) {
+        instruments_.push_back(std::move(instrument));
+    }
+    
+    // TODO: Implement spaceship operator for portfolios
+    // Compare by total value, then by number of instruments, then by name
+    auto operator<=>(const Portfolio& other) const {
+        // TODO: Calculate total values and compare
+    }
+    
+    bool operator==(const Portfolio& other) const = default;
+    
+    double total_value() const {
+        // TODO: Sum all instrument values (assume same currency for simplicity)
+        double total = 0.0;
+        for (const auto& instr : instruments_) {
+            total += instr.market_value().amount();
+        }
+        return total;
+    }
+    
+    size_t size() const { return instruments_.size(); }
+    const std::string& name() const { return name_; }
+    
+    void sort_instruments() {
+        // TODO: Sort instruments using their spaceship operator
+        std::sort(instruments_.begin(), instruments_.end());
+    }
+    
+    void print() const {
+        std::cout << "Portfolio: " << name_ << " (Value: $" << total_value() 
+                  << ", Instruments: " << instruments_.size() << ")\\n";
+        for (const auto& instr : instruments_) {
+            std::cout << "  ";
+            instr.print();
+            std::cout << "\\n";
+        }
+    }
+};
+
+// TODO: Create utility functions for testing comparisons
+void test_money_comparison() {
+    std::cout << "=== Money Comparison Test ===" << std::endl;
+    
+    // TODO: Create Money objects in different currencies and amounts
+    // Test all comparison operators: ==, !=, <, <=, >, >=
+}
+
+void test_stock_price_comparison() {
+    std::cout << "\\n=== Stock Price Comparison Test ===" << std::endl;
+    
+    // TODO: Create StockPrice objects, including some with NaN prices
+    // Test comparison behavior with invalid prices
+}
+
+void test_instrument_sorting() {
+    std::cout << "\\n=== Instrument Sorting Test ===" << std::endl;
+    
+    // TODO: Create vector of FinancialInstrument objects
+    // Include different asset classes, values, and risk ratings
+    // Sort and display the results
+}
+
+void test_portfolio_comparison() {
+    std::cout << "\\n=== Portfolio Comparison Test ===" << std::endl;
+    
+    // TODO: Create multiple portfolios with different instruments
+    // Compare portfolios and sort them
+}
+
+int main() {
+    std::cout << "=== Spaceship Operator Demo ===" << std::endl;
+    
+    test_money_comparison();
+    test_stock_price_comparison();
+    test_instrument_sorting();
+    test_portfolio_comparison();
+    
+    // TODO: Demonstrate automatic generation of all comparison operators
+    std::cout << "\\n=== All Comparison Operators Work ===" << std::endl;
+    Money m1{100.0, "USD"};
+    Money m2{150.0, "USD"};
+    
+    // TODO: Show that all operators work without explicit implementation
+    std::cout << "m1 == m2: " << (m1 == m2) << std::endl;
+    std::cout << "m1 != m2: " << (m1 != m2) << std::endl;
+    std::cout << "m1 < m2: " << (m1 < m2) << std::endl;
+    std::cout << "m1 <= m2: " << (m1 <= m2) << std::endl;
+    std::cout << "m1 > m2: " << (m1 > m2) << std::endl;
+    std::cout << "m1 >= m2: " << (m1 >= m2) << std::endl;
+    
+    return 0;
+}`,
+    expectedOutput: '=== Spaceship Operator Demo ===\n=== Money Comparison Test ===\n100 EUR < 100 USD (currency comparison)\n100 USD < 150 USD (amount comparison)\n100 USD == 100 USD (equal values)\n\n=== Stock Price Comparison Test ===\nAAPL($150) < GOOGL($2500) (alphabetical symbols)\nTSLA(NaN) incomparable with AAPL($150) (NaN handling)\nMSFT($300) > AAPL($150) (same symbol prefix, price comparison)\n\n=== Instrument Sorting Test ===\nBefore sorting:\nTSLA (Stock) - Value: 800 USD, Risk: 8.5\nUS10Y (Bond) - Value: 1000 USD, Risk: 2.0\nAAPL (Stock) - Value: 1500 USD, Risk: 5.0\n\nAfter sorting:\nUS10Y (Bond) - Value: 1000 USD, Risk: 2.0\nAAPL (Stock) - Value: 1500 USD, Risk: 5.0\nTSLA (Stock) - Value: 800 USD, Risk: 8.5\n\n=== Portfolio Comparison Test ===\nTech Portfolio: $5000, 3 instruments\nBond Portfolio: $3000, 2 instruments\nTech Portfolio > Bond Portfolio (by value)\n\n=== All Comparison Operators Work ===\nm1 == m2: 0\nm1 != m2: 1\nm1 < m2: 1\nm1 <= m2: 1\nm1 > m2: 0\nm1 >= m2: 0',
+    hints: [
+      'Money comparison: compare currency string first, then amount',
+      'StockPrice needs partial_ordering due to NaN handling',
+      'std::isnan() to check for invalid prices in equality',
+      'FinancialInstrument: use std::tuple for lexicographic comparison',
+      'Portfolio comparison needs total_value() calculation',
+      'Use std::strong_ordering for most financial comparisons',
+      'Spaceship operator automatically generates all six comparison operators'
+    ],
+    feature: 'spaceship-operator',
+    relatedTheory: 'spaceship-operator'
   }
 ];
