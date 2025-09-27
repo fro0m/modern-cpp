@@ -4254,5 +4254,4074 @@ int main() {
 }`,
     explanation: 'Zero-cost abstractions provide high-level programming constructs that compile down to the same machine code as hand-optimized low-level code. Strong types, CRTP, compile-time polymorphism, and constexpr algorithms enable type safety and expressiveness without runtime overhead, making C++ ideal for performance-critical systems.',
     useCase: 'Critical for high-frequency trading systems, embedded systems, game engines, and any performance-critical application where abstraction cannot come at the cost of runtime performance. Essential for building maintainable yet optimal financial trading systems, real-time systems, and system-level programming.'
+  },
+
+  // === C++20 MODULES ===
+  {
+    id: 'modules',
+    title: 'C++ Modules',
+    standard: 'cpp20',
+    description: 'Modern module system replacing traditional header files with better encapsulation, faster compilation, and cleaner imports.',
+    codeExample: `// === BASIC MODULE EXAMPLE ===
+
+// File: math_utils.cppm (module interface file)
+export module math_utils;
+
+import <iostream>;
+import <vector>;
+import <cmath>;
+
+// Export individual functions
+export double square(double x) {
+    return x * x;
+}
+
+export double cube(double x) {
+    return x * x * x;
+}
+
+// Export a class
+export class Calculator {
+private:
+    double last_result_ = 0.0;
+    
+public:
+    double add(double a, double b) {
+        last_result_ = a + b;
+        return last_result_;
+    }
+    
+    double multiply(double a, double b) {
+        last_result_ = a * b;
+        return last_result_;
+    }
+    
+    double power(double base, double exponent) {
+        last_result_ = std::pow(base, exponent);
+        return last_result_;
+    }
+    
+    double get_last_result() const {
+        return last_result_;
+    }
+};
+
+// Internal helper function (not exported)
+double internal_helper(double x) {
+    return x * 2.0 + 1.0;
+}
+
+// Export with different name
+export {
+    double advanced_square(double x) {
+        return internal_helper(x * x);
+    }
+}
+
+// Export namespace
+export namespace constants {
+    const double PI = 3.14159265358979323846;
+    const double E = 2.71828182845904523536;
+    const double GOLDEN_RATIO = 1.61803398874989484820;
+}
+
+// === PARTITIONS AND SUBMODULES ===
+
+// File: graphics.cppm (main module interface)
+export module graphics;
+
+// Partition declarations
+export import :shapes;
+export import :colors;
+export import :rendering;
+
+// Main graphics interface
+export class Scene {
+public:
+    void render();
+    void add_shape(const Shape& shape);
+    void set_background_color(Color color);
+};
+
+// File: graphics-shapes.cppm (module partition)
+export module graphics:shapes;
+
+import <vector>;
+import <memory>;
+
+export class Point {
+public:
+    double x, y;
+    Point(double x, double y) : x(x), y(y) {}
+};
+
+export class Shape {
+public:
+    virtual ~Shape() = default;
+    virtual double area() const = 0;
+    virtual void draw() const = 0;
+};
+
+export class Circle : public Shape {
+private:
+    Point center_;
+    double radius_;
+    
+public:
+    Circle(Point center, double radius) 
+        : center_(center), radius_(radius) {}
+    
+    double area() const override {
+        return 3.14159 * radius_ * radius_;
+    }
+    
+    void draw() const override {
+        std::cout << "Drawing circle at (" << center_.x 
+                  << ", " << center_.y << ") with radius " << radius_ << std::endl;
+    }
+};
+
+export class Rectangle : public Shape {
+private:
+    Point top_left_;
+    double width_, height_;
+    
+public:
+    Rectangle(Point top_left, double width, double height)
+        : top_left_(top_left), width_(width), height_(height) {}
+    
+    double area() const override {
+        return width_ * height_;
+    }
+    
+    void draw() const override {
+        std::cout << "Drawing rectangle at (" << top_left_.x 
+                  << ", " << top_left_.y << ") size " 
+                  << width_ << "x" << height_ << std::endl;
+    }
+};
+
+// File: main.cpp (using modules)
+import math_utils;
+import graphics;
+import <iostream>;
+import <vector>;
+import <memory>;
+
+int main() {
+    std::cout << "=== C++ Modules Demo ===\\n\\n";
+    
+    // Using basic module functions
+    std::cout << "=== Math Utils Module ===\\n";
+    std::cout << "square(5) = " << square(5) << "\\n";
+    std::cout << "cube(3) = " << cube(3) << "\\n";
+    std::cout << "advanced_square(4) = " << advanced_square(4) << "\\n";
+    
+    // Using exported constants
+    std::cout << "PI = " << constants::PI << "\\n";
+    std::cout << "E = " << constants::E << "\\n";
+    std::cout << "Golden Ratio = " << constants::GOLDEN_RATIO << "\\n\\n";
+    
+    // Using exported class
+    Calculator calc;
+    std::cout << "Calculator operations:\\n";
+    std::cout << "5 + 3 = " << calc.add(5, 3) << "\\n";
+    std::cout << "4 * 7 = " << calc.multiply(4, 7) << "\\n";
+    std::cout << "2^8 = " << calc.power(2, 8) << "\\n";
+    std::cout << "Last result: " << calc.get_last_result() << "\\n\\n";
+    
+    // Using graphics module with partitions
+    std::cout << "=== Graphics Module (with partitions) ===\\n";
+    
+    auto circle = std::make_unique<Circle>(Point{10, 20}, 5.0);
+    auto rectangle = std::make_unique<Rectangle>(Point{0, 0}, 15.0, 10.0);
+    
+    std::cout << "Circle area: " << circle->area() << "\\n";
+    circle->draw();
+    
+    std::cout << "Rectangle area: " << rectangle->area() << "\\n";
+    rectangle->draw();
+    
+    std::cout << "\\n=== Module Benefits ===\\n";
+    std::cout << "✓ Faster compilation (no header re-parsing)\\n";
+    std::cout << "✓ Better encapsulation (implementation details hidden)\\n";
+    std::cout << "✓ No header guards needed\\n";
+    std::cout << "✓ Order-independent imports\\n";
+    std::cout << "✓ Macro isolation (macros don't leak)\\n";
+    std::cout << "✓ Cleaner dependency management\\n";
+    
+    return 0;
+}
+
+// === COMPILATION EXAMPLE ===
+/*
+Module compilation order (simplified):
+
+1. Compile module interface files:
+   clang++ -std=c++20 --precompile math_utils.cppm -o math_utils.pcm
+   clang++ -std=c++20 --precompile graphics-shapes.cppm -o graphics-shapes.pcm
+   clang++ -std=c++20 --precompile graphics.cppm -o graphics.pcm
+
+2. Compile module implementation files (if any):
+   clang++ -std=c++20 -c math_utils.pcm -o math_utils.o
+   clang++ -std=c++20 -c graphics.pcm -o graphics.o
+
+3. Compile main program:
+   clang++ -std=c++20 -c main.cpp -fmodule-file=math_utils.pcm 
+           -fmodule-file=graphics.pcm -o main.o
+
+4. Link:
+   clang++ main.o math_utils.o graphics.o -o program
+*/`,
+    explanation: `C++ Modules revolutionize C++ compilation by replacing the traditional header/source file model with a more robust module system. Modules provide better encapsulation by clearly separating interface from implementation, eliminate issues with macro pollution and header order dependencies, and significantly improve compilation speed by avoiding repeated header parsing. Module partitions allow organizing large modules into logical components while maintaining a single import statement for users.`,
+    useCase: `Essential for large codebases where compilation time and dependency management are critical. Perfect for libraries that need strong API boundaries, enterprise applications requiring modular architecture, and any project suffering from slow compilation due to heavy header dependencies. Modules are the future of C++ code organization and should be adopted for all new projects targeting C++20 and later.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/modules'
+  },
+
+  // === C++20 COROUTINES ===
+  {
+    id: 'coroutines',
+    title: 'Coroutines',
+    standard: 'cpp20',
+    description: 'Cooperative multitasking with co_await, co_yield, and co_return for asynchronous programming and generators.',
+    codeExample: `#include <coroutine>
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <thread>
+#include <future>
+#include <exception>
+
+// === BASIC GENERATOR ===
+
+template<typename T>
+struct Generator {
+    struct promise_type {
+        T current_value;
+        
+        Generator get_return_object() {
+            return Generator{std::coroutine_handle<promise_type>::from_promise(*this)};
+        }
+        
+        std::suspend_always initial_suspend() { return {}; }
+        std::suspend_always final_suspend() noexcept { return {}; }
+        void unhandled_exception() { std::terminate(); }
+        
+        std::suspend_always yield_value(T value) {
+            current_value = value;
+            return {};
+        }
+        
+        void return_void() {}
+    };
+    
+    std::coroutine_handle<promise_type> coro;
+    
+    Generator(std::coroutine_handle<promise_type> h) : coro(h) {}
+    ~Generator() {
+        if (coro) coro.destroy();
+    }
+    
+    // Move-only type
+    Generator(const Generator&) = delete;
+    Generator& operator=(const Generator&) = delete;
+    Generator(Generator&& other) noexcept : coro(other.coro) {
+        other.coro = {};
+    }
+    Generator& operator=(Generator&& other) noexcept {
+        if (this != &other) {
+            if (coro) coro.destroy();
+            coro = other.coro;
+            other.coro = {};
+        }
+        return *this;
+    }
+    
+    struct iterator {
+        std::coroutine_handle<promise_type> coro;
+        bool done;
+        
+        iterator(std::coroutine_handle<promise_type> h, bool d) : coro(h), done(d) {}
+        
+        T operator*() const {
+            return coro.promise().current_value;
+        }
+        
+        iterator& operator++() {
+            coro.resume();
+            done = coro.done();
+            return *this;
+        }
+        
+        bool operator!=(const iterator& other) const {
+            return done != other.done;
+        }
+    };
+    
+    iterator begin() {
+        if (coro) {
+            coro.resume();
+            return {coro, coro.done()};
+        }
+        return {coro, true};
+    }
+    
+    iterator end() {
+        return {coro, true};
+    }
+};
+
+// Fibonacci generator
+Generator<long long> fibonacci() {
+    long long a = 0, b = 1;
+    
+    while (true) {
+        co_yield a;
+        auto next = a + b;
+        a = b;
+        b = next;
+    }
+}
+
+// Range generator
+Generator<int> range(int start, int end, int step = 1) {
+    for (int i = start; i < end; i += step) {
+        co_yield i;
+    }
+}
+
+// === ASYNC TASK SYSTEM ===
+
+template<typename T>
+struct Task {
+    struct promise_type {
+        T result;
+        std::exception_ptr exception;
+        
+        Task get_return_object() {
+            return Task{std::coroutine_handle<promise_type>::from_promise(*this)};
+        }
+        
+        std::suspend_never initial_suspend() { return {}; }
+        std::suspend_never final_suspend() noexcept { return {}; }
+        
+        void unhandled_exception() {
+            exception = std::current_exception();
+        }
+        
+        void return_value(T value) {
+            result = value;
+        }
+    };
+    
+    std::coroutine_handle<promise_type> coro;
+    
+    Task(std::coroutine_handle<promise_type> h) : coro(h) {}
+    ~Task() {
+        if (coro) coro.destroy();
+    }
+    
+    // Move-only
+    Task(const Task&) = delete;
+    Task& operator=(const Task&) = delete;
+    Task(Task&& other) noexcept : coro(other.coro) {
+        other.coro = {};
+    }
+    Task& operator=(Task&& other) noexcept {
+        if (this != &other) {
+            if (coro) coro.destroy();
+            coro = other.coro;
+            other.coro = {};
+        }
+        return *this;
+    }
+    
+    T get() {
+        if (!coro.done()) {
+            // In a real implementation, this would block or schedule
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        
+        if (coro.promise().exception) {
+            std::rethrow_exception(coro.promise().exception);
+        }
+        
+        return coro.promise().result;
+    }
+    
+    bool is_ready() const {
+        return coro.done();
+    }
+};
+
+// Simple awaitable type
+struct SimpleAwaitable {
+    int value;
+    
+    bool await_ready() const { return false; }
+    void await_suspend(std::coroutine_handle<> handle) const {
+        // Simulate async work
+        std::thread([handle]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            handle.resume();
+        }).detach();
+    }
+    int await_resume() const { return value; }
+};
+
+// Async computation
+Task<int> compute_async(int x) {
+    std::cout << "Starting async computation for " << x << "\\n";
+    
+    // Simulate async work
+    auto result1 = co_await SimpleAwaitable{x * 2};
+    std::cout << "First stage complete: " << result1 << "\\n";
+    
+    auto result2 = co_await SimpleAwaitable{result1 + 10};
+    std::cout << "Second stage complete: " << result2 << "\\n";
+    
+    co_return result2;
+}
+
+// Async aggregation
+Task<int> process_multiple(std::vector<int> values) {
+    int total = 0;
+    
+    for (auto value : values) {
+        auto result = co_await SimpleAwaitable{value * value};
+        total += result;
+        std::cout << "Processed " << value << " -> " << result << " (total: " << total << ")\\n";
+    }
+    
+    co_return total;
+}
+
+// === STATE MACHINE COROUTINE ===
+
+struct StateMachine {
+    enum class State { Init, Processing, Waiting, Done };
+    
+    struct promise_type {
+        State current_state = State::Init;
+        
+        StateMachine get_return_object() {
+            return StateMachine{std::coroutine_handle<promise_type>::from_promise(*this)};
+        }
+        
+        std::suspend_never initial_suspend() { return {}; }
+        std::suspend_always final_suspend() noexcept { return {}; }
+        void unhandled_exception() { std::terminate(); }
+        void return_void() {}
+        
+        std::suspend_always await_transform(State new_state) {
+            current_state = new_state;
+            return {};
+        }
+    };
+    
+    std::coroutine_handle<promise_type> coro;
+    
+    StateMachine(std::coroutine_handle<promise_type> h) : coro(h) {}
+    ~StateMachine() {
+        if (coro) coro.destroy();
+    }
+    
+    State get_state() const {
+        return coro.promise().current_state;
+    }
+    
+    void step() {
+        if (!coro.done()) {
+            coro.resume();
+        }
+    }
+    
+    bool is_done() const {
+        return coro.done();
+    }
+};
+
+StateMachine create_state_machine() {
+    std::cout << "State machine starting\\n";
+    
+    co_await StateMachine::State::Init;
+    std::cout << "State: Init\\n";
+    
+    co_await StateMachine::State::Processing;
+    std::cout << "State: Processing\\n";
+    
+    co_await StateMachine::State::Waiting;
+    std::cout << "State: Waiting\\n";
+    
+    co_await StateMachine::State::Done;
+    std::cout << "State: Done\\n";
+}
+
+int main() {
+    std::cout << "=== C++ Coroutines Demo ===\\n\\n";
+    
+    // Generator example
+    std::cout << "=== Fibonacci Generator ===\\n";
+    auto fib = fibonacci();
+    int count = 0;
+    for (auto value : fib) {
+        std::cout << value << " ";
+        if (++count >= 15) break;  // First 15 numbers
+    }
+    std::cout << "\\n\\n";
+    
+    // Range generator
+    std::cout << "=== Range Generator ===\\n";
+    std::cout << "range(5, 20, 3): ";
+    for (auto value : range(5, 20, 3)) {
+        std::cout << value << " ";
+    }
+    std::cout << "\\n\\n";
+    
+    // Async task example
+    std::cout << "=== Async Tasks ===\\n";
+    auto task1 = compute_async(5);
+    auto task2 = process_multiple({1, 2, 3, 4});
+    
+    std::cout << "Task 1 result: " << task1.get() << "\\n";
+    std::cout << "Task 2 result: " << task2.get() << "\\n\\n";
+    
+    // State machine example
+    std::cout << "=== State Machine ===\\n";
+    auto machine = create_state_machine();
+    
+    while (!machine.is_done()) {
+        std::cout << "Current state: " << static_cast<int>(machine.get_state()) << "\\n";
+        machine.step();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    
+    std::cout << "\\n=== Coroutine Benefits ===\\n";
+    std::cout << "✓ Cooperative multitasking without threads\\n";
+    std::cout << "✓ Lazy evaluation and infinite sequences\\n";
+    std::cout << "✓ Clean async code without callback hell\\n";
+    std::cout << "✓ State machines with natural syntax\\n";
+    std::cout << "✓ Memory efficient (stackless)\\n";
+    std::cout << "✓ Composable and reusable async operations\\n";
+    
+    return 0;
+}`,
+    explanation: `Coroutines enable cooperative multitasking where functions can suspend and resume execution at specific points. The co_await operator suspends the coroutine until the awaited operation completes, co_yield produces values for generators, and co_return returns the final result. This enables writing asynchronous code that reads like synchronous code, creating efficient generators, and implementing complex state machines naturally.`,
+    useCase: `Perfect for asynchronous I/O operations, parsing large files incrementally, implementing state machines, creating infinite sequences, and building responsive applications without the complexity of traditional threading. Essential for networking code, data processing pipelines, game AI systems, and any scenario requiring cooperative multitasking.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/coroutines'
+  },
+
+  // === EXECUTION POLICIES ===
+  {
+    id: 'execution-policies',
+    title: 'Execution Policies in Standard Algorithms',
+    standard: 'cpp17',
+    description: 'Parallel execution of STL algorithms using execution policies for performance optimization.',
+    codeExample: `#include <execution>
+#include <algorithm>
+#include <numeric>
+#include <vector>
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <future>
+#include <thread>
+
+class PerformanceBenchmark {
+private:
+    std::vector<int> large_dataset_;
+    std::vector<double> financial_data_;
+    
+public:
+    PerformanceBenchmark(size_t size = 10000000) {
+        // Create large dataset for benchmarking
+        large_dataset_.reserve(size);
+        financial_data_.reserve(size);
+        
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<int> int_dist(1, 1000);
+        std::uniform_real_distribution<double> price_dist(50.0, 500.0);
+        
+        for (size_t i = 0; i < size; ++i) {
+            large_dataset_.push_back(int_dist(gen));
+            financial_data_.push_back(price_dist(gen));
+        }
+    }
+    
+    // Benchmark different execution policies
+    void benchmark_sort() {
+        std::cout << "=== Sorting Benchmark ===\\n";
+        
+        // Sequential execution
+        auto data_copy = large_dataset_;
+        auto start = std::chrono::high_resolution_clock::now();
+        std::sort(std::execution::seq, data_copy.begin(), data_copy.end());
+        auto end = std::chrono::high_resolution_clock::now();
+        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        // Parallel execution
+        data_copy = large_dataset_;
+        start = std::chrono::high_resolution_clock::now();
+        std::sort(std::execution::par, data_copy.begin(), data_copy.end());
+        end = std::chrono::high_resolution_clock::now();
+        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        // Parallel unsequenced execution
+        data_copy = large_dataset_;
+        start = std::chrono::high_resolution_clock::now();
+        std::sort(std::execution::par_unseq, data_copy.begin(), data_copy.end());
+        end = std::chrono::high_resolution_clock::now();
+        auto par_unseq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        std::cout << "Sequential sort: " << seq_time.count() << "ms\\n";
+        std::cout << "Parallel sort: " << par_time.count() << "ms\\n";
+        std::cout << "Par+unseq sort: " << par_unseq_time.count() << "ms\\n";
+        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+    }
+    
+    void benchmark_transform() {
+        std::cout << "=== Transform Benchmark ===\\n";
+        std::vector<double> results(financial_data_.size());
+        
+        // Complex calculation: compound interest
+        auto compound_interest = [](double principal) {
+            const double rate = 0.05;  // 5% annual rate
+            const int years = 10;
+            double result = principal;
+            for (int i = 0; i < years; ++i) {
+                result *= (1.0 + rate);
+            }
+            return result;
+        };
+        
+        // Sequential transform
+        auto start = std::chrono::high_resolution_clock::now();
+        std::transform(std::execution::seq, 
+                      financial_data_.begin(), financial_data_.end(),
+                      results.begin(), compound_interest);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        // Parallel transform
+        start = std::chrono::high_resolution_clock::now();
+        std::transform(std::execution::par, 
+                      financial_data_.begin(), financial_data_.end(),
+                      results.begin(), compound_interest);
+        end = std::chrono::high_resolution_clock::now();
+        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        std::cout << "Sequential transform: " << seq_time.count() << "ms\\n";
+        std::cout << "Parallel transform: " << par_time.count() << "ms\\n";
+        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+    }
+    
+    void benchmark_reduce() {
+        std::cout << "=== Reduce Benchmark ===\\n";
+        
+        // Sequential reduce
+        auto start = std::chrono::high_resolution_clock::now();
+        auto seq_sum = std::reduce(std::execution::seq,
+                                  large_dataset_.begin(), large_dataset_.end(),
+                                  0LL);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        // Parallel reduce
+        start = std::chrono::high_resolution_clock::now();
+        auto par_sum = std::reduce(std::execution::par,
+                                  large_dataset_.begin(), large_dataset_.end(),
+                                  0LL);
+        end = std::chrono::high_resolution_clock::now();
+        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        std::cout << "Sequential sum: " << seq_sum << " (time: " << seq_time.count() << "ms)\\n";
+        std::cout << "Parallel sum: " << par_sum << " (time: " << par_time.count() << "ms)\\n";
+        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+    }
+};
+
+// Financial calculation examples
+class FinancialAlgorithms {
+public:
+    // Parallel portfolio risk calculation
+    static double calculate_portfolio_var(const std::vector<double>& returns, double confidence = 0.95) {
+        std::vector<double> sorted_returns = returns;
+        
+        // Parallel sort for large datasets
+        std::sort(std::execution::par, sorted_returns.begin(), sorted_returns.end());
+        
+        // Calculate Value at Risk at given confidence level
+        size_t var_index = static_cast<size_t>((1.0 - confidence) * sorted_returns.size());
+        return sorted_returns[var_index];
+    }
+    
+    // Parallel Monte Carlo simulation
+    static double monte_carlo_option_price(double S0, double K, double r, double sigma, 
+                                         double T, size_t num_simulations = 1000000) {
+        std::vector<double> payoffs(num_simulations);
+        std::vector<size_t> indices(num_simulations);
+        std::iota(indices.begin(), indices.end(), 0);
+        
+        std::random_device rd;
+        thread_local std::mt19937 gen(rd());
+        std::normal_distribution<double> norm(0.0, 1.0);
+        
+        // Parallel transform to calculate payoffs
+        std::transform(std::execution::par, 
+                      indices.begin(), indices.end(),
+                      payoffs.begin(),
+                      [&](size_t i) {
+                          thread_local std::mt19937 local_gen(rd() + i);
+                          std::normal_distribution<double> local_norm(0.0, 1.0);
+                          
+                          // Geometric Brownian Motion
+                          double Z = local_norm(local_gen);
+                          double ST = S0 * std::exp((r - 0.5 * sigma * sigma) * T + sigma * std::sqrt(T) * Z);
+                          
+                          // European call option payoff
+                          return std::max(ST - K, 0.0);
+                      });
+        
+        // Parallel reduce to calculate average payoff
+        double average_payoff = std::reduce(std::execution::par, 
+                                          payoffs.begin(), payoffs.end(), 0.0) / num_simulations;
+        
+        // Discount to present value
+        return average_payoff * std::exp(-r * T);
+    }
+    
+    // Parallel technical indicator calculation
+    static std::vector<double> calculate_moving_average(const std::vector<double>& prices, int period) {
+        if (prices.size() < period) return {};
+        
+        std::vector<double> ma_values(prices.size() - period + 1);
+        std::vector<size_t> indices(ma_values.size());
+        std::iota(indices.begin(), indices.end(), 0);
+        
+        // Parallel calculation of moving averages
+        std::transform(std::execution::par,
+                      indices.begin(), indices.end(),
+                      ma_values.begin(),
+                      [&](size_t i) {
+                          double sum = std::reduce(std::execution::seq,  // Inner sum can be sequential
+                                                 prices.begin() + i,
+                                                 prices.begin() + i + period,
+                                                 0.0);
+                          return sum / period;
+                      });
+        
+        return ma_values;
+    }
+};
+
+int main() {
+    std::cout << "=== Execution Policies Demo ===\\n\\n";
+    std::cout << "Hardware concurrency: " << std::thread::hardware_concurrency() << " threads\\n\\n";
+    
+    // Basic algorithm benchmarks
+    PerformanceBenchmark benchmark(5000000);  // 5M elements
+    benchmark.benchmark_sort();
+    benchmark.benchmark_transform();
+    benchmark.benchmark_reduce();
+    
+    // Financial algorithms
+    std::cout << "=== Financial Parallel Algorithms ===\\n";
+    
+    // Generate sample stock returns
+    std::vector<double> returns(100000);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<double> return_dist(0.001, 0.02);  // Daily returns
+    
+    std::generate(std::execution::par, returns.begin(), returns.end(),
+                 [&]() { return return_dist(gen); });
+    
+    // Calculate VaR
+    double var_95 = FinancialAlgorithms::calculate_portfolio_var(returns, 0.95);
+    std::cout << "Portfolio VaR (95% confidence): " << var_95 * 100 << "%\\n";
+    
+    // Monte Carlo option pricing
+    double option_price = FinancialAlgorithms::monte_carlo_option_price(
+        100.0,  // Current price
+        110.0,  // Strike price
+        0.05,   // Risk-free rate
+        0.2,    // Volatility
+        1.0,    // Time to expiration (1 year)
+        500000  // Number of simulations
+    );
+    std::cout << "European call option price (Monte Carlo): $" << option_price << "\\n";
+    
+    // Generate price series and calculate moving average
+    std::vector<double> prices(1000);
+    double price = 100.0;
+    std::generate(prices.begin(), prices.end(), [&]() {
+        price *= (1.0 + return_dist(gen));
+        return price;
+    });
+    
+    auto ma = FinancialAlgorithms::calculate_moving_average(prices, 20);
+    std::cout << "20-period moving average calculated for " << ma.size() << " points\\n";
+    
+    std::cout << "\\n=== Execution Policy Benefits ===\\n";
+    std::cout << "✓ Easy parallelization of STL algorithms\\n";
+    std::cout << "✓ Significant speedup for CPU-intensive operations\\n";
+    std::cout << "✓ Scales automatically with available CPU cores\\n";
+    std::cout << "✓ No manual thread management required\\n";
+    std::cout << "✓ Exception-safe parallel execution\\n";
+    std::cout << "✓ Perfect for financial calculations and data processing\\n";
+    
+    return 0;
+}`,
+    explanation: `Execution policies in C++17 enable parallel execution of STL algorithms by simply specifying the execution policy as the first parameter. std::execution::seq runs sequentially, std::execution::par runs in parallel with synchronized access, and std::execution::par_unseq allows both parallelization and vectorization. This provides massive performance improvements for CPU-intensive operations without complex thread management.`,
+    useCase: `Critical for high-performance computing, financial modeling, data analytics, and any application processing large datasets. Perfect for Monte Carlo simulations, risk calculations, sorting large financial datasets, parallel transformations of market data, and scientific computing where algorithm parallelization can provide significant speedup.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t'
+  },
+
+  // === CLASS TEMPLATE ARGUMENT DEDUCTION (CTAD) ===
+  {
+    id: 'ctad',
+    title: 'Class Template Argument Deduction (CTAD)',
+    standard: 'cpp17',
+    description: 'Automatic template argument deduction for class templates, making template usage more concise and intuitive.',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <map>
+#include <pair>
+#include <memory>
+#include <string>
+#include <optional>
+#include <array>
+#include <tuple>
+#include <mutex>
+#include <thread>
+
+// === BASIC CTAD EXAMPLES ===
+
+// Custom class template that benefits from CTAD
+template<typename T, typename U = T>
+class Pair {
+private:
+    T first_;
+    U second_;
+    
+public:
+    Pair(const T& first, const U& second) : first_(first), second_(second) {}
+    
+    const T& first() const { return first_; }
+    const U& second() const { return second_; }
+    
+    void print() const {
+        std::cout << "(" << first_ << ", " << second_ << ")";
+    }
+};
+
+// Optional deduction guide (not needed for this simple case)
+// template<typename T, typename U>
+// Pair(T, U) -> Pair<T, U>;
+
+// Advanced template with multiple parameters
+template<typename Key, typename Value, typename Hash = std::hash<Key>>
+class SimpleMap {
+private:
+    std::map<Key, Value> data_;
+    Hash hasher_;
+    
+public:
+    SimpleMap() = default;
+    SimpleMap(std::initializer_list<std::pair<Key, Value>> init) {
+        for (auto& p : init) {
+            data_[p.first] = p.second;
+        }
+    }
+    
+    void insert(const Key& key, const Value& value) {
+        data_[key] = value;
+    }
+    
+    Value* find(const Key& key) {
+        auto it = data_.find(key);
+        return (it != data_.end()) ? &it->second : nullptr;
+    }
+    
+    size_t size() const { return data_.size(); }
+    
+    void print() const {
+        std::cout << "{";
+        for (auto it = data_.begin(); it != data_.end(); ++it) {
+            if (it != data_.begin()) std::cout << ", ";
+            std::cout << it->first << ": " << it->second;
+        }
+        std::cout << "}";
+    }
+};
+
+// Deduction guide for initializer list constructor
+template<typename Key, typename Value>
+SimpleMap(std::initializer_list<std::pair<Key, Value>>) -> SimpleMap<Key, Value>;
+
+// === COMPLEX CTAD SCENARIOS ===
+
+// Template class for financial instruments
+template<typename PriceType, typename QuantityType = int64_t>
+class Order {
+private:
+    std::string symbol_;
+    PriceType price_;
+    QuantityType quantity_;
+    bool is_buy_;
+    
+public:
+    Order(const std::string& symbol, PriceType price, QuantityType quantity, bool is_buy)
+        : symbol_(symbol), price_(price), quantity_(quantity), is_buy_(is_buy) {}
+    
+    double get_notional() const {
+        return static_cast<double>(price_) * static_cast<double>(quantity_);
+    }
+    
+    void print() const {
+        std::cout << (is_buy_ ? "BUY " : "SELL ") << quantity_ << " " << symbol_ 
+                  << " @ " << price_ << " (notional: $" << get_notional() << ")";
+    }
+};
+
+// Container template with custom allocator
+template<typename T, typename Allocator = std::allocator<T>>
+class CustomVector {
+private:
+    std::vector<T, Allocator> data_;
+    
+public:
+    CustomVector() = default;
+    
+    template<typename Iterator>
+    CustomVector(Iterator begin, Iterator end) : data_(begin, end) {}
+    
+    CustomVector(std::initializer_list<T> init) : data_(init) {}
+    
+    void push_back(const T& value) { data_.push_back(value); }
+    size_t size() const { return data_.size(); }
+    const T& operator[](size_t index) const { return data_[index]; }
+    
+    void print() const {
+        std::cout << "[";
+        for (size_t i = 0; i < data_.size(); ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << data_[i];
+        }
+        std::cout << "]";
+    }
+};
+
+// Deduction guides for different constructors
+template<typename Iterator>
+CustomVector(Iterator, Iterator) -> CustomVector<typename std::iterator_traits<Iterator>::value_type>;
+
+template<typename T>
+CustomVector(std::initializer_list<T>) -> CustomVector<T>;
+
+// === THREAD-SAFE WRAPPER WITH CTAD ===
+
+template<typename T, typename Mutex = std::mutex>
+class ThreadSafe {
+private:
+    mutable Mutex mutex_;
+    T data_;
+    
+public:
+    ThreadSafe() = default;
+    ThreadSafe(const T& data) : data_(data) {}
+    ThreadSafe(T&& data) : data_(std::move(data)) {}
+    
+    template<typename... Args>
+    ThreadSafe(Args&&... args) : data_(std::forward<Args>(args)...) {}
+    
+    template<typename Func>
+    auto with_lock(Func&& func) const -> decltype(func(data_)) {
+        std::lock_guard<Mutex> lock(mutex_);
+        return func(data_);
+    }
+    
+    template<typename Func>
+    auto with_lock(Func&& func) -> decltype(func(data_)) {
+        std::lock_guard<Mutex> lock(mutex_);
+        return func(data_);
+    }
+    
+    T get() const {
+        std::lock_guard<Mutex> lock(mutex_);
+        return data_;
+    }
+    
+    void set(const T& new_data) {
+        std::lock_guard<Mutex> lock(mutex_);
+        data_ = new_data;
+    }
+};
+
+// Deduction guides
+template<typename T>
+ThreadSafe(T) -> ThreadSafe<T>;
+
+int main() {
+    std::cout << "=== Class Template Argument Deduction (CTAD) Demo ===\\n\\n";
+    
+    // === Standard Library CTAD ===
+    std::cout << "=== Standard Library CTAD ===\\n";
+    
+    // Before C++17: Required explicit template arguments
+    // std::vector<int> numbers{1, 2, 3, 4, 5};
+    // std::pair<int, std::string> p{42, "hello"};
+    
+    // C++17 CTAD: Template arguments deduced automatically
+    std::vector numbers{1, 2, 3, 4, 5};  // Deduced as vector<int>
+    std::pair p{42, std::string("hello")}; // Deduced as pair<int, string>
+    std::optional opt{3.14}; // Deduced as optional<double>
+    std::array arr{1, 2, 3, 4}; // Deduced as array<int, 4>
+    std::tuple t{1, 2.5, "hello"}; // Deduced as tuple<int, double, const char*>
+    
+    std::cout << "Vector size: " << numbers.size() << "\\n";
+    std::cout << "Pair: (" << p.first << ", " << p.second << ")\\n";
+    std::cout << "Optional value: " << opt.value() << "\\n";
+    std::cout << "Array size: " << arr.size() << "\\n\\n";
+    
+    // === Custom Class CTAD ===
+    std::cout << "=== Custom Class CTAD ===\\n";
+    
+    // Our custom Pair class with CTAD
+    Pair pair1{10, 20};        // Deduced as Pair<int>
+    Pair pair2{3.14, "pi"};    // Deduced as Pair<double, const char*>
+    Pair pair3{std::string("key"), 42}; // Deduced as Pair<string, int>
+    
+    std::cout << "pair1: "; pair1.print(); std::cout << "\\n";
+    std::cout << "pair2: "; pair2.print(); std::cout << "\\n";
+    std::cout << "pair3: "; pair3.print(); std::cout << "\\n\\n";
+    
+    // Custom map with initializer list
+    SimpleMap map1{
+        {"apple", 1.50},
+        {"banana", 0.75},
+        {"orange", 2.00}
+    }; // Deduced as SimpleMap<const char*, double>
+    
+    SimpleMap map2{
+        {std::string("AAPL"), 150.0},
+        {std::string("GOOGL"), 2500.0},
+        {std::string("MSFT"), 300.0}
+    }; // Deduced as SimpleMap<string, double>
+    
+    std::cout << "Fruit prices: "; map1.print(); std::cout << "\\n";
+    std::cout << "Stock prices: "; map2.print(); std::cout << "\\n\\n";
+    
+    // === Financial Order Example ===
+    std::cout << "=== Financial Orders with CTAD ===\\n";
+    
+    Order buy_order{"AAPL", 150.50, 100, true};    // Deduced as Order<double, int>
+    Order sell_order{"GOOGL", 2500.75, 50L, false}; // Deduced as Order<double, long>
+    
+    std::cout << "Buy order: "; buy_order.print(); std::cout << "\\n";
+    std::cout << "Sell order: "; sell_order.print(); std::cout << "\\n\\n";
+    
+    // === Container with CTAD ===
+    std::cout << "=== Custom Container with CTAD ===\\n";
+    
+    CustomVector vec1{1, 2, 3, 4, 5}; // Deduced as CustomVector<int>
+    CustomVector vec2{1.1, 2.2, 3.3}; // Deduced as CustomVector<double>
+    
+    // Using iterator constructor
+    std::vector<std::string> source{"hello", "world", "ctad"};
+    CustomVector vec3{source.begin(), source.end()}; // Deduced as CustomVector<string>
+    
+    std::cout << "int vector: "; vec1.print(); std::cout << "\\n";
+    std::cout << "double vector: "; vec2.print(); std::cout << "\\n";
+    std::cout << "string vector: "; vec3.print(); std::cout << "\\n\\n";
+    
+    // === Thread-Safe Wrapper ===
+    std::cout << "=== Thread-Safe Wrapper with CTAD ===\\n";
+    
+    ThreadSafe counter{0}; // Deduced as ThreadSafe<int>
+    ThreadSafe message{std::string("Hello CTAD")}; // Deduced as ThreadSafe<string>
+    
+    // Use the thread-safe wrappers
+    counter.with_lock([](int& c) { c += 10; });
+    auto current_count = counter.get();
+    auto current_message = message.get();
+    
+    std::cout << "Thread-safe counter: " << current_count << "\\n";
+    std::cout << "Thread-safe message: " << current_message << "\\n\\n";
+    
+    std::cout << "=== CTAD Benefits ===\\n";
+    std::cout << "✓ Less verbose template instantiation\\n";
+    std::cout << "✓ Improved code readability and maintainability\\n";
+    std::cout << "✓ Automatic type deduction reduces errors\\n";
+    std::cout << "✓ Works seamlessly with auto and generic code\\n";
+    std::cout << "✓ Custom deduction guides for complex scenarios\\n";
+    std::cout << "✓ Better integration with modern C++ idioms\\n";
+    
+    return 0;
+}`,
+    explanation: `Class Template Argument Deduction (CTAD) allows the compiler to automatically deduce template arguments for class templates from their constructor arguments, eliminating the need for explicit template parameter specification. This makes code more concise and readable while maintaining type safety. Custom deduction guides can be provided for complex scenarios where the default deduction isn't sufficient or desired.`,
+    useCase: `Essential for writing modern, clean C++ code with heavy template usage. Perfect for container classes, factory functions, wrapper classes, and any template code where explicit template arguments make code verbose. Particularly useful in financial applications with complex templated types like orders, instruments, and mathematical objects.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/class_template_argument_deduction'
+  },
+
+  // === FOLD EXPRESSIONS (EXPANDED) ===
+  {
+    id: 'fold-expressions',
+    title: 'Fold Expressions',
+    standard: 'cpp17',
+    description: 'Concise syntax for applying binary operators to parameter packs, enabling powerful variadic template patterns.',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <string>
+#include <type_traits>
+#include <sstream>
+#include <functional>
+#include <memory>
+
+// === BASIC FOLD EXPRESSIONS ===
+
+// Unary right fold: (pack op ...)
+template<typename... Args>
+auto sum(Args... args) {
+    return (args + ...);  // Expands to: arg1 + (arg2 + (arg3 + ...))
+}
+
+// Unary left fold: (... op pack)
+template<typename... Args>
+auto sum_left(Args... args) {
+    return (... + args);  // Expands to: ((... + arg1) + arg2) + arg3
+}
+
+// Binary right fold: (pack op ... op init)
+template<typename... Args>
+auto sum_with_init(int init, Args... args) {
+    return (args + ... + init);  // Expands to: arg1 + (arg2 + (... + init))
+}
+
+// Binary left fold: (init op ... op pack)
+template<typename... Args>
+auto sum_with_init_left(int init, Args... args) {
+    return (init + ... + args);  // Expands to: ((init + arg1) + arg2) + ...
+}
+
+// === LOGICAL OPERATIONS ===
+
+// All elements satisfy condition
+template<typename... Args>
+bool all_positive(Args... args) {
+    return ((args > 0) && ...);  // All arguments must be positive
+}
+
+// Any element satisfies condition
+template<typename... Args>
+bool any_negative(Args... args) {
+    return ((args < 0) || ...);  // At least one argument is negative
+}
+
+// Count elements satisfying condition
+template<typename... Args>
+size_t count_positive(Args... args) {
+    return ((args > 0 ? 1 : 0) + ...);
+}
+
+// === STRING OPERATIONS ===
+
+// Concatenate strings with separator
+template<typename... Args>
+std::string join_with_comma(Args... args) {
+    std::ostringstream oss;
+    size_t count = 0;
+    ((oss << (count++ > 0 ? ", " : "") << args), ...);
+    return oss.str();
+}
+
+// Print with separators
+template<typename... Args>
+void print_all(Args... args) {
+    ((std::cout << args << " "), ...);
+    std::cout << std::endl;
+}
+
+// Print with custom separator
+template<char Separator, typename... Args>
+void print_separated(Args... args) {
+    size_t count = 0;
+    ((std::cout << (count++ > 0 ? Separator : ' ') << args), ...);
+    std::cout << std::endl;
+}
+
+// === FUNCTION APPLICATION ===
+
+// Apply function to all arguments
+template<typename Func, typename... Args>
+void apply_to_all(Func func, Args... args) {
+    (func(args), ...);
+}
+
+// Transform and sum
+template<typename Func, typename... Args>
+auto transform_and_sum(Func func, Args... args) {
+    return (func(args) + ...);
+}
+
+// === CONTAINER OPERATIONS ===
+
+// Push all elements to vector
+template<typename T, typename... Args>
+void push_all(std::vector<T>& vec, Args... args) {
+    (vec.push_back(args), ...);
+}
+
+// Check if value exists in multiple containers
+template<typename Value, typename... Containers>
+bool exists_in_any(const Value& value, const Containers&... containers) {
+    return ((std::find(containers.begin(), containers.end(), value) != containers.end()) || ...);
+}
+
+// Get total size of all containers
+template<typename... Containers>
+size_t total_size(const Containers&... containers) {
+    return (containers.size() + ...);
+}
+
+// === TYPE OPERATIONS ===
+
+// Check if all types are the same
+template<typename T, typename... Args>
+constexpr bool all_same_type() {
+    return (std::is_same_v<T, Args> && ...);
+}
+
+// Check if all types are arithmetic
+template<typename... Args>
+constexpr bool all_arithmetic() {
+    return (std::is_arithmetic_v<Args> && ...);
+}
+
+// Count types satisfying predicate
+template<template<typename> class Predicate, typename... Args>
+constexpr size_t count_types() {
+    return (Predicate<Args>::value + ...);
+}
+
+// === ADVANCED PATTERNS ===
+
+// Recursive data structure traversal
+template<typename Visitor, typename... Nodes>
+void visit_all(Visitor&& visitor, Nodes&&... nodes) {
+    (visitor(std::forward<Nodes>(nodes)), ...);
+}
+
+// Factory pattern with fold expressions
+template<typename Base, typename... Args>
+auto create_all(Args&&... args) {
+    std::vector<std::unique_ptr<Base>> objects;
+    (objects.push_back(std::make_unique<Args>(std::forward<Args>(args))), ...);
+    return objects;
+}
+
+// Comparison operations
+template<typename T, typename... Args>
+bool all_equal(const T& first, Args... args) {
+    return ((first == args) && ...);
+}
+
+template<typename T, typename... Args>
+T min_of_all(T first, Args... args) {
+    return ((first = (first < args ? first : args)), ...);
+}
+
+template<typename T, typename... Args>
+T max_of_all(T first, Args... args) {
+    return ((first = (first > args ? first : args)), ...);
+}
+
+// === MATHEMATICAL OPERATIONS ===
+
+// Product of all arguments
+template<typename... Args>
+auto product(Args... args) {
+    return (args * ...);
+}
+
+// Average of all arguments
+template<typename... Args>
+auto average(Args... args) {
+    return (args + ...) / sizeof...(args);
+}
+
+// Euclidean distance (n-dimensional)
+template<typename... Args>
+auto euclidean_distance(Args... args) {
+    return std::sqrt((args * args + ...));
+}
+
+// Dot product of two parameter packs
+template<typename... Args1, typename... Args2>
+auto dot_product(std::tuple<Args1...> pack1, std::tuple<Args2...> pack2) {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return ((std::get<Is>(pack1) * std::get<Is>(pack2)) + ...);
+    }(std::index_sequence_for<Args1...>{});
+}
+
+// === DEMONSTRATION CLASSES ===
+
+class Shape {
+public:
+    virtual ~Shape() = default;
+    virtual void draw() const = 0;
+    virtual double area() const = 0;
+};
+
+class Circle : public Shape {
+private:
+    double radius_;
+public:
+    Circle(double r) : radius_(r) {}
+    void draw() const override { std::cout << "Circle(r=" << radius_ << ")"; }
+    double area() const override { return 3.14159 * radius_ * radius_; }
+};
+
+class Rectangle : public Shape {
+private:
+    double width_, height_;
+public:
+    Rectangle(double w, double h) : width_(w), height_(h) {}
+    void draw() const override { std::cout << "Rectangle(" << width_ << "x" << height_ << ")"; }
+    double area() const override { return width_ * height_; }
+};
+
+int main() {
+    std::cout << "=== Fold Expressions Demo ===\\n\\n";
+    
+    // === Basic arithmetic ===
+    std::cout << "=== Basic Arithmetic ===\\n";
+    std::cout << "sum(1, 2, 3, 4, 5) = " << sum(1, 2, 3, 4, 5) << "\\n";
+    std::cout << "product(2, 3, 4) = " << product(2, 3, 4) << "\\n";
+    std::cout << "average(10, 20, 30) = " << average(10, 20, 30) << "\\n";
+    std::cout << "euclidean_distance(3, 4) = " << euclidean_distance(3, 4) << "\\n\\n";
+    
+    // === Logical operations ===
+    std::cout << "=== Logical Operations ===\\n";
+    std::cout << "all_positive(1, 2, 3) = " << all_positive(1, 2, 3) << "\\n";
+    std::cout << "all_positive(1, -2, 3) = " << all_positive(1, -2, 3) << "\\n";
+    std::cout << "any_negative(-1, 2, 3) = " << any_negative(-1, 2, 3) << "\\n";
+    std::cout << "count_positive(1, -2, 3, -4, 5) = " << count_positive(1, -2, 3, -4, 5) << "\\n\\n";
+    
+    // === String operations ===
+    std::cout << "=== String Operations ===\\n";
+    std::cout << "join_with_comma(\\\"apple\\\", \\\"banana\\\", \\\"cherry\\\"): " 
+              << join_with_comma("apple", "banana", "cherry") << "\\n";
+    std::cout << "print_all output: ";
+    print_all("Hello", "world", "from", "fold", "expressions");
+    std::cout << "print_separated<'|'> output: ";
+    print_separated<'|'>("C++", "fold", "expressions", "rock");
+    std::cout << "\\n";
+    
+    // === Container operations ===
+    std::cout << "=== Container Operations ===\\n";
+    std::vector<int> vec;
+    push_all(vec, 10, 20, 30, 40, 50);
+    std::cout << "Vector after push_all: [";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        if (i > 0) std::cout << ", ";
+        std::cout << vec[i];
+    }
+    std::cout << "]\\n";
+    
+    std::vector<int> v1{1, 2, 3};
+    std::vector<int> v2{4, 5, 6};
+    std::vector<int> v3{7, 8, 9};
+    std::cout << "Total size of three vectors: " << total_size(v1, v2, v3) << "\\n";
+    std::cout << "Value 5 exists in any vector: " << exists_in_any(5, v1, v2, v3) << "\\n\\n";
+    
+    // === Type operations ===
+    std::cout << "=== Type Operations ===\\n";
+    std::cout << "all_same_type<int, int, int>(): " << all_same_type<int, int, int>() << "\\n";
+    std::cout << "all_same_type<int, double, int>(): " << all_same_type<int, double, int>() << "\\n";
+    std::cout << "all_arithmetic<int, double, float>(): " << all_arithmetic<int, double, float>() << "\\n";
+    std::cout << "all_arithmetic<int, std::string, float>(): " << all_arithmetic<int, std::string, float>() << "\\n\\n";
+    
+    // === Advanced patterns ===
+    std::cout << "=== Advanced Patterns ===\\n";
+    
+    // Function application
+    auto square = [](int x) { std::cout << x << "² = " << x*x << " "; };
+    std::cout << "Applying square function: ";
+    apply_to_all(square, 2, 3, 4, 5);
+    std::cout << "\\n";
+    
+    // Transform and sum
+    auto cube = [](int x) { return x * x * x; };
+    std::cout << "Sum of cubes of (1,2,3,4): " << transform_and_sum(cube, 1, 2, 3, 4) << "\\n";
+    
+    // Comparisons
+    std::cout << "all_equal(5, 5, 5, 5): " << all_equal(5, 5, 5, 5) << "\\n";
+    std::cout << "all_equal(5, 5, 4, 5): " << all_equal(5, 5, 4, 5) << "\\n";
+    std::cout << "min_of_all(10, 3, 7, 2, 8): " << min_of_all(10, 3, 7, 2, 8) << "\\n";
+    std::cout << "max_of_all(10, 3, 7, 15, 8): " << max_of_all(10, 3, 7, 15, 8) << "\\n\\n";
+    
+    std::cout << "=== Fold Expression Benefits ===\\n";
+    std::cout << "✓ Concise variadic template patterns\\n";
+    std::cout << "✓ No recursive template instantiation needed\\n";
+    std::cout << "✓ Better compile-time performance\\n";
+    std::cout << "✓ More readable than SFINAE alternatives\\n";
+    std::cout << "✓ Works with any binary operator\\n";
+    std::cout << "✓ Perfect for functional programming patterns\\n";
+    
+    return 0;
+}`,
+    explanation: `Fold expressions provide a concise way to apply binary operators to parameter packs without writing recursive templates. The four forms are: unary right fold (pack op ...), unary left fold (... op pack), binary right fold (pack op ... op init), and binary left fold (init op ... op pack). This enables powerful variadic template patterns for mathematical operations, logical tests, container manipulations, and type operations with clean, readable syntax.`,
+    useCase: `Perfect for variadic template functions that need to apply operations across all parameters, such as mathematical libraries, logging systems with multiple arguments, container operations, type trait checking, and any functional programming patterns. Essential for modern C++ template metaprogramming and generic algorithm design.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/fold'
+  },
+
+  // === TEMPLATE SPECIALIZATION (EXPANDED) ===
+  {
+    id: 'template-specialization',
+    title: 'Template Specialization',
+    standard: 'templates',
+    description: 'Full and partial template specialization for customizing template behavior for specific types and type patterns.',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <string>
+#include <memory>
+#include <type_traits>
+#include <bitset>
+#include <array>
+
+// === FUNCTION TEMPLATE SPECIALIZATION ===
+
+// Primary template
+template<typename T>
+void print_info(const T& value) {
+    std::cout << "Generic type: " << value << " (size: " << sizeof(T) << " bytes)\\n";
+}
+
+// Full specialization for std::string
+template<>
+void print_info<std::string>(const std::string& value) {
+    std::cout << "String: \\"" << value << "\\" (length: " << value.length() << " chars)\\n";
+}
+
+// Full specialization for pointers
+template<typename T>
+void print_info(T* ptr) {
+    if (ptr) {
+        std::cout << "Pointer to " << typeid(T).name() << ": " << *ptr 
+                  << " (address: " << ptr << ")\\n";
+    } else {
+        std::cout << "Null pointer to " << typeid(T).name() << "\\n";
+    }
+}
+
+// === CLASS TEMPLATE SPECIALIZATION ===
+
+// Primary template for a simple container
+template<typename T, size_t N>
+class FixedArray {
+private:
+    T data_[N];
+    
+public:
+    FixedArray() = default;
+    
+    T& operator[](size_t index) { return data_[index]; }
+    const T& operator[](size_t index) const { return data_[index]; }
+    
+    constexpr size_t size() const { return N; }
+    
+    void print() const {
+        std::cout << "FixedArray<" << typeid(T).name() << ", " << N << ">: [";
+        for (size_t i = 0; i < N; ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << data_[i];
+        }
+        std::cout << "]\\n";
+    }
+    
+    // Generic implementation
+    void fill(const T& value) {
+        for (size_t i = 0; i < N; ++i) {
+            data_[i] = value;
+        }
+    }
+};
+
+// Partial specialization for bool (bit-packed storage)
+template<size_t N>
+class FixedArray<bool, N> {
+private:
+    std::bitset<N> bits_;
+    
+public:
+    FixedArray() = default;
+    
+    // Proxy class for bit access
+    class BitProxy {
+    private:
+        std::bitset<N>& bits_;
+        size_t index_;
+        
+    public:
+        BitProxy(std::bitset<N>& bits, size_t index) : bits_(bits), index_(index) {}
+        
+        BitProxy& operator=(bool value) {
+            bits_[index_] = value;
+            return *this;
+        }
+        
+        operator bool() const {
+            return bits_[index_];
+        }
+    };
+    
+    BitProxy operator[](size_t index) { return BitProxy(bits_, index); }
+    bool operator[](size_t index) const { return bits_[index]; }
+    
+    constexpr size_t size() const { return N; }
+    
+    void print() const {
+        std::cout << "FixedArray<bool, " << N << "> (bit-packed): [";
+        for (size_t i = 0; i < N; ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << (bits_[i] ? "true" : "false");
+        }
+        std::cout << "]\\n";
+    }
+    
+    // Specialized implementation for bool
+    void fill(bool value) {
+        if (value) {
+            bits_.set();  // Set all bits to 1
+        } else {
+            bits_.reset(); // Set all bits to 0
+        }
+    }
+    
+    size_t count() const { return bits_.count(); }
+    void flip() { bits_.flip(); }
+};
+
+// Full specialization for void pointers
+template<size_t N>
+class FixedArray<void*, N> {
+private:
+    void* data_[N];
+    
+public:
+    FixedArray() {
+        for (size_t i = 0; i < N; ++i) {
+            data_[i] = nullptr;
+        }
+    }
+    
+    void*& operator[](size_t index) { return data_[index]; }
+    void* const& operator[](size_t index) const { return data_[index]; }
+    
+    constexpr size_t size() const { return N; }
+    
+    void print() const {
+        std::cout << "FixedArray<void*, " << N << "> (pointer array): [";
+        for (size_t i = 0; i < N; ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << data_[i];
+        }
+        std::cout << "]\\n";
+    }
+    
+    void fill(void* ptr) {
+        for (size_t i = 0; i < N; ++i) {
+            data_[i] = ptr;
+        }
+    }
+    
+    size_t non_null_count() const {
+        size_t count = 0;
+        for (size_t i = 0; i < N; ++i) {
+            if (data_[i] != nullptr) count++;
+        }
+        return count;
+    }
+};
+
+// === ADVANCED SPECIALIZATION PATTERNS ===
+
+// Type traits with specialization
+template<typename T>
+struct TypeTraits {
+    static constexpr bool is_pointer = false;
+    static constexpr bool is_reference = false;
+    static constexpr bool is_array = false;
+    static const char* name() { return "unknown"; }
+};
+
+// Specialization for pointers
+template<typename T>
+struct TypeTraits<T*> {
+    using pointed_type = T;
+    static constexpr bool is_pointer = true;
+    static constexpr bool is_reference = false;
+    static constexpr bool is_array = false;
+    static const char* name() { return "pointer"; }
+};
+
+// Specialization for references
+template<typename T>
+struct TypeTraits<T&> {
+    using referenced_type = T;
+    static constexpr bool is_pointer = false;
+    static constexpr bool is_reference = true;
+    static constexpr bool is_array = false;
+    static const char* name() { return "reference"; }
+};
+
+// Specialization for arrays
+template<typename T, size_t N>
+struct TypeTraits<T[N]> {
+    using element_type = T;
+    static constexpr bool is_pointer = false;
+    static constexpr bool is_reference = false;
+    static constexpr bool is_array = true;
+    static constexpr size_t array_size = N;
+    static const char* name() { return "array"; }
+};
+
+// === SFINAE WITH SPECIALIZATION ===
+
+// Helper for detecting member functions
+template<typename T, typename = void>
+struct has_push_back : std::false_type {};
+
+template<typename T>
+struct has_push_back<T, std::void_t<
+    decltype(std::declval<T>().push_back(std::declval<typename T::value_type>()))
+>> : std::true_type {};
+
+// Container wrapper with specialization based on capabilities
+template<typename Container, bool HasPushBack = has_push_back<Container>::value>
+class ContainerWrapper;
+
+// Specialization for containers with push_back
+template<typename Container>
+class ContainerWrapper<Container, true> {
+private:
+    Container container_;
+    
+public:
+    void add(const typename Container::value_type& value) {
+        container_.push_back(value);
+        std::cout << "Added via push_back: " << value << "\\n";
+    }
+    
+    size_t size() const { return container_.size(); }
+    
+    void print() const {
+        std::cout << "Container with push_back (size: " << container_.size() << "): [";
+        for (auto it = container_.begin(); it != container_.end(); ++it) {
+            if (it != container_.begin()) std::cout << ", ";
+            std::cout << *it;
+        }
+        std::cout << "]\\n";
+    }
+};
+
+// Specialization for containers without push_back (like arrays)
+template<typename Container>
+class ContainerWrapper<Container, false> {
+private:
+    Container container_;
+    size_t current_size_ = 0;
+    
+public:
+    void add(const typename Container::value_type& value) {
+        if (current_size_ < container_.size()) {
+            container_[current_size_++] = value;
+            std::cout << "Added via index assignment: " << value << "\\n";
+        } else {
+            std::cout << "Container is full, cannot add: " << value << "\\n";
+        }
+    }
+    
+    size_t size() const { return current_size_; }
+    
+    void print() const {
+        std::cout << "Container without push_back (size: " << current_size_ << "): [";
+        for (size_t i = 0; i < current_size_; ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << container_[i];
+        }
+        std::cout << "]\\n";
+    }
+};
+
+// === VARIADIC TEMPLATE SPECIALIZATION ===
+
+// Primary template for tuple-like structure
+template<typename... Types>
+struct Tuple;
+
+// Specialization for empty tuple
+template<>
+struct Tuple<> {
+    static constexpr size_t size = 0;
+    void print() const {
+        std::cout << "Empty tuple()\\n";
+    }
+};
+
+// Specialization for single element
+template<typename T>
+struct Tuple<T> {
+    T value;
+    static constexpr size_t size = 1;
+    
+    Tuple(const T& v) : value(v) {}
+    
+    void print() const {
+        std::cout << "Tuple(" << value << ")\\n";
+    }
+};
+
+// Specialization for two elements
+template<typename T1, typename T2>
+struct Tuple<T1, T2> {
+    T1 first;
+    T2 second;
+    static constexpr size_t size = 2;
+    
+    Tuple(const T1& f, const T2& s) : first(f), second(s) {}
+    
+    void print() const {
+        std::cout << "Tuple(" << first << ", " << second << ")\\n";
+    }
+};
+
+// General case handled by recursion (for more than 2 elements)
+template<typename T, typename... Rest>
+struct Tuple<T, Rest...> {
+    T head;
+    Tuple<Rest...> tail;
+    static constexpr size_t size = 1 + sizeof...(Rest);
+    
+    Tuple(const T& h, const Rest&... r) : head(h), tail(r...) {}
+    
+    void print() const {
+        std::cout << "Tuple(" << head;
+        if constexpr (sizeof...(Rest) > 0) {
+            std::cout << ", ";
+            // Note: This is a simplified print - real implementation would be more complex
+        }
+        std::cout << " + tail)\\n";
+    }
+};
+
+int main() {
+    std::cout << "=== Template Specialization Demo ===\\n\\n";
+    
+    // === Function Template Specialization ===
+    std::cout << "=== Function Template Specialization ===\\n";
+    print_info(42);
+    print_info(3.14);
+    print_info(std::string("Hello World"));
+    
+    int value = 100;
+    int* ptr = &value;
+    print_info(ptr);
+    print_info<int>(nullptr);
+    std::cout << "\\n";
+    
+    // === Class Template Specialization ===
+    std::cout << "=== Class Template Specialization ===\\n";
+    
+    FixedArray<int, 5> int_array;
+    int_array.fill(42);
+    int_array.print();
+    
+    FixedArray<bool, 8> bool_array;
+    bool_array.fill(true);
+    bool_array[2] = false;
+    bool_array[5] = false;
+    bool_array.print();
+    std::cout << "True bits count: " << bool_array.count() << "\\n";
+    
+    FixedArray<void*, 4> ptr_array;
+    ptr_array.fill(&value);
+    ptr_array[1] = nullptr;
+    ptr_array.print();
+    std::cout << "Non-null pointers: " << ptr_array.non_null_count() << "\\n\\n";
+    
+    // === Type Traits Specialization ===
+    std::cout << "=== Type Traits Specialization ===\\n";
+    std::cout << "int - pointer: " << TypeTraits<int>::is_pointer << ", name: " << TypeTraits<int>::name() << "\\n";
+    std::cout << "int* - pointer: " << TypeTraits<int*>::is_pointer << ", name: " << TypeTraits<int*>::name() << "\\n";
+    std::cout << "int& - reference: " << TypeTraits<int&>::is_reference << ", name: " << TypeTraits<int&>::name() << "\\n";
+    std::cout << "int[10] - array: " << TypeTraits<int[10]>::is_array << ", name: " << TypeTraits<int[10]>::name() << "\\n\\n";
+    
+    // === SFINAE with Specialization ===
+    std::cout << "=== SFINAE with Specialization ===\\n";
+    
+    ContainerWrapper<std::vector<int>> vector_wrapper;
+    vector_wrapper.add(1);
+    vector_wrapper.add(2);
+    vector_wrapper.add(3);
+    vector_wrapper.print();
+    
+    ContainerWrapper<std::array<int, 5>> array_wrapper;
+    array_wrapper.add(10);
+    array_wrapper.add(20);
+    array_wrapper.add(30);
+    array_wrapper.print();
+    std::cout << "\\n";
+    
+    // === Variadic Template Specialization ===
+    std::cout << "=== Variadic Template Specialization ===\\n";
+    
+    Tuple<> empty_tuple;
+    empty_tuple.print();
+    
+    Tuple<int> single_tuple{42};
+    single_tuple.print();
+    
+    Tuple<int, std::string> pair_tuple{100, "hello"};
+    pair_tuple.print();
+    
+    Tuple<int, double, std::string> triple_tuple{1, 2.5, "world"};
+    triple_tuple.print();
+    std::cout << "\\n";
+    
+    std::cout << "=== Template Specialization Benefits ===\\n";
+    std::cout << "✓ Customize behavior for specific types\\n";
+    std::cout << "✓ Optimize implementations for special cases\\n";
+    std::cout << "✓ Enable type-specific algorithms\\n";
+    std::cout << "✓ Foundation for advanced metaprogramming\\n";
+    std::cout << "✓ Essential for creating robust generic libraries\\n";
+    std::cout << "✓ Enables fine-grained control over template instantiation\\n";
+    
+    return 0;
+}`,
+    explanation: `Template specialization allows customizing template behavior for specific types or type patterns. Full specialization provides completely custom implementations for specific type combinations, while partial specialization enables patterns like "all pointers" or "all const types". This is fundamental to the STL's design and enables optimizations like std::vector<bool>'s bit-packing. Specialization is essential for type traits, SFINAE techniques, and creating generic libraries that handle edge cases elegantly.`,
+    useCase: `Critical for generic library design, type traits implementation, performance optimizations for specific types, and handling special cases in template code. Essential for creating robust generic containers, algorithms that adapt to type properties, and any situation where one-size-fits-all generic code isn't optimal. Used extensively in STL implementations and advanced template metaprogramming.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/template_specialization'
+  },
+
+  // === DEDUCING THIS (C++23) ===
+  {
+    id: 'deducing-this',
+    title: 'Deducing this',
+    standard: 'cpp23',
+    description: 'Explicit object parameters that deduce the type and value category of the calling object, enabling unified function definitions.',
+    codeExample: `#include <iostream>
+#include <string>
+#include <vector>
+#include <memory>
+#include <utility>
+#include <type_traits>
+
+// === BASIC DEDUCING THIS EXAMPLE ===
+
+class BasicExample {
+private:
+    std::string data_;
+    
+public:
+    BasicExample(std::string data) : data_(std::move(data)) {}
+    
+    // Traditional approach: need separate const and non-const versions
+    std::string& get_data_old() & { return data_; }
+    const std::string& get_data_old() const & { return data_; }
+    std::string get_data_old() && { return std::move(data_); }
+    
+    // C++23 deducing this: single function handles all cases
+    template<typename Self>
+    auto&& get_data(this Self&& self) {
+        return std::forward<Self>(self).data_;
+    }
+    
+    // Another example: chaining operations
+    template<typename Self>
+    auto&& append(this Self&& self, const std::string& suffix) {
+        self.data_ += suffix;
+        return std::forward<Self>(self);
+    }
+    
+    void print() const {
+        std::cout << "Data: " << data_ << "\\n";
+    }
+};
+
+// === CRTP ELIMINATION ===
+
+// Old CRTP pattern
+template<typename Derived>
+class CRTPBase {
+public:
+    void process_old() {
+        static_cast<Derived*>(this)->process_impl();
+    }
+    
+protected:
+    ~CRTPBase() = default;
+};
+
+class CRTPDerived : public CRTPBase<CRTPDerived> {
+public:
+    void process_impl() {
+        std::cout << "CRTP processing in derived class\\n";
+    }
+};
+
+// New approach with deducing this
+class ModernBase {
+public:
+    template<typename Self>
+    void process(this Self&& self) {
+        self.process_impl();
+    }
+};
+
+class ModernDerived : public ModernBase {
+public:
+    void process_impl() {
+        std::cout << "Modern processing in derived class\\n";
+    }
+};
+
+// === ADVANCED PATTERNS ===
+
+// Builder pattern with deducing this
+template<typename T>
+class Builder {
+private:
+    T object_;
+    
+public:
+    Builder() = default;
+    
+    template<typename Self, typename U>
+    auto&& set_value(this Self&& self, U&& value) {
+        self.object_.value = std::forward<U>(value);
+        return std::forward<Self>(self);
+    }
+    
+    template<typename Self>
+    auto&& set_name(this Self&& self, std::string name) {
+        self.object_.name = std::move(name);
+        return std::forward<Self>(self);
+    }
+    
+    template<typename Self>
+    auto&& add_tag(this Self&& self, std::string tag) {
+        self.object_.tags.push_back(std::move(tag));
+        return std::forward<Self>(self);
+    }
+    
+    T build() && {
+        return std::move(object_);
+    }
+    
+    const T& build() const & {
+        return object_;
+    }
+};
+
+struct Product {
+    int value = 0;
+    std::string name;
+    std::vector<std::string> tags;
+    
+    void print() const {
+        std::cout << "Product: " << name << " (value: " << value << ")\\n";
+        std::cout << "Tags: [";
+        for (size_t i = 0; i < tags.size(); ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << tags[i];
+        }
+        std::cout << "]\\n";
+    }
+};
+
+// === RECURSIVE OPERATIONS ===
+
+// Tree-like structure with deducing this
+template<typename T>
+class TreeNode {
+private:
+    T data_;
+    std::vector<std::unique_ptr<TreeNode<T>>> children_;
+    
+public:
+    TreeNode(T data) : data_(std::move(data)) {}
+    
+    template<typename Self>
+    auto&& add_child(this Self&& self, T data) {
+        self.children_.push_back(std::make_unique<TreeNode<T>>(std::move(data)));
+        return std::forward<Self>(self);
+    }
+    
+    template<typename Self, typename Func>
+    void visit(this Self&& self, Func&& func) {
+        func(self.data_);
+        for (auto& child : self.children_) {
+            child->visit(std::forward<Func>(func));
+        }
+    }
+    
+    template<typename Self, typename Func>
+    auto transform(this Self&& self, Func&& func) -> TreeNode<decltype(func(self.data_))> {
+        TreeNode<decltype(func(self.data_))> result(func(self.data_));
+        
+        for (auto& child : self.children_) {
+            result.children_.push_back(
+                std::make_unique<TreeNode<decltype(func(self.data_))>>(
+                    child->transform(std::forward<Func>(func))
+                )
+            );
+        }
+        
+        return result;
+    }
+    
+    const T& data() const { return data_; }
+    size_t child_count() const { return children_.size(); }
+};
+
+// === OPTIONAL-LIKE OPERATIONS ===
+
+template<typename T>
+class Optional {
+private:
+    bool has_value_;
+    alignas(T) char storage_[sizeof(T)];
+    
+    T* get_ptr() { return reinterpret_cast<T*>(storage_); }
+    const T* get_ptr() const { return reinterpret_cast<const T*>(storage_); }
+    
+public:
+    Optional() : has_value_(false) {}
+    
+    Optional(const T& value) : has_value_(true) {
+        new(storage_) T(value);
+    }
+    
+    Optional(T&& value) : has_value_(true) {
+        new(storage_) T(std::move(value));
+    }
+    
+    ~Optional() {
+        if (has_value_) {
+            get_ptr()->~T();
+        }
+    }
+    
+    // Deducing this for value access
+    template<typename Self>
+    auto&& value(this Self&& self) {
+        if (!self.has_value_) {
+            throw std::runtime_error("Optional is empty");
+        }
+        return *self.get_ptr();
+    }
+    
+    // Transform operation with perfect forwarding
+    template<typename Self, typename Func>
+    auto transform(this Self&& self, Func&& func) -> Optional<decltype(func(*self.get_ptr()))> {
+        if (!self.has_value_) {
+            return {};
+        }
+        return Optional<decltype(func(*self.get_ptr()))>(func(*self.get_ptr()));
+    }
+    
+    // Chain operations
+    template<typename Self, typename Func>
+    auto and_then(this Self&& self, Func&& func) -> decltype(func(*self.get_ptr())) {
+        if (!self.has_value_) {
+            return {};
+        }
+        return func(*self.get_ptr());
+    }
+    
+    bool has_value() const { return has_value_; }
+};
+
+// === PERFORMANCE CONSIDERATIONS ===
+
+// Efficient accessor with deducing this
+class PerformanceExample {
+private:
+    std::vector<int> data_;
+    
+public:
+    PerformanceExample(std::vector<int> data) : data_(std::move(data)) {}
+    
+    // Single function handles all reference qualifiers efficiently
+    template<typename Self>
+    auto&& get_data_efficiently(this Self&& self) noexcept {
+        // Perfect forwarding preserves value category
+        return std::forward<Self>(self).data_;
+    }
+    
+    // Conditional operations based on const-ness
+    template<typename Self>
+    void modify_if_mutable(this Self&& self, int new_value) {
+        if constexpr (!std::is_const_v<std::remove_reference_t<Self>>) {
+            self.data_.push_back(new_value);
+            std::cout << "Added value: " << new_value << "\\n";
+        } else {
+            std::cout << "Cannot modify const object\\n";
+        }
+    }
+    
+    size_t size() const { return data_.size(); }
+    
+    void print() const {
+        std::cout << "Data: [";
+        for (size_t i = 0; i < data_.size(); ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << data_[i];
+        }
+        std::cout << "]\\n";
+    }
+};
+
+int main() {
+    std::cout << "=== Deducing This Demo ===\\n\\n";
+    
+    // === Basic Example ===
+    std::cout << "=== Basic Deducing This ===\\n";
+    
+    BasicExample example("Hello");
+    example.print();
+    
+    // Works with different value categories
+    auto& ref_result = example.get_data();
+    std::cout << "Lvalue reference: " << ref_result << "\\n";
+    
+    const BasicExample const_example("World");
+    const auto& const_ref_result = const_example.get_data();
+    std::cout << "Const lvalue reference: " << const_ref_result << "\\n";
+    
+    auto moved_result = BasicExample("Moved").get_data();
+    std::cout << "Rvalue (moved): " << moved_result << "\\n";
+    
+    // Chaining operations
+    BasicExample("Chain").append(" test").append(" works").print();
+    std::cout << "\\n";
+    
+    // === CRTP vs Modern Approach ===
+    std::cout << "=== CRTP vs Modern Approach ===\\n";
+    
+    CRTPDerived crtp_obj;
+    crtp_obj.process_old();
+    
+    ModernDerived modern_obj;
+    modern_obj.process();
+    std::cout << "\\n";
+    
+    // === Builder Pattern ===
+    std::cout << "=== Builder Pattern with Deducing This ===\\n";
+    
+    auto product = Builder<Product>{}
+        .set_name("Laptop")
+        .set_value(1500)
+        .add_tag("electronics")
+        .add_tag("computer")
+        .add_tag("portable")
+        .build();
+    
+    product.print();
+    std::cout << "\\n";
+    
+    // === Tree Operations ===
+    std::cout << "=== Tree with Deducing This ===\\n";
+    
+    TreeNode<int> tree(1);
+    tree.add_child(2).add_child(3);
+    
+    std::cout << "Tree traversal: ";
+    tree.visit([](const int& value) { std::cout << value << " "; });
+    std::cout << "\\n";
+    
+    // Transform tree
+    auto string_tree = tree.transform([](int value) { 
+        return std::to_string(value * 10); 
+    });
+    
+    std::cout << "Transformed tree: ";
+    string_tree.visit([](const std::string& value) { std::cout << value << " "; });
+    std::cout << "\\n\\n";
+    
+    // === Optional Operations ===
+    std::cout << "=== Optional with Deducing This ===\\n";
+    
+    Optional<int> opt1(42);
+    Optional<int> opt2;
+    
+    auto doubled = opt1.transform([](int x) { return x * 2; });
+    auto empty_doubled = opt2.transform([](int x) { return x * 2; });
+    
+    std::cout << "opt1 has value: " << opt1.has_value() << ", value: " << opt1.value() << "\\n";
+    std::cout << "doubled has value: " << doubled.has_value() << ", value: " << doubled.value() << "\\n";
+    std::cout << "empty_doubled has value: " << empty_doubled.has_value() << "\\n\\n";
+    
+    // === Performance Example ===
+    std::cout << "=== Performance Example ===\\n";
+    
+    PerformanceExample perf_obj({1, 2, 3, 4, 5});
+    perf_obj.print();
+    
+    perf_obj.modify_if_mutable(6);  // Should work (non-const)
+    perf_obj.print();
+    
+    const PerformanceExample const_perf_obj({10, 20, 30});
+    const_perf_obj.modify_if_mutable(40);  // Should not modify (const)
+    const_perf_obj.print();
+    std::cout << "\\n";
+    
+    std::cout << "=== Deducing This Benefits ===\\n";
+    std::cout << "✓ Eliminates code duplication for const/non-const overloads\\n";
+    std::cout << "✓ Perfect forwarding of value categories\\n";
+    std::cout << "✓ Simplifies CRTP patterns\\n";
+    std::cout << "✓ Enables more generic and reusable code\\n";
+    std::cout << "✓ Better performance through perfect forwarding\\n";
+    std::cout << "✓ Cleaner API design with unified interfaces\\n";
+    
+    return 0;
+}`,
+    explanation: `Deducing this in C++23 allows member functions to explicitly take the object they're called on as a template parameter, deducing both its type and value category. This eliminates the need for separate const/non-const overloads, simplifies CRTP patterns, and enables perfect forwarding within member functions. The 'this Self&&' parameter allows a single function to handle lvalue, const lvalue, and rvalue calls with optimal efficiency.`,
+    useCase: `Perfect for eliminating code duplication in member function overloads, creating more efficient builder patterns, simplifying generic programming patterns that previously required CRTP, and implementing fluent interfaces with optimal performance. Essential for modern C++ library design where perfect forwarding and minimal code duplication are priorities.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/member_functions#Deducing_this'
+  },
+
+  // === std::filesystem ===
+  {
+    id: 'filesystem',
+    title: 'std::filesystem',
+    standard: 'cpp17',
+    description: 'Comprehensive file system operations including path manipulation, directory iteration, file queries, and cross-platform file handling.',
+    codeExample: `#include <filesystem>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <chrono>
+#include <vector>
+#include <algorithm>
+#include <iomanip>
+
+namespace fs = std::filesystem;
+
+// === PATH MANIPULATION ===
+
+void demonstrate_path_operations() {
+    std::cout << "=== Path Manipulation ===\\n";
+    
+    // Creating and manipulating paths
+    fs::path project_path = "/home/user/projects/cpp_app";
+    fs::path source_file = project_path / "src" / "main.cpp";
+    fs::path header_file = project_path / "include" / "app.h";
+    
+    std::cout << "Project path: " << project_path << "\\n";
+    std::cout << "Source file: " << source_file << "\\n";
+    std::cout << "Header file: " << header_file << "\\n";
+    
+    // Path components
+    std::cout << "\\nPath components of " << source_file << ":\\n";
+    std::cout << "  Root name: " << source_file.root_name() << "\\n";
+    std::cout << "  Root directory: " << source_file.root_directory() << "\\n";
+    std::cout << "  Root path: " << source_file.root_path() << "\\n";
+    std::cout << "  Relative path: " << source_file.relative_path() << "\\n";
+    std::cout << "  Parent path: " << source_file.parent_path() << "\\n";
+    std::cout << "  Filename: " << source_file.filename() << "\\n";
+    std::cout << "  Stem: " << source_file.stem() << "\\n";
+    std::cout << "  Extension: " << source_file.extension() << "\\n";
+    
+    // Path modifications
+    fs::path backup_file = source_file;
+    backup_file.replace_extension(".bak");
+    std::cout << "\\nBackup file: " << backup_file << "\\n";
+    
+    // Relative paths
+    fs::path relative = fs::relative(header_file, project_path);
+    std::cout << "Relative path from project to header: " << relative << "\\n";
+    
+    // Path comparison and manipulation
+    fs::path config_file = project_path / "config.json";
+    std::cout << "\\nConfig file exists check path: " << config_file << "\\n";
+}
+
+// === DIRECTORY OPERATIONS ===
+
+class DirectoryManager {
+public:
+    static void create_sample_structure(const fs::path& base_path) {
+        std::cout << "\\n=== Creating Sample Directory Structure ===\\n";
+        
+        try {
+            // Create directories
+            fs::create_directories(base_path / "src");
+            fs::create_directories(base_path / "include");
+            fs::create_directories(base_path / "build" / "debug");
+            fs::create_directories(base_path / "build" / "release");
+            fs::create_directories(base_path / "docs");
+            fs::create_directories(base_path / "tests");
+            
+            // Create sample files
+            create_sample_file(base_path / "README.md", "# Sample Project\\n\\nThis is a sample C++ project.\\n");
+            create_sample_file(base_path / "CMakeLists.txt", "cmake_minimum_required(VERSION 3.10)\\nproject(SampleApp)\\n");
+            create_sample_file(base_path / "src" / "main.cpp", "#include <iostream>\\nint main() { return 0; }\\n");
+            create_sample_file(base_path / "include" / "app.h", "#pragma once\\nclass App {};\\n");
+            create_sample_file(base_path / "docs" / "manual.txt", "User manual content\\n");
+            create_sample_file(base_path / "tests" / "test_main.cpp", "#include <cassert>\\nvoid test() {}\\n");
+            
+            std::cout << "Sample structure created at: " << base_path << "\\n";
+            
+        } catch (const fs::filesystem_error& e) {
+            std::cout << "Error creating directory structure: " << e.what() << "\\n";
+        }
+    }
+    
+    static void list_directory_contents(const fs::path& path) {
+        std::cout << "\\n=== Directory Contents: " << path << " ===\\n";
+        
+        try {
+            for (const auto& entry : fs::directory_iterator(path)) {
+                auto status = entry.status();
+                auto perms = status.permissions();
+                
+                // File type
+                char type = '?';
+                if (entry.is_regular_file()) type = 'f';
+                else if (entry.is_directory()) type = 'd';
+                else if (entry.is_symlink()) type = 'l';
+                else if (entry.is_block_file()) type = 'b';
+                else if (entry.is_character_file()) type = 'c';
+                else if (entry.is_fifo()) type = 'p';
+                else if (entry.is_socket()) type = 's';
+                
+                // File size
+                std::uintmax_t size = 0;
+                if (entry.is_regular_file()) {
+                    std::error_code ec;
+                    size = fs::file_size(entry.path(), ec);
+                    if (ec) size = 0;
+                }
+                
+                // Last write time
+                auto time = fs::last_write_time(entry.path());
+                auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                    time - fs::file_time_type::clock::now() + std::chrono::system_clock::now()
+                );
+                auto cftime = std::chrono::system_clock::to_time_t(sctp);
+                
+                std::cout << type << " "
+                          << std::setw(10) << size << " bytes "
+                          << std::put_time(std::localtime(&cftime), "%Y-%m-%d %H:%M:%S") << " "
+                          << entry.path().filename() << "\\n";
+            }
+        } catch (const fs::filesystem_error& e) {
+            std::cout << "Error listing directory: " << e.what() << "\\n";
+        }
+    }
+    
+    static void recursive_directory_walk(const fs::path& path) {
+        std::cout << "\\n=== Recursive Directory Walk: " << path << " ===\\n";
+        
+        try {
+            for (const auto& entry : fs::recursive_directory_iterator(path)) {
+                auto depth = std::distance(path.begin(), entry.path().parent_path().end()) - 
+                            std::distance(path.begin(), path.end());
+                
+                // Indentation based on depth
+                for (int i = 0; i < depth; ++i) std::cout << "  ";
+                
+                if (entry.is_directory()) {
+                    std::cout << "[DIR]  " << entry.path().filename() << "\\n";
+                } else {
+                    auto size = entry.is_regular_file() ? fs::file_size(entry.path()) : 0;
+                    std::cout << "[FILE] " << entry.path().filename() 
+                              << " (" << size << " bytes)\\n";
+                }
+            }
+        } catch (const fs::filesystem_error& e) {
+            std::cout << "Error in recursive walk: " << e.what() << "\\n";
+        }
+    }
+    
+private:
+    static void create_sample_file(const fs::path& file_path, const std::string& content) {
+        std::ofstream file(file_path);
+        if (file) {
+            file << content;
+        }
+    }
+};
+
+// === FILE OPERATIONS ===
+
+class FileOperations {
+public:
+    static void demonstrate_file_queries(const fs::path& path) {
+        std::cout << "\\n=== File Queries for: " << path << " ===\\n";
+        
+        std::error_code ec;
+        
+        // Existence and type checks
+        std::cout << "Exists: " << fs::exists(path, ec) << "\\n";
+        std::cout << "Is regular file: " << fs::is_regular_file(path, ec) << "\\n";
+        std::cout << "Is directory: " << fs::is_directory(path, ec) << "\\n";
+        std::cout << "Is symlink: " << fs::is_symlink(path, ec) << "\\n";
+        std::cout << "Is empty: " << fs::is_empty(path, ec) << "\\n";
+        
+        if (fs::exists(path, ec) && fs::is_regular_file(path, ec)) {
+            // File size
+            auto size = fs::file_size(path, ec);
+            std::cout << "File size: " << size << " bytes\\n";
+            
+            // Timestamps
+            auto write_time = fs::last_write_time(path, ec);
+            auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+                write_time - fs::file_time_type::clock::now() + std::chrono::system_clock::now()
+            );
+            auto cftime = std::chrono::system_clock::to_time_t(sctp);
+            std::cout << "Last modified: " << std::put_time(std::localtime(&cftime), "%Y-%m-%d %H:%M:%S") << "\\n";
+            
+            // Permissions
+            auto perms = fs::status(path, ec).permissions();
+            std::cout << "Permissions: ";
+            std::cout << ((perms & fs::perms::owner_read) != fs::perms::none ? "r" : "-");
+            std::cout << ((perms & fs::perms::owner_write) != fs::perms::none ? "w" : "-");
+            std::cout << ((perms & fs::perms::owner_exec) != fs::perms::none ? "x" : "-");
+            std::cout << "\\n";
+        }
+        
+        if (ec) {
+            std::cout << "Error: " << ec.message() << "\\n";
+        }
+    }
+    
+    static void copy_and_move_operations(const fs::path& source_dir) {
+        std::cout << "\\n=== Copy and Move Operations ===\\n";
+        
+        fs::path temp_dir = source_dir / "temp_operations";
+        fs::path copy_target = temp_dir / "copy_test";
+        fs::path move_target = temp_dir / "move_test";
+        
+        try {
+            // Create temporary directory
+            fs::create_directories(temp_dir);
+            std::cout << "Created temp directory: " << temp_dir << "\\n";
+            
+            // Copy directory
+            fs::copy(source_dir / "src", copy_target, fs::copy_options::recursive);
+            std::cout << "Copied src directory to: " << copy_target << "\\n";
+            
+            // Move (rename) directory
+            fs::rename(copy_target, move_target);
+            std::cout << "Moved directory to: " << move_target << "\\n";
+            
+            // Copy file with options
+            fs::path original_file = source_dir / "README.md";
+            fs::path backup_file = temp_dir / "README_backup.md";
+            
+            fs::copy_file(original_file, backup_file, fs::copy_options::overwrite_existing);
+            std::cout << "Created backup of README.md\\n";
+            
+            // Demonstrate different copy options
+            fs::path newer_file = temp_dir / "newer_readme.md";
+            
+            // Create a newer version
+            {
+                std::ofstream file(newer_file);
+                file << "# Newer Version\\nThis is a newer version of the readme.\\n";
+            }
+            
+            // Try copying with update_existing option
+            bool copied = fs::copy_file(newer_file, backup_file, 
+                                      fs::copy_options::update_existing);
+            std::cout << "Updated backup with newer version: " << (copied ? "Yes" : "No") << "\\n";
+            
+        } catch (const fs::filesystem_error& e) {
+            std::cout << "Error in copy/move operations: " << e.what() << "\\n";
+        }
+    }
+    
+    static void cleanup_temp_files(const fs::path& base_path) {
+        std::cout << "\\n=== Cleaning Up Temporary Files ===\\n";
+        
+        try {
+            fs::path temp_dir = base_path / "temp_operations";
+            if (fs::exists(temp_dir)) {
+                auto removed_count = fs::remove_all(temp_dir);
+                std::cout << "Removed " << removed_count << " files/directories\\n";
+            }
+            
+            // Remove the entire sample structure
+            if (fs::exists(base_path)) {
+                auto total_removed = fs::remove_all(base_path);
+                std::cout << "Total cleanup: removed " << total_removed << " items\\n";
+            }
+            
+        } catch (const fs::filesystem_error& e) {
+            std::cout << "Error during cleanup: " << e.what() << "\\n";
+        }
+    }
+};
+
+// === ADVANCED FILE SYSTEM UTILITIES ===
+
+class FileSystemUtils {
+public:
+    static std::vector<fs::path> find_files_by_extension(const fs::path& root, const std::string& extension) {
+        std::vector<fs::path> matching_files;
+        
+        try {
+            for (const auto& entry : fs::recursive_directory_iterator(root)) {
+                if (entry.is_regular_file() && entry.path().extension() == extension) {
+                    matching_files.push_back(entry.path());
+                }
+            }
+        } catch (const fs::filesystem_error& e) {
+            std::cout << "Error searching for files: " << e.what() << "\\n";
+        }
+        
+        return matching_files;
+    }
+    
+    static std::uintmax_t calculate_directory_size(const fs::path& path) {
+        std::uintmax_t size = 0;
+        std::error_code ec;
+        
+        for (const auto& entry : fs::recursive_directory_iterator(path, ec)) {
+            if (entry.is_regular_file()) {
+                size += fs::file_size(entry.path(), ec);
+            }
+        }
+        
+        return size;
+    }
+    
+    static void demonstrate_space_info(const fs::path& path) {
+        std::cout << "\\n=== File System Space Information ===\\n";
+        
+        try {
+            auto space = fs::space(path);
+            
+            std::cout << "File system space for: " << path << "\\n";
+            std::cout << "  Capacity: " << format_bytes(space.capacity) << "\\n";
+            std::cout << "  Free: " << format_bytes(space.free) << "\\n";
+            std::cout << "  Available: " << format_bytes(space.available) << "\\n";
+            
+            double usage_percent = 100.0 * (space.capacity - space.available) / space.capacity;
+            std::cout << "  Usage: " << std::fixed << std::setprecision(1) << usage_percent << "%\\n";
+            
+        } catch (const fs::filesystem_error& e) {
+            std::cout << "Error getting space info: " << e.what() << "\\n";
+        }
+    }
+    
+private:
+    static std::string format_bytes(std::uintmax_t bytes) {
+        const char* units[] = {"B", "KB", "MB", "GB", "TB"};
+        int unit = 0;
+        double size = static_cast<double>(bytes);
+        
+        while (size >= 1024.0 && unit < 4) {
+            size /= 1024.0;
+            unit++;
+        }
+        
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2) << size << " " << units[unit];
+        return oss.str();
+    }
+};
+
+int main() {
+    std::cout << "=== std::filesystem Demo ===\\n\\n";
+    
+    // Use current directory for demo
+    fs::path demo_path = fs::current_path() / "filesystem_demo";
+    
+    std::cout << "Demo will be conducted in: " << demo_path << "\\n";
+    
+    // Path manipulation
+    demonstrate_path_operations();
+    
+    // Create sample directory structure
+    DirectoryManager::create_sample_structure(demo_path);
+    
+    // List directory contents
+    DirectoryManager::list_directory_contents(demo_path);
+    
+    // Recursive directory walk
+    DirectoryManager::recursive_directory_walk(demo_path);
+    
+    // File queries
+    FileOperations::demonstrate_file_queries(demo_path / "README.md");
+    FileOperations::demonstrate_file_queries(demo_path / "src");
+    
+    // Copy and move operations
+    FileOperations::copy_and_move_operations(demo_path);
+    
+    // Advanced utilities
+    std::cout << "\\n=== Advanced File System Utilities ===\\n";
+    
+    auto cpp_files = FileSystemUtils::find_files_by_extension(demo_path, ".cpp");
+    std::cout << "Found " << cpp_files.size() << " .cpp files:\\n";
+    for (const auto& file : cpp_files) {
+        std::cout << "  " << file << "\\n";
+    }
+    
+    auto dir_size = FileSystemUtils::calculate_directory_size(demo_path);
+    std::cout << "\\nTotal directory size: " << dir_size << " bytes\\n";
+    
+    // File system space info
+    FileSystemUtils::demonstrate_space_info(fs::current_path());
+    
+    std::cout << "\\n=== std::filesystem Benefits ===\\n";
+    std::cout << "✓ Cross-platform file system operations\\n";
+    std::cout << "✓ Modern C++ exception handling\\n";
+    std::cout << "✓ Type-safe path manipulation\\n";
+    std::cout << "✓ Comprehensive file and directory operations\\n";
+    std::cout << "✓ Iterator-based directory traversal\\n";
+    std::cout << "✓ Detailed file metadata and permissions\\n";
+    std::cout << "✓ Space and capacity queries\\n";
+    
+    // Cleanup
+    FileOperations::cleanup_temp_files(demo_path);
+    
+    return 0;
+}`,
+    explanation: `std::filesystem provides a modern, cross-platform interface for file system operations. It includes comprehensive path manipulation with automatic platform-specific separators, directory iteration with both regular and recursive iterators, detailed file queries including size and timestamps, atomic file operations with error handling, and space information queries. The library uses RAII principles and provides strong exception safety guarantees.`,
+    useCase: `Essential for applications that need robust file handling: build systems, file managers, backup utilities, data processing pipelines, log rotation systems, and any application working with files and directories. Perfect for cross-platform development where file system operations must work consistently across Windows, Linux, and macOS.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/filesystem'
+  },
+
+  // === constinit (C++20) ===
+  {
+    id: 'constinit',
+    title: 'constinit',
+    standard: 'cpp20',
+    description: 'Ensures static and thread-local variables are initialized at compile time, preventing static initialization order fiasco.',
+    codeExample: `#include <iostream>
+#include <string>
+#include <vector>
+#include <chrono>
+#include <thread>
+#include <atomic>
+#include <array>
+
+// === BASIC constinit USAGE ===
+
+// Global variables with constinit
+constinit int global_counter = 0;  // Zero-initialized at compile time
+constinit const double PI = 3.141592653589793;  // Compile-time constant
+
+// constinit ensures compile-time initialization
+constinit std::atomic<int> atomic_counter{0};
+
+// This would be an error - not compile-time initializable:
+// constinit std::string error_string("hello");  // ERROR: std::string constructor not constexpr
+
+// === COMPILE-TIME COMPUTATION ===
+
+constexpr int factorial(int n) {
+    return (n <= 1) ? 1 : n * factorial(n - 1);
+}
+
+constexpr int fibonacci(int n) {
+    return (n <= 1) ? n : fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+// Using constinit with compile-time computed values
+constinit int fact_10 = factorial(10);
+constinit int fib_15 = fibonacci(15);
+
+// === ARRAY AND STRUCTURE INITIALIZATION ===
+
+struct CompileTimeConfig {
+    int max_connections;
+    double timeout_seconds;
+    bool debug_enabled;
+    
+    constexpr CompileTimeConfig(int max_conn, double timeout, bool debug)
+        : max_connections(max_conn), timeout_seconds(timeout), debug_enabled(debug) {}
+};
+
+// constinit with custom structure
+constinit CompileTimeConfig app_config{1000, 30.0, false};
+
+// constinit with arrays
+constinit int prime_numbers[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29};
+constinit std::array<double, 4> coefficients = {1.0, 0.5, 0.25, 0.125};
+
+// === THREAD-LOCAL VARIABLES ===
+
+// Thread-local storage with constinit
+thread_local constinit int thread_counter = 0;
+thread_local constinit double thread_accumulator = 0.0;
+
+// Function to demonstrate thread-local behavior
+void worker_function(int worker_id, int iterations) {
+    for (int i = 0; i < iterations; ++i) {
+        thread_counter++;
+        thread_accumulator += worker_id * 0.1;
+    }
+    
+    std::cout << "Worker " << worker_id 
+              << " - thread_counter: " << thread_counter
+              << ", accumulator: " << thread_accumulator << "\\n";
+}
+
+// === STATIC INITIALIZATION ORDER SAFETY ===
+
+class Logger {
+private:
+    static constinit std::atomic<int> log_count_;
+    static constinit bool initialized_;
+    
+public:
+    static void log(const std::string& message) {
+        // Safe to use because constinit guarantees initialization
+        int count = ++log_count_;
+        std::cout << "[LOG #" << count << "] " << message << "\\n";
+    }
+    
+    static void initialize() {
+        initialized_ = true;
+        log("Logger initialized");
+    }
+    
+    static bool is_initialized() {
+        return initialized_;
+    }
+    
+    static int get_log_count() {
+        return log_count_.load();
+    }
+};
+
+// Definition of static constinit members
+constinit std::atomic<int> Logger::log_count_{0};
+constinit bool Logger::initialized_{false};
+
+// === FINANCIAL CALCULATION CONSTANTS ===
+
+namespace FinanceConstants {
+    // Trading constants
+    constinit double TRADING_FEE_RATE = 0.001;  // 0.1%
+    constinit int MAX_POSITION_SIZE = 10000;
+    constinit double RISK_FREE_RATE = 0.02;  // 2%
+    
+    // Market data constants
+    constinit int MARKET_HOURS_START = 9;  // 9 AM
+    constinit int MARKET_HOURS_END = 16;   // 4 PM
+    constinit double VOLATILITY_SCALE = 0.01;
+    
+    // Pre-calculated compound factors (compile-time)
+    constexpr double compound_factor(double rate, int periods) {
+        double result = 1.0;
+        for (int i = 0; i < periods; ++i) {
+            result *= (1.0 + rate);
+        }
+        return result;
+    }
+    
+    constinit double ANNUAL_GROWTH_10Y = compound_factor(0.07, 10);  // 7% for 10 years
+    constinit double MONTHLY_GROWTH_5Y = compound_factor(0.005, 60); // 0.5% monthly for 5 years
+}
+
+// === PERFORMANCE MEASUREMENT ===
+
+class PerformanceTimer {
+private:
+    static constinit std::atomic<uint64_t> total_measurements_;
+    static constinit std::atomic<uint64_t> total_nanoseconds_;
+    
+    std::chrono::high_resolution_clock::time_point start_time_;
+    
+public:
+    PerformanceTimer() : start_time_(std::chrono::high_resolution_clock::now()) {}
+    
+    ~PerformanceTimer() {
+        auto end_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time_);
+        
+        total_measurements_++;
+        total_nanoseconds_ += duration.count();
+    }
+    
+    static void print_statistics() {
+        auto measurements = total_measurements_.load();
+        auto total_ns = total_nanoseconds_.load();
+        
+        if (measurements > 0) {
+            double avg_ns = static_cast<double>(total_ns) / measurements;
+            std::cout << "Performance Statistics:\\n";
+            std::cout << "  Total measurements: " << measurements << "\\n";
+            std::cout << "  Average time: " << avg_ns << " ns\\n";
+            std::cout << "  Total time: " << total_ns / 1000000.0 << " ms\\n";
+        }
+    }
+};
+
+constinit std::atomic<uint64_t> PerformanceTimer::total_measurements_{0};
+constinit std::atomic<uint64_t> PerformanceTimer::total_nanoseconds_{0};
+
+// === LOOKUP TABLES ===
+
+// Pre-computed lookup tables for fast operations
+namespace LookupTables {
+    // Sine approximation table
+    constexpr std::array<double, 360> generate_sine_table() {
+        std::array<double, 360> table{};
+        for (int i = 0; i < 360; ++i) {
+            // Simplified sine approximation for demo
+            double radians = i * 3.14159265358979323846 / 180.0;
+            table[i] = radians - (radians * radians * radians) / 6.0;  // Taylor series approximation
+        }
+        return table;
+    }
+    
+    constinit auto sine_table = generate_sine_table();
+    
+    // Powers of 2 table
+    constexpr std::array<uint64_t, 64> generate_powers_of_2() {
+        std::array<uint64_t, 64> table{};
+        uint64_t power = 1;
+        for (int i = 0; i < 64; ++i) {
+            table[i] = power;
+            power *= 2;
+        }
+        return table;
+    }
+    
+    constinit auto powers_of_2 = generate_powers_of_2();
+}
+
+// === CONFIGURATION SYSTEM ===
+
+struct SystemConfig {
+    // Network settings
+    int max_connections = 1000;
+    double connection_timeout = 30.0;
+    int port = 8080;
+    
+    // Performance settings
+    int thread_pool_size = 8;
+    size_t buffer_size = 8192;
+    bool enable_compression = true;
+    
+    // Logging settings
+    int log_level = 2;  // INFO level
+    size_t max_log_file_size = 10 * 1024 * 1024;  // 10 MB
+    
+    constexpr SystemConfig() = default;
+    
+    constexpr SystemConfig(int max_conn, double timeout, int port_num)
+        : max_connections(max_conn), connection_timeout(timeout), port(port_num) {}
+};
+
+// Global configuration with constinit
+constinit SystemConfig global_config;
+
+// Development configuration
+constinit SystemConfig dev_config{100, 5.0, 3000};
+
+int main() {
+    std::cout << "=== constinit Demo ===\\n\\n";
+    
+    // === Basic Usage ===
+    std::cout << "=== Basic constinit Usage ===\\n";
+    std::cout << "Global counter: " << global_counter << "\\n";
+    std::cout << "PI value: " << PI << "\\n";
+    std::cout << "Factorial(10): " << fact_10 << "\\n";
+    std::cout << "Fibonacci(15): " << fib_15 << "\\n";
+    std::cout << "Atomic counter: " << atomic_counter.load() << "\\n\\n";
+    
+    // === Configuration ===
+    std::cout << "=== Configuration Usage ===\\n";
+    std::cout << "App config - max connections: " << app_config.max_connections << "\\n";
+    std::cout << "App config - timeout: " << app_config.timeout_seconds << " seconds\\n";
+    std::cout << "App config - debug: " << (app_config.debug_enabled ? "enabled" : "disabled") << "\\n\\n";
+    
+    // === Arrays ===
+    std::cout << "=== Array Initialization ===\\n";
+    std::cout << "First few prime numbers: ";
+    for (int i = 0; i < 5; ++i) {
+        std::cout << prime_numbers[i] << " ";
+    }
+    std::cout << "\\n";
+    
+    std::cout << "Coefficients: ";
+    for (const auto& coef : coefficients) {
+        std::cout << coef << " ";
+    }
+    std::cout << "\\n\\n";
+    
+    // === Thread-local Variables ===
+    std::cout << "=== Thread-local constinit ===\\n";
+    std::vector<std::thread> workers;
+    
+    for (int i = 1; i <= 3; ++i) {
+        workers.emplace_back(worker_function, i, 1000);
+    }
+    
+    for (auto& worker : workers) {
+        worker.join();
+    }
+    
+    std::cout << "Main thread - thread_counter: " << thread_counter 
+              << ", accumulator: " << thread_accumulator << "\\n\\n";
+    
+    // === Logger with Static Initialization ===
+    std::cout << "=== Logger with constinit Statics ===\\n";
+    Logger::initialize();
+    Logger::log("Application started");
+    Logger::log("Processing data");
+    Logger::log("Operation completed");
+    std::cout << "Total log entries: " << Logger::get_log_count() << "\\n\\n";
+    
+    // === Financial Constants ===
+    std::cout << "=== Financial Constants ===\\n";
+    std::cout << "Trading fee rate: " << FinanceConstants::TRADING_FEE_RATE * 100 << "%\\n";
+    std::cout << "Max position size: " << FinanceConstants::MAX_POSITION_SIZE << "\\n";
+    std::cout << "10-year growth factor (7%): " << FinanceConstants::ANNUAL_GROWTH_10Y << "\\n";
+    std::cout << "5-year monthly growth factor: " << FinanceConstants::MONTHLY_GROWTH_5Y << "\\n\\n";
+    
+    // === Lookup Tables ===
+    std::cout << "=== Lookup Tables ===\\n";
+    std::cout << "Sine approximation for 90°: " << LookupTables::sine_table[90] << "\\n";
+    std::cout << "Power of 2^10: " << LookupTables::powers_of_2[10] << "\\n";
+    std::cout << "Power of 2^20: " << LookupTables::powers_of_2[20] << "\\n\\n";
+    
+    // === Performance Timing ===
+    std::cout << "=== Performance Measurement ===\\n";
+    
+    // Simulate some timed operations
+    for (int i = 0; i < 100; ++i) {
+        PerformanceTimer timer;
+        
+        // Simulate work
+        volatile int sum = 0;
+        for (int j = 0; j < 1000; ++j) {
+            sum += j;
+        }
+    }
+    
+    PerformanceTimer::print_statistics();
+    std::cout << "\\n";
+    
+    // === Configuration System ===
+    std::cout << "=== Configuration System ===\\n";
+    std::cout << "Global config port: " << global_config.port << "\\n";
+    std::cout << "Global config max connections: " << global_config.max_connections << "\\n";
+    std::cout << "Dev config port: " << dev_config.port << "\\n";
+    std::cout << "Dev config timeout: " << dev_config.connection_timeout << " seconds\\n\\n";
+    
+    std::cout << "=== constinit Benefits ===\\n";
+    std::cout << "✓ Guarantees compile-time initialization\\n";
+    std::cout << "✓ Prevents static initialization order fiasco\\n";
+    std::cout << "✓ Zero runtime initialization overhead\\n";
+    std::cout << "✓ Safe for use in library initialization\\n";
+    std::cout << "✓ Thread-safe initialization guarantee\\n";
+    std::cout << "✓ Compile-time error for non-constant expressions\\n";
+    
+    return 0;
+}`,
+    explanation: `constinit ensures that static and thread-local variables are initialized at compile time, not runtime. This eliminates the static initialization order fiasco and provides zero-overhead initialization for global state. Unlike constexpr, constinit variables can be modified at runtime, but their initial value must be computable at compile time. This is particularly valuable for atomic variables, configuration constants, and lookup tables.`,
+    useCase: `Essential for high-performance applications requiring predictable initialization, library code that must initialize before main(), embedded systems with limited startup time, financial trading systems needing guaranteed initialization order, and any application where static initialization order could cause bugs. Perfect for global configuration, lookup tables, and atomic counters.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/constinit'
+  },
+
+  // === THREE-WAY COMPARISON / SPACESHIP OPERATOR ===
+  {
+    id: 'spaceship-operator',
+    title: 'Three-way Comparison / Spaceship Operator',
+    standard: 'cpp20',
+    description: 'The <=> operator provides unified comparison semantics, automatically generating all six comparison operators from a single definition.',
+    codeExample: `#include <compare>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <tuple>
+#include <algorithm>
+
+// === BASIC SPACESHIP OPERATOR ===
+
+class Version {
+private:
+    int major_, minor_, patch_;
+    
+public:
+    Version(int major, int minor, int patch) 
+        : major_(major), minor_(minor), patch_(patch) {}
+    
+    // Spaceship operator - automatically generates all six comparison operators
+    auto operator<=>(const Version& other) const {
+        // Lexicographic comparison using tuple
+        return std::tuple(major_, minor_, patch_) <=> std::tuple(other.major_, other.minor_, other.patch_);
+    }
+    
+    // Equality operator (optional, but recommended for clarity)
+    bool operator==(const Version& other) const = default;
+    
+    void print() const {
+        std::cout << major_ << "." << minor_ << "." << patch_;
+    }
+};
+
+// === CUSTOM COMPARISON CATEGORIES ===
+
+class Temperature {
+private:
+    double celsius_;
+    
+public:
+    Temperature(double celsius) : celsius_(celsius) {}
+    
+    // Strong ordering: all values are comparable and have a total order
+    std::strong_ordering operator<=>(const Temperature& other) const {
+        if (celsius_ < other.celsius_) return std::strong_ordering::less;
+        if (celsius_ > other.celsius_) return std::strong_ordering::greater;
+        return std::strong_ordering::equal;
+    }
+    
+    bool operator==(const Temperature& other) const = default;
+    
+    double celsius() const { return celsius_; }
+    double fahrenheit() const { return celsius_ * 9.0 / 5.0 + 32.0; }
+};
+
+class FloatingPoint {
+private:
+    double value_;
+    
+public:
+    FloatingPoint(double value) : value_(value) {}
+    
+    // Partial ordering: some values may be incomparable (NaN)
+    std::partial_ordering operator<=>(const FloatingPoint& other) const {
+        if (std::isnan(value_) || std::isnan(other.value_)) {
+            return std::partial_ordering::unordered;
+        }
+        if (value_ < other.value_) return std::partial_ordering::less;
+        if (value_ > other.value_) return std::partial_ordering::greater;
+        return std::partial_ordering::equivalent;
+    }
+    
+    bool operator==(const FloatingPoint& other) const {
+        // Handle NaN properly
+        if (std::isnan(value_) || std::isnan(other.value_)) return false;
+        return value_ == other.value_;
+    }
+    
+    double value() const { return value_; }
+};
+
+class CaseInsensitiveString {
+private:
+    std::string str_;
+    
+    static std::string to_lower(const std::string& s) {
+        std::string result = s;
+        std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+        return result;
+    }
+    
+public:
+    CaseInsensitiveString(const std::string& str) : str_(str) {}
+    
+    // Weak ordering: equivalent but not equal elements
+    std::weak_ordering operator<=>(const CaseInsensitiveString& other) const {
+        auto this_lower = to_lower(str_);
+        auto other_lower = to_lower(other.str_);
+        
+        if (this_lower < other_lower) return std::weak_ordering::less;
+        if (this_lower > other_lower) return std::weak_ordering::greater;
+        return std::weak_ordering::equivalent;  // Case-insensitive equivalent
+    }
+    
+    // Custom equality for case-insensitive comparison
+    bool operator==(const CaseInsensitiveString& other) const {
+        return to_lower(str_) == to_lower(other.str_);
+    }
+    
+    const std::string& str() const { return str_; }
+};
+
+// === FINANCIAL INSTRUMENT COMPARISON ===
+
+enum class AssetClass { Stock, Bond, Commodity, Currency, Derivative };
+
+class FinancialInstrument {
+private:
+    std::string symbol_;
+    AssetClass asset_class_;
+    double price_;
+    double market_cap_;
+    double volatility_;
+    
+public:
+    FinancialInstrument(std::string symbol, AssetClass asset_class, 
+                       double price, double market_cap, double volatility)
+        : symbol_(std::move(symbol)), asset_class_(asset_class), 
+          price_(price), market_cap_(market_cap), volatility_(volatility) {}
+    
+    // Complex multi-criteria comparison
+    std::strong_ordering operator<=>(const FinancialInstrument& other) const {
+        // Primary: Asset class
+        if (auto cmp = asset_class_ <=> other.asset_class_; cmp != 0) {
+            return cmp;
+        }
+        
+        // Secondary: Market cap (descending order for same asset class)
+        if (auto cmp = other.market_cap_ <=> market_cap_; cmp != 0) {
+            return cmp;
+        }
+        
+        // Tertiary: Symbol (alphabetical)
+        if (auto cmp = symbol_ <=> other.symbol_; cmp != 0) {
+            return cmp;
+        }
+        
+        // Final: Price
+        return price_ <=> other.price_;
+    }
+    
+    bool operator==(const FinancialInstrument& other) const = default;
+    
+    void print() const {
+        const char* asset_names[] = {"Stock", "Bond", "Commodity", "Currency", "Derivative"};
+        std::cout << symbol_ << " (" << asset_names[static_cast<int>(asset_class_)] 
+                  << ") - Price: $" << price_ << ", Market Cap: $" << market_cap_ / 1e9 << "B";
+    }
+    
+    // Getters
+    const std::string& symbol() const { return symbol_; }
+    AssetClass asset_class() const { return asset_class_; }
+    double price() const { return price_; }
+    double market_cap() const { return market_cap_; }
+    double volatility() const { return volatility_; }
+};
+
+// === CONTAINER WITH SPACESHIP OPERATOR ===
+
+template<typename T>
+class SortedVector {
+private:
+    std::vector<T> data_;
+    
+    void maintain_order() {
+        std::sort(data_.begin(), data_.end());
+    }
+    
+public:
+    void insert(const T& value) {
+        data_.push_back(value);
+        maintain_order();
+    }
+    
+    void insert(T&& value) {
+        data_.push_back(std::move(value));
+        maintain_order();
+    }
+    
+    // Lexicographic comparison using spaceship
+    auto operator<=>(const SortedVector& other) const {
+        return data_ <=> other.data_;
+    }
+    
+    bool operator==(const SortedVector& other) const = default;
+    
+    size_t size() const { return data_.size(); }
+    const T& operator[](size_t index) const { return data_[index]; }
+    
+    auto begin() const { return data_.begin(); }
+    auto end() const { return data_.end(); }
+};
+
+// === DEMONSTRATION FUNCTIONS ===
+
+void demonstrate_version_comparison() {
+    std::cout << "=== Version Comparison ===\\n";
+    
+    Version v1{2, 1, 0};
+    Version v2{2, 1, 5};
+    Version v3{3, 0, 0};
+    Version v4{2, 1, 0};
+    
+    std::vector<Version> versions = {v3, v1, v2, v4};
+    
+    std::cout << "Before sorting: ";
+    for (const auto& v : versions) {
+        v.print();
+        std::cout << " ";
+    }
+    std::cout << "\\n";
+    
+    std::sort(versions.begin(), versions.end());
+    
+    std::cout << "After sorting: ";
+    for (const auto& v : versions) {
+        v.print();
+        std::cout << " ";
+    }
+    std::cout << "\\n";
+    
+    // Demonstrate all comparison operators work
+    std::cout << "\\nComparison results:\\n";
+    std::cout << "v1 == v4: " << (v1 == v4) << "\\n";
+    std::cout << "v1 != v2: " << (v1 != v2) << "\\n";
+    std::cout << "v1 < v2: " << (v1 < v2) << "\\n";
+    std::cout << "v1 <= v4: " << (v1 <= v4) << "\\n";
+    std::cout << "v3 > v2: " << (v3 > v2) << "\\n";
+    std::cout << "v3 >= v2: " << (v3 >= v2) << "\\n";
+}
+
+void demonstrate_comparison_categories() {
+    std::cout << "\\n=== Comparison Categories ===\\n";
+    
+    // Strong ordering
+    Temperature t1{20.0};
+    Temperature t2{25.0};
+    Temperature t3{20.0};
+    
+    std::cout << "Temperature comparison (strong ordering):\\n";
+    std::cout << "20°C == 20°C: " << (t1 == t3) << "\\n";
+    std::cout << "20°C < 25°C: " << (t1 < t2) << "\\n";
+    std::cout << "25°C > 20°C: " << (t2 > t1) << "\\n";
+    
+    // Partial ordering with NaN
+    FloatingPoint f1{1.5};
+    FloatingPoint f2{2.5};
+    FloatingPoint f3{std::numeric_limits<double>::quiet_NaN()};
+    
+    std::cout << "\\nFloating point comparison (partial ordering):\\n";
+    std::cout << "1.5 < 2.5: " << (f1 < f2) << "\\n";
+    std::cout << "1.5 == NaN: " << (f1 == f3) << "\\n";
+    std::cout << "1.5 < NaN: " << (f1 < f3) << "\\n";
+    std::cout << "NaN == NaN: " << (f3 == f3) << "\\n";
+    
+    // Weak ordering
+    CaseInsensitiveString s1{"Hello"};
+    CaseInsensitiveString s2{"HELLO"};
+    CaseInsensitiveString s3{"World"};
+    
+    std::cout << "\\nCase-insensitive string comparison (weak ordering):\\n";
+    std::cout << "\\"Hello\\" == \\"HELLO\\": " << (s1 == s2) << "\\n";
+    std::cout << "\\"Hello\\" < \\"World\\": " << (s1 < s3) << "\\n";
+    std::cout << "\\"HELLO\\" < \\"World\\": " << (s2 < s3) << "\\n";
+}
+
+void demonstrate_financial_instruments() {
+    std::cout << "\\n=== Financial Instrument Comparison ===\\n";
+    
+    std::vector<FinancialInstrument> instruments = {
+        {"AAPL", AssetClass::Stock, 150.0, 2400e9, 0.25},
+        {"GOOGL", AssetClass::Stock, 2500.0, 1600e9, 0.30},
+        {"TSLA", AssetClass::Stock, 800.0, 800e9, 0.45},
+        {"US10Y", AssetClass::Bond, 98.5, 0, 0.05},
+        {"GOLD", AssetClass::Commodity, 1900.0, 0, 0.20}
+    };
+    
+    std::cout << "Before sorting:\\n";
+    for (const auto& instr : instruments) {
+        instr.print();
+        std::cout << "\\n";
+    }
+    
+    std::sort(instruments.begin(), instruments.end());
+    
+    std::cout << "\\nAfter sorting (by asset class, then market cap desc):\\n";
+    for (const auto& instr : instruments) {
+        instr.print();
+        std::cout << "\\n";
+    }
+}
+
+int main() {
+    std::cout << "=== Three-way Comparison / Spaceship Operator Demo ===\\n\\n";
+    
+    demonstrate_version_comparison();
+    demonstrate_comparison_categories();
+    demonstrate_financial_instruments();
+    
+    // === SortedVector Demo ===
+    std::cout << "\\n=== SortedVector with Spaceship ===\\n";
+    
+    SortedVector<int> sv1;
+    sv1.insert(5);
+    sv1.insert(2);
+    sv1.insert(8);
+    sv1.insert(1);
+    
+    SortedVector<int> sv2;
+    sv2.insert(5);
+    sv2.insert(2);
+    sv2.insert(8);
+    
+    std::cout << "sv1 contents: ";
+    for (const auto& val : sv1) {
+        std::cout << val << " ";
+    }
+    std::cout << "\\n";
+    
+    std::cout << "sv2 contents: ";
+    for (const auto& val : sv2) {
+        std::cout << val << " ";
+    }
+    std::cout << "\\n";
+    
+    std::cout << "sv1 == sv2: " << (sv1 == sv2) << "\\n";
+    std::cout << "sv1 > sv2: " << (sv1 > sv2) << "\\n";
+    std::cout << "sv1 < sv2: " << (sv1 < sv2) << "\\n";
+    
+    std::cout << "\\n=== Spaceship Operator Benefits ===\\n";
+    std::cout << "✓ Single operator generates all six comparisons\\n";
+    std::cout << "✓ Consistent and efficient comparison semantics\\n";
+    std::cout << "✓ Automatic support for standard algorithms\\n";
+    std::cout << "✓ Clear intent with comparison categories\\n";
+    std::cout << "✓ Compiler-optimized implementations\\n";
+    std::cout << "✓ Reduced boilerplate code\\n";
+    std::cout << "✓ Better support for generic programming\\n";
+    
+    return 0;
+}`,
+    explanation: `The three-way comparison operator <=> (spaceship operator) returns a comparison category indicating the relationship between two objects. It automatically generates all six comparison operators (==, !=, <, <=, >, >=) from a single definition. The operator returns one of three ordering types: strong_ordering (total order), weak_ordering (equivalent but not equal elements allowed), or partial_ordering (some elements may be incomparable). This provides consistent, efficient, and expressive comparison semantics.`,
+    useCase: `Essential for creating comparable types in modern C++, financial instruments with complex ordering criteria, version numbers, container classes, and any type that needs comprehensive comparison support. Perfect for use with standard algorithms, container sorting, and generic programming where consistent comparison semantics are crucial.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/operator_comparison'
+  },
+
+  // === DIGIT SEPARATORS & BINARY LITERALS ===
+  {
+    id: 'digit-separators-binary-literals',
+    title: 'Digit Separators & Binary Literals',
+    standard: 'cpp14',
+    description: 'Improve numeric literal readability with digit separators and support binary literals for bit manipulation and embedded programming.',
+    codeExample: `#include <iostream>
+#include <bitset>
+#include <iomanip>
+#include <string>
+#include <cstdint>
+
+// === DIGIT SEPARATORS FOR READABILITY ===
+
+namespace FinancialConstants {
+    // Large financial amounts with separators
+    constexpr long long ONE_MILLION = 1'000'000;
+    constexpr long long ONE_BILLION = 1'000'000'000;
+    constexpr long long ONE_TRILLION = 1'000'000'000'000;
+    
+    // Trading limits
+    constexpr int MAX_ORDER_SIZE = 100'000;
+    constexpr double HIGH_FREQUENCY_THRESHOLD = 1'000'000.50;
+    
+    // Interest rates with precision
+    constexpr double LIBOR_RATE = 0.025'75;  // 2.5775%
+    constexpr double FEDERAL_RATE = 0.050'00;  // 5.00%
+    
+    // Large portfolio values
+    constexpr double PORTFOLIO_VALUE = 450'000'000.00;  // $450M
+    constexpr double RISK_LIMIT = 25'000'000.00;        // $25M
+}
+
+namespace SystemConstants {
+    // Memory sizes
+    constexpr size_t CACHE_SIZE = 64'000'000;      // 64 MB
+    constexpr size_t BUFFER_SIZE = 8'192;          // 8 KB
+    constexpr size_t MAX_FILE_SIZE = 2'147'483'648; // 2 GB
+    
+    // Network parameters
+    constexpr int DEFAULT_PORT = 8'080;
+    constexpr int MAX_CONNECTIONS = 10'000;
+    constexpr double TIMEOUT_SECONDS = 30.0;
+    
+    // Performance thresholds
+    constexpr long long OPERATIONS_PER_SECOND = 1'000'000;
+    constexpr double LATENCY_THRESHOLD_MS = 0.1;  // 100 microseconds
+}
+
+// === BINARY LITERALS FOR BIT MANIPULATION ===
+
+namespace BitOperations {
+    // Permission flags using binary literals
+    constexpr uint32_t READ_PERMISSION     = 0b0000'0001;
+    constexpr uint32_t WRITE_PERMISSION    = 0b0000'0010;
+    constexpr uint32_t EXECUTE_PERMISSION  = 0b0000'0100;
+    constexpr uint32_t ADMIN_PERMISSION    = 0b0000'1000;
+    constexpr uint32_t SUPER_PERMISSION    = 0b0001'0000;
+    
+    // Network protocol flags
+    constexpr uint8_t TCP_FLAG_FIN = 0b0000'0001;
+    constexpr uint8_t TCP_FLAG_SYN = 0b0000'0010;
+    constexpr uint8_t TCP_FLAG_RST = 0b0000'0100;
+    constexpr uint8_t TCP_FLAG_PSH = 0b0000'1000;
+    constexpr uint8_t TCP_FLAG_ACK = 0b0001'0000;
+    constexpr uint8_t TCP_FLAG_URG = 0b0010'0000;
+    
+    // Color values (RGB)
+    constexpr uint32_t COLOR_RED   = 0b1111'1111'0000'0000'0000'0000;
+    constexpr uint32_t COLOR_GREEN = 0b0000'0000'1111'1111'0000'0000;
+    constexpr uint32_t COLOR_BLUE  = 0b0000'0000'0000'0000'1111'1111;
+    constexpr uint32_t COLOR_WHITE = 0b1111'1111'1111'1111'1111'1111;
+    
+    // Bit masks for data extraction
+    constexpr uint32_t LOWER_16_BITS = 0b0000'0000'0000'0000'1111'1111'1111'1111;
+    constexpr uint32_t UPPER_16_BITS = 0b1111'1111'1111'1111'0000'0000'0000'0000;
+    constexpr uint8_t  LOWER_4_BITS  = 0b0000'1111;
+    constexpr uint8_t  UPPER_4_BITS  = 0b1111'0000;
+}
+
+// === FINANCIAL BIT FLAGS ===
+
+enum class OrderFlags : uint32_t {
+    NONE            = 0b0000'0000,
+    MARKET_ORDER    = 0b0000'0001,
+    LIMIT_ORDER     = 0b0000'0010,
+    STOP_ORDER      = 0b0000'0100,
+    HIDDEN_ORDER    = 0b0000'1000,
+    ICEBERG_ORDER   = 0b0001'0000,
+    IOC_ORDER       = 0b0010'0000,  // Immediate or Cancel
+    FOK_ORDER       = 0b0100'0000,  // Fill or Kill
+    POST_ONLY       = 0b1000'0000,
+    
+    // Combinations
+    COMPLEX_ORDER   = LIMIT_ORDER | STOP_ORDER,
+    ADVANCED_ORDER  = HIDDEN_ORDER | ICEBERG_ORDER
+};
+
+// Bitwise operators for enum class
+constexpr OrderFlags operator|(OrderFlags a, OrderFlags b) {
+    return static_cast<OrderFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+}
+
+constexpr OrderFlags operator&(OrderFlags a, OrderFlags b) {
+    return static_cast<OrderFlags>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+}
+
+constexpr bool has_flag(OrderFlags flags, OrderFlags flag) {
+    return (flags & flag) == flag;
+}
+
+// === EMBEDDED SYSTEM REGISTER CONFIGURATION ===
+
+struct RegisterConfig {
+    // Using binary literals for hardware register values
+    static constexpr uint32_t SYSTEM_CONTROL = 0b1010'0000'0000'0001'1111'0000'0000'0000;
+    
+    // Timer configuration
+    static constexpr uint16_t TIMER_ENABLE    = 0b1000'0000'0000'0000;
+    static constexpr uint16_t TIMER_INTERRUPT = 0b0100'0000'0000'0000;
+    static constexpr uint16_t TIMER_PRESCALER = 0b0000'1111'0000'0000;
+    
+    // GPIO pin configurations
+    static constexpr uint8_t GPIO_INPUT       = 0b00;
+    static constexpr uint8_t GPIO_OUTPUT      = 0b01;
+    static constexpr uint8_t GPIO_ALTERNATE   = 0b10;
+    static constexpr uint8_t GPIO_ANALOG      = 0b11;
+    
+    // SPI configuration
+    static constexpr uint32_t SPI_MASTER      = 0b0000'0000'0000'0000'0000'0010'0000'0000;
+    static constexpr uint32_t SPI_SLAVE       = 0b0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr uint32_t SPI_8BIT        = 0b0000'0000'0000'0000'0000'0000'0000'0000;
+    static constexpr uint32_t SPI_16BIT       = 0b0000'0000'0000'0000'0000'1000'0000'0000;
+};
+
+// === BIT MANIPULATION UTILITIES ===
+
+class BitManipulator {
+public:
+    template<typename T>
+    static void print_binary(T value, const std::string& label = "") {
+        if (!label.empty()) {
+            std::cout << label << ": ";
+        }
+        
+        std::cout << "0b";
+        for (int i = sizeof(T) * 8 - 1; i >= 0; --i) {
+            if (i < sizeof(T) * 8 - 1 && (i + 1) % 4 == 0) {
+                std::cout << "'";
+            }
+            std::cout << ((value >> i) & 1);
+        }
+        
+        std::cout << " (decimal: " << static_cast<uint64_t>(value) << ")\\n";
+    }
+    
+    template<typename T>
+    static T set_bit(T value, int bit_position) {
+        return value | (T(1) << bit_position);
+    }
+    
+    template<typename T>
+    static T clear_bit(T value, int bit_position) {
+        return value & ~(T(1) << bit_position);
+    }
+    
+    template<typename T>
+    static T toggle_bit(T value, int bit_position) {
+        return value ^ (T(1) << bit_position);
+    }
+    
+    template<typename T>
+    static bool test_bit(T value, int bit_position) {
+        return (value & (T(1) << bit_position)) != 0;
+    }
+    
+    template<typename T>
+    static T extract_bits(T value, int start_bit, int num_bits) {
+        T mask = (T(1) << num_bits) - 1;  // Create mask with num_bits set
+        return (value >> start_bit) & mask;
+    }
+};
+
+// === NETWORK PACKET STRUCTURE ===
+
+struct NetworkPacket {
+    // Header with bit fields
+    uint16_t version : 4;       // 4 bits for version
+    uint16_t type : 4;          // 4 bits for packet type
+    uint16_t flags : 8;         // 8 bits for flags
+    
+    uint32_t sequence_number;   // 32-bit sequence number
+    uint16_t data_length;       // 16-bit data length
+    uint16_t checksum;          // 16-bit checksum
+    
+    // Flag constants using binary literals
+    static constexpr uint8_t FLAG_COMPRESSED  = 0b0000'0001;
+    static constexpr uint8_t FLAG_ENCRYPTED   = 0b0000'0010;
+    static constexpr uint8_t FLAG_PRIORITY    = 0b0000'0100;
+    static constexpr uint8_t FLAG_FRAGMENTED  = 0b0000'1000;
+    static constexpr uint8_t FLAG_LAST_FRAGMENT = 0b0001'0000;
+    
+    bool has_flag(uint8_t flag) const {
+        return (flags & flag) != 0;
+    }
+    
+    void set_flag(uint8_t flag) {
+        flags |= flag;
+    }
+    
+    void clear_flag(uint8_t flag) {
+        flags &= ~flag;
+    }
+    
+    void print() const {
+        std::cout << "Network Packet:\\n";
+        std::cout << "  Version: " << version << "\\n";
+        std::cout << "  Type: " << type << "\\n";
+        std::cout << "  Sequence: " << sequence_number << "\\n";
+        std::cout << "  Data Length: " << data_length << " bytes\\n";
+        std::cout << "  Flags: ";
+        BitManipulator::print_binary(flags, "");
+        std::cout << "    Compressed: " << (has_flag(FLAG_COMPRESSED) ? "Yes" : "No") << "\\n";
+        std::cout << "    Encrypted: " << (has_flag(FLAG_ENCRYPTED) ? "Yes" : "No") << "\\n";
+        std::cout << "    Priority: " << (has_flag(FLAG_PRIORITY) ? "Yes" : "No") << "\\n";
+    }
+};
+
+int main() {
+    std::cout << "=== Digit Separators & Binary Literals Demo ===\\n\\n";
+    
+    // === Financial Constants with Separators ===
+    std::cout << "=== Financial Constants with Digit Separators ===\\n";
+    std::cout << "One Million: " << FinancialConstants::ONE_MILLION << "\\n";
+    std::cout << "One Billion: " << FinancialConstants::ONE_BILLION << "\\n";
+    std::cout << "One Trillion: " << FinancialConstants::ONE_TRILLION << "\\n";
+    std::cout << "Max Order Size: " << FinancialConstants::MAX_ORDER_SIZE << "\\n";
+    std::cout << "Portfolio Value: $" << std::fixed << std::setprecision(2) 
+              << FinancialConstants::PORTFOLIO_VALUE << "\\n";
+    std::cout << "Risk Limit: $" << FinancialConstants::RISK_LIMIT << "\\n\\n";
+    
+    // === System Constants ===
+    std::cout << "=== System Constants ===\\n";
+    std::cout << "Cache Size: " << SystemConstants::CACHE_SIZE / 1'000'000 << " MB\\n";
+    std::cout << "Buffer Size: " << SystemConstants::BUFFER_SIZE << " bytes\\n";
+    std::cout << "Max File Size: " << SystemConstants::MAX_FILE_SIZE / 1'000'000'000 << " GB\\n";
+    std::cout << "Operations/Second: " << SystemConstants::OPERATIONS_PER_SECOND << "\\n\\n";
+    
+    // === Binary Literals and Bit Operations ===
+    std::cout << "=== Binary Literals and Bit Operations ===\\n";
+    
+    // Permission system
+    uint32_t user_permissions = BitOperations::READ_PERMISSION | 
+                               BitOperations::WRITE_PERMISSION;
+    
+    BitManipulator::print_binary(BitOperations::READ_PERMISSION, "Read Permission");
+    BitManipulator::print_binary(BitOperations::WRITE_PERMISSION, "Write Permission");
+    BitManipulator::print_binary(user_permissions, "User Permissions");
+    
+    std::cout << "\\nTCP Flags:\\n";
+    BitManipulator::print_binary(BitOperations::TCP_FLAG_SYN, "SYN Flag");
+    BitManipulator::print_binary(BitOperations::TCP_FLAG_ACK, "ACK Flag");
+    
+    uint8_t tcp_handshake = BitOperations::TCP_FLAG_SYN | BitOperations::TCP_FLAG_ACK;
+    BitManipulator::print_binary(tcp_handshake, "SYN+ACK");
+    
+    // === Order Flags ===
+    std::cout << "\\n=== Financial Order Flags ===\\n";
+    
+    OrderFlags simple_order = OrderFlags::LIMIT_ORDER;
+    OrderFlags complex_order = OrderFlags::LIMIT_ORDER | OrderFlags::HIDDEN_ORDER | OrderFlags::IOC_ORDER;
+    
+    std::cout << "Simple limit order has LIMIT_ORDER flag: " 
+              << has_flag(simple_order, OrderFlags::LIMIT_ORDER) << "\\n";
+    std::cout << "Complex order has HIDDEN_ORDER flag: " 
+              << has_flag(complex_order, OrderFlags::HIDDEN_ORDER) << "\\n";
+    std::cout << "Complex order has MARKET_ORDER flag: " 
+              << has_flag(complex_order, OrderFlags::MARKET_ORDER) << "\\n";
+    
+    // === Bit Manipulation ===
+    std::cout << "\\n=== Bit Manipulation Examples ===\\n";
+    
+    uint32_t register_value = 0b1010'1100'0000'1111;
+    BitManipulator::print_binary(register_value, "Original");
+    
+    // Set bit 3
+    register_value = BitManipulator::set_bit(register_value, 3);
+    BitManipulator::print_binary(register_value, "After setting bit 3");
+    
+    // Clear bit 15
+    register_value = BitManipulator::clear_bit(register_value, 15);
+    BitManipulator::print_binary(register_value, "After clearing bit 15");
+    
+    // Toggle bit 8
+    register_value = BitManipulator::toggle_bit(register_value, 8);
+    BitManipulator::print_binary(register_value, "After toggling bit 8");
+    
+    // Extract bits 4-7 (4 bits starting from position 4)
+    uint32_t extracted = BitManipulator::extract_bits(register_value, 4, 4);
+    BitManipulator::print_binary(extracted, "Extracted bits 4-7");
+    
+    // === Network Packet Example ===
+    std::cout << "\\n=== Network Packet with Bit Fields ===\\n";
+    
+    NetworkPacket packet;
+    packet.version = 4;
+    packet.type = 2;
+    packet.flags = NetworkPacket::FLAG_COMPRESSED | NetworkPacket::FLAG_PRIORITY;
+    packet.sequence_number = 12345;
+    packet.data_length = 1500;
+    packet.checksum = 0xABCD;
+    
+    packet.print();
+    
+    std::cout << "\\n=== Color Values ===\\n";
+    BitManipulator::print_binary(BitOperations::COLOR_RED, "Red (RGB)");
+    BitManipulator::print_binary(BitOperations::COLOR_GREEN, "Green (RGB)");
+    BitManipulator::print_binary(BitOperations::COLOR_BLUE, "Blue (RGB)");
+    BitManipulator::print_binary(BitOperations::COLOR_WHITE, "White (RGB)");
+    
+    std::cout << "\\n=== Benefits of Digit Separators & Binary Literals ===\\n";
+    std::cout << "✓ Improved readability of large numbers\\n";
+    std::cout << "✓ Reduced errors in numeric constants\\n";
+    std::cout << "✓ Clear bit pattern visualization\\n";
+    std::cout << "✓ Better embedded programming support\\n";
+    std::cout << "✓ Easier financial calculation constants\\n";
+    std::cout << "✓ More maintainable bit manipulation code\\n";
+    std::cout << "✓ Enhanced protocol and register definitions\\n";
+    
+    return 0;
+}`,
+    explanation: `Digit separators (apostrophes) in numeric literals improve readability by allowing visual grouping of digits, especially useful for large financial amounts, memory sizes, and bit patterns. Binary literals (0b prefix) enable direct specification of bit patterns, making embedded programming, protocol definitions, and bit manipulation more intuitive. These features make code more maintainable and reduce errors in numeric constants.`,
+    useCase: `Essential for financial applications with large monetary values, embedded systems programming with register configurations, network protocol implementations, bit manipulation libraries, and any code dealing with large numeric constants. Perfect for hardware abstraction layers, cryptographic implementations, and systems where bit-level operations are common.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/integer_literal'
+  },
+
+  // === INLINE VARIABLES (C++17) ===
+  {
+    id: 'inline-variables',
+    title: 'Inline Variables',
+    standard: 'cpp17',
+    description: 'Define variables in header files without ODR violations, enabling header-only libraries with static data members and global constants.',
+    codeExample: `#include <iostream>
+#include <string>
+#include <vector>
+#include <atomic>
+#include <chrono>
+
+// === HEADER-ONLY LIBRARY PATTERN ===
+
+// Before C++17: Had to use functions to avoid ODR violations
+// const std::string& get_app_name() {
+//     static const std::string name = "MyApp";
+//     return name;
+// }
+
+// C++17: Direct inline variable definition
+inline const std::string APP_NAME = "Modern C++ App";
+inline const std::string APP_VERSION = "2.1.0";
+inline const int APP_BUILD_NUMBER = 42;
+
+// Mathematical constants
+inline constexpr double PI = 3.141592653589793238462643383279;
+inline constexpr double E = 2.718281828459045235360287471352;
+inline constexpr double GOLDEN_RATIO = 1.618033988749894848204586834365;
+
+// === FINANCIAL CONSTANTS ===
+
+namespace Finance {
+    // Market constants
+    inline const double TRADING_FEE_PERCENTAGE = 0.0025;  // 0.25%
+    inline const int TRADING_DAY_HOURS = 6.5 * 60 * 60;   // 6.5 hours in seconds
+    inline const std::string DEFAULT_CURRENCY = "USD";
+    
+    // Risk management
+    inline constexpr double MAX_POSITION_RISK = 0.02;     // 2% max risk per position
+    inline constexpr double PORTFOLIO_VAR_LIMIT = 0.05;   // 5% VaR limit
+    inline constexpr int MAX_LEVERAGE = 10;
+    
+    // Market data
+    inline const std::vector<std::string> MAJOR_CURRENCIES = {
+        "USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD"
+    };
+    
+    inline const std::vector<std::string> STOCK_EXCHANGES = {
+        "NYSE", "NASDAQ", "LSE", "TSE", "HKSE", "SSE", "BSE"
+    };
+}
+
+// === CONFIGURATION SYSTEM ===
+
+class Config {
+public:
+    // Network configuration
+    inline static const std::string DEFAULT_HOST = "localhost";
+    inline static const int DEFAULT_PORT = 8080;
+    inline static const int MAX_CONNECTIONS = 10000;
+    inline static const double CONNECTION_TIMEOUT = 30.0;
+    
+    // Performance settings
+    inline static const size_t BUFFER_SIZE = 64 * 1024;        // 64KB
+    inline static const size_t MAX_MESSAGE_SIZE = 10 * 1024 * 1024; // 10MB
+    inline static const int THREAD_POOL_SIZE = 8;
+    
+    // Logging configuration
+    inline static const std::string LOG_LEVEL = "INFO";
+    inline static const size_t MAX_LOG_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+    inline static const int LOG_ROTATION_COUNT = 5;
+    
+    // Cache settings
+    inline static const size_t CACHE_SIZE = 256 * 1024 * 1024;  // 256MB
+    inline static const double CACHE_EXPIRY_HOURS = 24.0;
+    inline static const int CACHE_CLEANUP_INTERVAL_MINUTES = 30;
+    
+    // Database settings
+    inline static const std::string DB_CONNECTION_STRING = 
+        "postgresql://localhost:5432/app_db";
+    inline static const int DB_CONNECTION_POOL_SIZE = 20;
+    inline static const double DB_QUERY_TIMEOUT = 10.0;
+    
+    // Feature flags
+    inline static const bool ENABLE_COMPRESSION = true;
+    inline static const bool ENABLE_ENCRYPTION = true;
+    inline static const bool ENABLE_METRICS = true;
+    inline static const bool DEBUG_MODE = false;
+};
+
+// === STATISTICS TRACKING ===
+
+class Stats {
+public:
+    inline static std::atomic<uint64_t> requests_processed{0};
+    inline static std::atomic<uint64_t> bytes_transferred{0};
+    inline static std::atomic<uint64_t> errors_encountered{0};
+    inline static std::atomic<uint64_t> cache_hits{0};
+    inline static std::atomic<uint64_t> cache_misses{0};
+    
+    // Version information
+    inline static const std::string BUILD_DATE = __DATE__;
+    inline static const std::string BUILD_TIME = __TIME__;
+    inline static const std::string COMPILER_VERSION = 
+#ifdef __GNUC__
+        "GCC " + std::to_string(__GNUC__) + "." + std::to_string(__GNUC_MINOR__);
+#elif defined(_MSC_VER)
+        "MSVC " + std::to_string(_MSC_VER);
+#elif defined(__clang__)
+        "Clang " + std::to_string(__clang_major__) + "." + std::to_string(__clang_minor__);
+#else
+        "Unknown";
+#endif
+    
+    static void increment_requests() { requests_processed++; }
+    static void add_bytes(uint64_t bytes) { bytes_transferred += bytes; }
+    static void increment_errors() { errors_encountered++; }
+    static void increment_cache_hits() { cache_hits++; }
+    static void increment_cache_misses() { cache_misses++; }
+    
+    static void print_stats() {
+        std::cout << "=== Application Statistics ===\\n";
+        std::cout << "Requests processed: " << requests_processed.load() << "\\n";
+        std::cout << "Bytes transferred: " << bytes_transferred.load() << "\\n";
+        std::cout << "Errors encountered: " << errors_encountered.load() << "\\n";
+        std::cout << "Cache hit rate: " << calculate_hit_rate() << "%\\n";
+        std::cout << "Build info: " << BUILD_DATE << " " << BUILD_TIME << "\\n";
+        std::cout << "Compiler: " << COMPILER_VERSION << "\\n";
+    }
+    
+    static double calculate_hit_rate() {
+        uint64_t hits = cache_hits.load();
+        uint64_t misses = cache_misses.load();
+        uint64_t total = hits + misses;
+        return total > 0 ? (double(hits) / total) * 100.0 : 0.0;
+    }
+};
+
+// === REGISTRY PATTERN ===
+
+template<typename T>
+class Registry {
+public:
+    inline static std::vector<T*> instances_;
+    inline static std::atomic<size_t> next_id_{0};
+    
+    static size_t register_instance(T* instance) {
+        instances_.push_back(instance);
+        return next_id_++;
+    }
+    
+    static void unregister_instance(T* instance) {
+        instances_.erase(
+            std::remove(instances_.begin(), instances_.end(), instance),
+            instances_.end()
+        );
+    }
+    
+    static const std::vector<T*>& get_instances() {
+        return instances_;
+    }
+    
+    static size_t count() {
+        return instances_.size();
+    }
+};
+
+// Example usage with a service class
+class LoggingService {
+private:
+    std::string service_name_;
+    size_t service_id_;
+    
+public:
+    LoggingService(const std::string& name) 
+        : service_name_(name) {
+        service_id_ = Registry<LoggingService>::register_instance(this);
+        std::cout << "LoggingService '" << service_name_ << "' registered with ID " 
+                  << service_id_ << "\\n";
+    }
+    
+    ~LoggingService() {
+        Registry<LoggingService>::unregister_instance(this);
+        std::cout << "LoggingService '" << service_name_ << "' unregistered\\n";
+    }
+    
+    void log(const std::string& message) {
+        std::cout << "[" << service_name_ << ":" << service_id_ << "] " << message << "\\n";
+    }
+    
+    const std::string& name() const { return service_name_; }
+    size_t id() const { return service_id_; }
+};
+
+// === COMPILE-TIME STRING CONSTANTS ===
+
+namespace StringConstants {
+    // Error messages
+    inline constexpr const char* ERROR_INVALID_INPUT = "Invalid input provided";
+    inline constexpr const char* ERROR_NETWORK_TIMEOUT = "Network operation timed out";
+    inline constexpr const char* ERROR_INSUFFICIENT_MEMORY = "Insufficient memory available";
+    inline constexpr const char* ERROR_FILE_NOT_FOUND = "Requested file not found";
+    inline constexpr const char* ERROR_PERMISSION_DENIED = "Permission denied";
+    
+    // Success messages
+    inline constexpr const char* SUCCESS_OPERATION_COMPLETED = "Operation completed successfully";
+    inline constexpr const char* SUCCESS_DATA_SAVED = "Data saved successfully";
+    inline constexpr const char* SUCCESS_CONNECTION_ESTABLISHED = "Connection established";
+    
+    // Status messages
+    inline constexpr const char* STATUS_INITIALIZING = "System initializing...";
+    inline constexpr const char* STATUS_READY = "System ready";
+    inline constexpr const char* STATUS_SHUTTING_DOWN = "System shutting down...";
+    inline constexpr const char* STATUS_MAINTENANCE = "System under maintenance";
+}
+
+// === MARKET DATA CONSTANTS ===
+
+namespace MarketData {
+    // Trading session times (in minutes from midnight UTC)
+    inline constexpr int NYSE_OPEN = 9 * 60 + 30;   // 9:30 AM EST
+    inline constexpr int NYSE_CLOSE = 16 * 60;       // 4:00 PM EST
+    inline constexpr int LSE_OPEN = 8 * 60;          // 8:00 AM GMT  
+    inline constexpr int LSE_CLOSE = 16 * 60 + 30;   // 4:30 PM GMT
+    inline constexpr int TSE_OPEN = 9 * 60;          // 9:00 AM JST
+    inline constexpr int TSE_CLOSE = 15 * 60;        // 3:00 PM JST
+    
+    // Market holidays (simplified - normally from database)
+    inline const std::vector<std::string> US_HOLIDAYS_2024 = {
+        "2024-01-01", "2024-01-15", "2024-02-19", "2024-05-27",
+        "2024-06-19", "2024-07-04", "2024-09-02", "2024-10-14",
+        "2024-11-28", "2024-12-25"
+    };
+    
+    // Tick sizes for different price ranges
+    inline constexpr double TICK_SIZE_UNDER_1 = 0.0001;      // $0.0001
+    inline constexpr double TICK_SIZE_1_TO_10 = 0.001;       // $0.001  
+    inline constexpr double TICK_SIZE_OVER_10 = 0.01;        // $0.01
+    
+    // Circuit breaker levels
+    inline constexpr double CIRCUIT_BREAKER_LEVEL_1 = 0.07;  // 7%
+    inline constexpr double CIRCUIT_BREAKER_LEVEL_2 = 0.13;  // 13%
+    inline constexpr double CIRCUIT_BREAKER_LEVEL_3 = 0.20;  // 20%
+}
+
+// === PERFORMANCE BENCHMARKING ===
+
+class Benchmark {
+public:
+    inline static std::vector<std::pair<std::string, double>> results_;
+    
+    template<typename Func>
+    static double time_function(const std::string& name, Func&& func, int iterations = 1000) {
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        for (int i = 0; i < iterations; ++i) {
+            func();
+        }
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        
+        double avg_time = duration.count() / double(iterations);
+        results_.emplace_back(name, avg_time);
+        
+        return avg_time;
+    }
+    
+    static void print_results() {
+        std::cout << "\\n=== Benchmark Results ===\\n";
+        for (const auto& [name, time] : results_) {
+            std::cout << name << ": " << time << " μs\\n";
+        }
+    }
+    
+    static void clear_results() {
+        results_.clear();
+    }
+};
+
+int main() {
+    std::cout << "=== Inline Variables Demo ===\\n\\n";
+    
+    // === Basic Usage ===
+    std::cout << "=== Application Constants ===\\n";
+    std::cout << "App Name: " << APP_NAME << "\\n";
+    std::cout << "Version: " << APP_VERSION << "\\n";
+    std::cout << "Build: " << APP_BUILD_NUMBER << "\\n";
+    std::cout << "PI: " << PI << "\\n";
+    std::cout << "Golden Ratio: " << GOLDEN_RATIO << "\\n\\n";
+    
+    // === Configuration ===
+    std::cout << "=== Configuration Settings ===\\n";
+    std::cout << "Default Host: " << Config::DEFAULT_HOST << "\\n";
+    std::cout << "Default Port: " << Config::DEFAULT_PORT << "\\n";
+    std::cout << "Buffer Size: " << Config::BUFFER_SIZE / 1024 << " KB\\n";
+    std::cout << "Thread Pool Size: " << Config::THREAD_POOL_SIZE << "\\n";
+    std::cout << "Compression Enabled: " << (Config::ENABLE_COMPRESSION ? "Yes" : "No") << "\\n\\n";
+    
+    // === Financial Constants ===
+    std::cout << "=== Financial Constants ===\\n";
+    std::cout << "Trading Fee: " << Finance::TRADING_FEE_PERCENTAGE * 100 << "%\\n";
+    std::cout << "Max Position Risk: " << Finance::MAX_POSITION_RISK * 100 << "%\\n";
+    std::cout << "Default Currency: " << Finance::DEFAULT_CURRENCY << "\\n";
+    std::cout << "Major Currencies: ";
+    for (size_t i = 0; i < Finance::MAJOR_CURRENCIES.size(); ++i) {
+        if (i > 0) std::cout << ", ";
+        std::cout << Finance::MAJOR_CURRENCIES[i];
+    }
+    std::cout << "\\n\\n";
+    
+    // === Statistics Tracking ===
+    std::cout << "=== Statistics Tracking ===\\n";
+    
+    // Simulate some activity
+    for (int i = 0; i < 100; ++i) {
+        Stats::increment_requests();
+        Stats::add_bytes(1024 * (i + 1));
+        if (i % 10 == 0) Stats::increment_errors();
+        if (i % 3 == 0) Stats::increment_cache_hits();
+        else Stats::increment_cache_misses();
+    }
+    
+    Stats::print_stats();
+    std::cout << "\\n";
+    
+    // === Registry Pattern ===
+    std::cout << "=== Registry Pattern ===\\n";
+    
+    {
+        LoggingService service1("WebServer");
+        LoggingService service2("Database");
+        LoggingService service3("Cache");
+        
+        service1.log("Server started");
+        service2.log("Connected to database");
+        service3.log("Cache warmed up");
+        
+        std::cout << "Total registered services: " << Registry<LoggingService>::count() << "\\n";
+        
+        std::cout << "All services: ";
+        for (const auto* service : Registry<LoggingService>::get_instances()) {
+            std::cout << service->name() << " ";
+        }
+        std::cout << "\\n";
+    } // Services go out of scope and unregister
+    
+    std::cout << "Services after scope exit: " << Registry<LoggingService>::count() << "\\n\\n";
+    
+    // === Market Data ===
+    std::cout << "=== Market Data Constants ===\\n";
+    std::cout << "NYSE Opens at: " << MarketData::NYSE_OPEN / 60 << ":" 
+              << std::setfill('0') << std::setw(2) << MarketData::NYSE_OPEN % 60 << " EST\\n";
+    std::cout << "NYSE Closes at: " << MarketData::NYSE_CLOSE / 60 << ":" 
+              << std::setfill('0') << std::setw(2) << MarketData::NYSE_CLOSE % 60 << " EST\\n";
+    std::cout << "Circuit Breaker Level 1: " << MarketData::CIRCUIT_BREAKER_LEVEL_1 * 100 << "%\\n";
+    std::cout << "US Holidays in 2024: " << MarketData::US_HOLIDAYS_2024.size() << " days\\n\\n";
+    
+    // === Performance Benchmarking ===
+    std::cout << "=== Performance Benchmarking ===\\n";
+    
+    // Benchmark different operations
+    Benchmark::time_function("Vector push_back", []() {
+        static std::vector<int> vec;
+        vec.push_back(42);
+    });
+    
+    Benchmark::time_function("String concatenation", []() {
+        static std::string result;
+        result += "test";
+    });
+    
+    Benchmark::time_function("Math calculation", []() {
+        volatile double result = std::sin(PI / 4) * std::cos(PI / 6);
+    });
+    
+    Benchmark::print_results();
+    
+    std::cout << "\\n=== Inline Variables Benefits ===\\n";
+    std::cout << "✓ Header-only library support\\n";
+    std::cout << "✓ No ODR violations for global constants\\n";
+    std::cout << "✓ Simplified static member initialization\\n";
+    std::cout << "✓ Single definition across translation units\\n";
+    std::cout << "✓ Template static member simplification\\n";
+    std::cout << "✓ Cleaner configuration systems\\n";
+    std::cout << "✓ Reduced boilerplate code\\n";
+    
+    return 0;
+}`,
+    explanation: `Inline variables in C++17 allow defining variables directly in header files without ODR (One Definition Rule) violations. This enables header-only libraries with global constants, simplifies static data member initialization in templates, and eliminates the need for .cpp files for simple constant definitions. The compiler ensures only one definition exists across all translation units while allowing the variable to be defined in headers.`,
+    useCase: `Perfect for header-only libraries, configuration systems with global constants, template static members, mathematical constants, application-wide settings, and any scenario where you need global variables accessible from headers without linker errors. Essential for modern C++ library design and reducing compilation dependencies.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/inline'
   }
 ];
