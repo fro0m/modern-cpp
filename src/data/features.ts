@@ -214,6 +214,260 @@ int main() {
     useCase: 'Excellent for template functions where the return type depends on template parameters, and for simplifying function signatures when the return type is obvious from the implementation.',
     referenceUrl: 'https://en.cppreference.com/w/cpp/language/function#Return_type_deduction'
   },
+  {
+    id: 'std-make-unique',
+    title: 'std::make_unique',
+    standard: 'cpp14',
+    description: 'Safe and efficient creation of unique_ptr objects',
+    codeExample: `#include <iostream>
+#include <memory>
+#include <vector>
+#include <string>
+
+// === BASIC CLASSES FOR DEMONSTRATION ===
+class Resource {
+private:
+    std::string name_;
+    int id_;
+    
+public:
+    Resource(const std::string& name, int id) : name_(name), id_(id) {
+        std::cout << "Resource '" << name_ << "' (id: " << id_ << ") created\\n";
+    }
+    
+    ~Resource() {
+        std::cout << "Resource '" << name_ << "' (id: " << id_ << ") destroyed\\n";
+    }
+    
+    void use() const {
+        std::cout << "Using resource '" << name_ << "' (id: " << id_ << ")\\n";
+    }
+    
+    const std::string& name() const { return name_; }
+    int id() const { return id_; }
+};
+
+class DatabaseConnection {
+private:
+    std::string connection_string_;
+    bool connected_;
+    
+public:
+    DatabaseConnection(const std::string& conn_str) 
+        : connection_string_(conn_str), connected_(true) {
+        std::cout << "Database connected to: " << conn_str << "\\n";
+    }
+    
+    ~DatabaseConnection() {
+        if (connected_) {
+            std::cout << "Database connection closed\\n";
+        }
+    }
+    
+    void disconnect() {
+        connected_ = false;
+        std::cout << "Database manually disconnected\\n";
+    }
+    
+    void query(const std::string& sql) const {
+        if (connected_) {
+            std::cout << "Executing query: " << sql << "\\n";
+        } else {
+            std::cout << "Cannot execute query: disconnected\\n";
+        }
+    }
+};
+
+// === FACTORY FUNCTIONS ===
+std::unique_ptr<Resource> create_resource(const std::string& name, int id) {
+    // Safe creation - exception safe
+    return std::make_unique<Resource>(name, id);
+}
+
+std::unique_ptr<DatabaseConnection> connect_to_database(const std::string& db_name) {
+    return std::make_unique<DatabaseConnection>("postgresql://" + db_name);
+}
+
+// === RESOURCE MANAGER ===
+class ResourceManager {
+private:
+    std::vector<std::unique_ptr<Resource>> resources_;
+    
+public:
+    void add_resource(const std::string& name, int id) {
+        // Direct emplacement with make_unique
+        resources_.push_back(std::make_unique<Resource>(name, id));
+    }
+    
+    Resource* get_resource(int id) {
+        for (auto& resource : resources_) {
+            if (resource->id() == id) {
+                return resource.get();
+            }
+        }
+        return nullptr;
+    }
+    
+    std::unique_ptr<Resource> take_resource(int id) {
+        for (auto it = resources_.begin(); it != resources_.end(); ++it) {
+            if ((*it)->id() == id) {
+                auto resource = std::move(*it);
+                resources_.erase(it);
+                return resource;
+            }
+        }
+        return nullptr;
+    }
+    
+    void list_resources() const {
+        std::cout << "Managed resources:\\n";
+        for (const auto& resource : resources_) {
+            std::cout << "  - " << resource->name() << " (id: " << resource->id() << ")\\n";
+        }
+    }
+    
+    size_t count() const { return resources_.size(); }
+};
+
+// === ARRAY CREATION ===
+template<typename T>
+std::unique_ptr<T[]> make_unique_array(size_t size) {
+    return std::make_unique<T[]>(size);
+}
+
+int main() {
+    std::cout << "=== Basic make_unique Usage ===\\n";
+    
+    // === BASIC USAGE VS NEW ===
+    // Old way (not recommended)
+    // std::unique_ptr<Resource> old_way(new Resource("OldResource", 1));
+    
+    // New way (recommended)
+    auto resource1 = std::make_unique<Resource>("NewResource", 1);
+    resource1->use();
+    
+    // === EXCEPTION SAFETY DEMONSTRATION ===
+    std::cout << "\\n=== Exception Safety ===\\n";
+    try {
+        // This is exception safe - if Resource constructor throws,
+        // no memory is leaked
+        auto safe_resource = std::make_unique<Resource>("SafeResource", 2);
+        safe_resource->use();
+        
+        // Simulate an exception after construction
+        // throw std::runtime_error("Simulated error");
+        
+    } catch (const std::exception& e) {
+        std::cout << "Exception caught: " << e.what() << "\\n";
+        std::cout << "No memory leak occurred!\\n";
+    }
+    
+    // === FACTORY FUNCTIONS ===
+    std::cout << "\\n=== Factory Functions ===\\n";
+    auto db_resource = create_resource("DatabaseResource", 3);
+    auto db_connection = connect_to_database("myapp_db");
+    
+    db_resource->use();
+    db_connection->query("SELECT * FROM users");
+    
+    // === RESOURCE MANAGER ===
+    std::cout << "\\n=== Resource Manager ===\\n";
+    ResourceManager manager;
+    
+    manager.add_resource("WebServer", 10);
+    manager.add_resource("FileHandler", 11);
+    manager.add_resource("Logger", 12);
+    
+    manager.list_resources();
+    std::cout << "Total resources: " << manager.count() << "\\n";
+    
+    // Get resource reference (still managed)
+    if (auto* logger = manager.get_resource(12)) {
+        logger->use();
+    }
+    
+    // Take ownership (removes from manager)
+    auto taken_resource = manager.take_resource(11);
+    std::cout << "\\nAfter taking resource 11:\\n";
+    manager.list_resources();
+    
+    if (taken_resource) {
+        taken_resource->use();
+    }
+    
+    // === ARRAYS WITH MAKE_UNIQUE ===
+    std::cout << "\\n=== Arrays with make_unique ===\\n";
+    
+    // C++14: Array version
+    auto int_array = std::make_unique<int[]>(5);
+    for (int i = 0; i < 5; ++i) {
+        int_array[i] = i * i;
+    }
+    
+    std::cout << "Array values: ";
+    for (int i = 0; i < 5; ++i) {
+        std::cout << int_array[i] << " ";
+    }
+    std::cout << "\\n";
+    
+    // === CONTAINER OF UNIQUE_PTRS ===
+    std::cout << "\\n=== Container of unique_ptrs ===\\n";
+    std::vector<std::unique_ptr<Resource>> resource_collection;
+    
+    // Add multiple resources
+    for (int i = 20; i < 23; ++i) {
+        resource_collection.push_back(
+            std::make_unique<Resource>("CollectionItem" + std::to_string(i), i)
+        );
+    }
+    
+    std::cout << "Using collection resources:\\n";
+    for (const auto& resource : resource_collection) {
+        resource->use();
+    }
+    
+    // === MOVE SEMANTICS ===
+    std::cout << "\\n=== Move Semantics ===\\n";
+    auto moveable_resource = std::make_unique<Resource>("MovableResource", 30);
+    moveable_resource->use();
+    
+    // Transfer ownership
+    auto new_owner = std::move(moveable_resource);
+    // moveable_resource is now nullptr
+    
+    if (new_owner) {
+        new_owner->use();
+    }
+    
+    if (!moveable_resource) {
+        std::cout << "Original pointer is now empty\\n";
+    }
+    
+    // === COMPARISON WITH SHARED_PTR ===
+    std::cout << "\\n=== Comparison with shared_ptr ===\\n";
+    
+    // Use make_unique when you need exclusive ownership
+    auto unique_res = std::make_unique<Resource>("UniqueOwner", 40);
+    
+    // Use make_shared when you need shared ownership
+    auto shared_res = std::make_shared<Resource>("SharedOwner", 41);
+    auto shared_copy = shared_res; // Reference count: 2
+    
+    std::cout << "shared_ptr reference count: " << shared_res.use_count() << "\\n";
+    
+    unique_res->use();
+    shared_res->use();
+    
+    std::cout << "\\n=== Automatic Cleanup ===\\n";
+    std::cout << "Resources will be automatically cleaned up...\\n";
+    
+    return 0;
+    // All unique_ptrs automatically clean up here
+}`,
+    explanation: 'std::make_unique provides a safe and efficient way to create std::unique_ptr objects. It offers exception safety, prevents memory leaks, and is more readable than using new directly. It also enables perfect forwarding of constructor arguments.',
+    useCase: 'Essential for modern C++ memory management, factory functions, RAII patterns, and any scenario where you need single ownership semantics. Prefer make_unique over direct new to ensure exception safety and cleaner code.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/memory/unique_ptr/make_unique'
+  },
 
   // C++17 Features (Enhanced with more detailed comments)
   {
@@ -826,6 +1080,267 @@ int main() {
     explanation: 'std::variant is a type-safe union that can hold a value of one of several specified types. It knows which type it currently holds and provides safe access mechanisms. Combined with std::visit, it enables powerful pattern matching and visitor patterns.',
     useCase: 'Excellent for representing data that can be one of several types (like JSON values), implementing state machines, error handling without exceptions, and building recursive data structures like expression trees or parsers.',
     referenceUrl: 'https://en.cppreference.com/w/cpp/utility/variant'
+  },
+  {
+    id: 'std-any',
+    title: 'std::any',
+    standard: 'cpp17',
+    description: 'Type-safe container for single values of any type',
+    codeExample: `#include <iostream>
+#include <any>
+#include <string>
+#include <vector>
+#include <map>
+#include <typeinfo>
+
+// === BASIC ANY USAGE ===
+void print_any_info(const std::any& a) {
+    if (a.has_value()) {
+        std::cout << "Type: " << a.type().name() << "\\n";
+        std::cout << "Has value: true\\n";
+    } else {
+        std::cout << "Empty std::any\\n";
+    }
+}
+
+// === GENERIC CONTAINER WITH ANY ===
+class PropertyBag {
+private:
+    std::map<std::string, std::any> properties_;
+    
+public:
+    template<typename T>
+    void set(const std::string& key, T&& value) {
+        properties_[key] = std::forward<T>(value);
+    }
+    
+    template<typename T>
+    T get(const std::string& key) const {
+        auto it = properties_.find(key);
+        if (it == properties_.end()) {
+            throw std::runtime_error("Key not found: " + key);
+        }
+        
+        try {
+            return std::any_cast<T>(it->second);
+        } catch (const std::bad_any_cast& e) {
+            throw std::runtime_error("Type mismatch for key: " + key);
+        }
+    }
+    
+    template<typename T>
+    bool try_get(const std::string& key, T& value) const {
+        auto it = properties_.find(key);
+        if (it == properties_.end()) return false;
+        
+        try {
+            value = std::any_cast<T>(it->second);
+            return true;
+        } catch (const std::bad_any_cast&) {
+            return false;
+        }
+    }
+    
+    bool has(const std::string& key) const {
+        return properties_.find(key) != properties_.end();
+    }
+    
+    void remove(const std::string& key) {
+        properties_.erase(key);
+    }
+    
+    void list_properties() const {
+        std::cout << "Properties:\\n";
+        for (const auto& [key, value] : properties_) {
+            std::cout << "  " << key << " -> " << value.type().name() << "\\n";
+        }
+    }
+};
+
+// === EVENT SYSTEM WITH ANY ===
+struct Event {
+    std::string type;
+    std::any data;
+    
+    template<typename T>
+    Event(std::string t, T&& d) : type(std::move(t)), data(std::forward<T>(d)) {}
+    
+    template<typename T>
+    T get_data() const {
+        return std::any_cast<T>(data);
+    }
+    
+    template<typename T>
+    bool try_get_data(T& result) const {
+        try {
+            result = std::any_cast<T>(data);
+            return true;
+        } catch (const std::bad_any_cast&) {
+            return false;
+        }
+    }
+};
+
+class EventHandler {
+public:
+    void handle_event(const Event& event) {
+        std::cout << "Handling event: " << event.type << "\\n";
+        
+        if (event.type == "user_input") {
+            auto input = event.get_data<std::string>();
+            std::cout << "  User typed: " << input << "\\n";
+        } else if (event.type == "mouse_click") {
+            auto pos = event.get_data<std::pair<int, int>>();
+            std::cout << "  Mouse clicked at: (" << pos.first << ", " << pos.second << ")\\n";
+        } else if (event.type == "file_loaded") {
+            auto info = event.get_data<std::pair<std::string, size_t>>();
+            std::cout << "  File loaded: " << info.first << " (" << info.second << " bytes)\\n";
+        }
+    }
+};
+
+// === SCRIPTING/CONFIG SYSTEM ===
+class ConfigValue {
+private:
+    std::any value_;
+    
+public:
+    template<typename T>
+    ConfigValue(T&& val) : value_(std::forward<T>(val)) {}
+    
+    ConfigValue() = default; // Empty config value
+    
+    template<typename T>
+    T as() const {
+        return std::any_cast<T>(value_);
+    }
+    
+    template<typename T>
+    T as_or(T&& default_val) const {
+        try {
+            return std::any_cast<T>(value_);
+        } catch (const std::bad_any_cast&) {
+            return std::forward<T>(default_val);
+        }
+    }
+    
+    bool empty() const { return !value_.has_value(); }
+    std::string type_name() const { return value_.type().name(); }
+    
+    // Conversion operators for common types
+    operator int() const { return as<int>(); }
+    operator double() const { return as<double>(); }
+    operator std::string() const { return as<std::string>(); }
+    operator bool() const { return as<bool>(); }
+};
+
+int main() {
+    // === BASIC ANY USAGE ===
+    std::cout << "=== Basic std::any Usage ===\\n";
+    
+    std::any empty_any;
+    std::any int_any = 42;
+    std::any string_any = std::string("Hello, Any!");
+    std::any vec_any = std::vector<int>{1, 2, 3, 4, 5};
+    
+    print_any_info(empty_any);
+    print_any_info(int_any);
+    print_any_info(string_any);
+    
+    // === TYPE CASTING ===
+    std::cout << "\\n=== Type Casting ===\\n";
+    try {
+        int value = std::any_cast<int>(int_any);
+        std::cout << "Integer value: " << value << "\\n";
+        
+        std::string str = std::any_cast<std::string>(string_any);
+        std::cout << "String value: " << str << "\\n";
+        
+        auto vec = std::any_cast<std::vector<int>>(vec_any);
+        std::cout << "Vector size: " << vec.size() << "\\n";
+        
+        // This will throw std::bad_any_cast
+        // double bad = std::any_cast<double>(int_any);
+    } catch (const std::bad_any_cast& e) {
+        std::cout << "Bad cast: " << e.what() << "\\n";
+    }
+    
+    // === PROPERTY BAG USAGE ===
+    std::cout << "\\n=== Property Bag System ===\\n";
+    PropertyBag config;
+    
+    config.set("width", 1920);
+    config.set("height", 1080);
+    config.set("fullscreen", true);
+    config.set("title", std::string("My Application"));
+    config.set("version", 1.5);
+    
+    config.list_properties();
+    
+    // Retrieve values
+    int width = config.get<int>("width");
+    bool fullscreen = config.get<bool>("fullscreen");
+    std::string title = config.get<std::string>("title");
+    
+    std::cout << "\\nConfiguration:\\n";
+    std::cout << "  Resolution: " << width << "x" << config.get<int>("height") << "\\n";
+    std::cout << "  Fullscreen: " << (fullscreen ? "yes" : "no") << "\\n";
+    std::cout << "  Title: " << title << "\\n";
+    
+    // Safe retrieval
+    double fps;
+    if (config.try_get("fps", fps)) {
+        std::cout << "  FPS: " << fps << "\\n";
+    } else {
+        std::cout << "  FPS: not set\\n";
+    }
+    
+    // === EVENT SYSTEM ===
+    std::cout << "\\n=== Event System ===\\n";
+    EventHandler handler;
+    
+    std::vector<Event> events = {
+        Event("user_input", std::string("Hello World!")),
+        Event("mouse_click", std::make_pair(150, 200)),
+        Event("file_loaded", std::make_pair(std::string("data.txt"), size_t(1024)))
+    };
+    
+    for (const auto& event : events) {
+        handler.handle_event(event);
+    }
+    
+    // === CONFIG SYSTEM ===
+    std::cout << "\\n=== Config System ===\\n";
+    std::map<std::string, ConfigValue> settings = {
+        {"max_connections", 100},
+        {"timeout", 30.5},
+        {"debug_mode", true},
+        {"server_name", std::string("localhost")},
+        {"ports", std::vector<int>{8080, 8443, 9090}}
+    };
+    
+    std::cout << "Settings:\\n";
+    for (const auto& [key, value] : settings) {
+        if (!value.empty()) {
+            std::cout << "  " << key << " (" << value.type_name() << ")\\n";
+        }
+    }
+    
+    // Usage with defaults
+    int max_conn = settings["max_connections"].as_or(50);
+    double timeout = settings["timeout"].as_or(15.0);
+    bool debug = settings["debug_mode"].as_or(false);
+    
+    std::cout << "\\nProcessed settings:\\n";
+    std::cout << "  Max connections: " << max_conn << "\\n";
+    std::cout << "  Timeout: " << timeout << "s\\n";
+    std::cout << "  Debug mode: " << (debug ? "enabled" : "disabled") << "\\n";
+    
+    return 0;
+}`,
+    explanation: 'std::any can hold any type of value and provides type-safe access to the stored value. Unlike std::variant which has a fixed set of possible types, std::any can store any type, making it useful for dynamic typing scenarios, plugin systems, and generic data containers.',
+    useCase: 'Perfect for configuration systems, event handling with diverse payload types, plugin interfaces, scripting language bindings, and any scenario where you need to store and retrieve values of unknown types at compile time.',
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/any'
   },
 
   // C++20 Features (Enhanced)
