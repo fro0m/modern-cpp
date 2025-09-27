@@ -3366,5 +3366,1242 @@ int main() {
     ],
     feature: 'spaceship-operator',
     relatedTheory: 'spaceship-operator'
+  },
+
+  // === MISSING EXERCISES ADDED ===
+
+  // Return Type Deduction Exercise
+  {
+    id: 'return-type-deduction-exercise',
+    title: 'Advanced Return Type Deduction',
+    standard: 'cpp14',
+    difficulty: 'intermediate',
+    description: 'Master return type deduction with auto and decltype(auto) in complex scenarios including perfect forwarding and conditional returns.',
+    starterCode: `#include <iostream>
+#include <vector>
+#include <string>
+#include <type_traits>
+
+// TODO: Implement a generic factory function that uses auto return type deduction
+// The function should create objects based on a type parameter and forward arguments
+template<typename T, typename... Args>
+/* TODO: Add return type */ create_object(Args&&... args) {
+    // TODO: Implement using perfect forwarding
+}
+
+// TODO: Implement a function that returns different types based on conditions
+// Use auto return type deduction with trailing return type if needed
+template<typename T>
+/* TODO: Add return type */ get_value_or_default(const std::vector<T>& vec, size_t index) {
+    // TODO: Return vec[index] if valid, otherwise return T{}
+}
+
+// TODO: Implement a function that uses decltype(auto) for perfect forwarding of return values
+template<typename Container>
+/* TODO: Add return type */ get_first_element(Container&& container) {
+    // TODO: Return first element preserving reference type (lvalue/rvalue)
+}
+
+// TODO: Implement a lambda with auto return type that works with multiple types
+// The lambda should perform different operations based on input type
+int main() {
+    std::cout << "=== Return Type Deduction Exercise ===\\n";
+    
+    // Test factory function
+    // TODO: Create a std::string using create_object
+    // TODO: Create a std::vector<int> using create_object
+    
+    // Test conditional return
+    std::vector<int> numbers = {10, 20, 30};
+    // TODO: Test get_value_or_default with valid and invalid indices
+    
+    // Test decltype(auto) forwarding
+    // TODO: Test with lvalue and rvalue containers
+    
+    // TODO: Create and test the multi-type lambda
+    
+    return 0;
+}`,
+    expectedOutput: `=== Return Type Deduction Exercise ===
+Factory created string: Hello World
+Factory created vector size: 3
+Valid index value: 20
+Invalid index default: 0
+First element (lvalue): 10
+First element (rvalue): 100
+Lambda with int: Result: 42
+Lambda with string: Length: 5
+Lambda with double: Rounded: 3`,
+    hints: [
+      'Use auto for simple return type deduction: auto function() { return value; }',
+      'Use decltype(auto) for perfect forwarding: decltype(auto) func(T&& t) { return std::forward<T>(t); }',
+      'For conditional returns, ensure all return paths have the same type',
+      'Perfect forwarding in factory: return T(std::forward<Args>(args)...);',
+      'Use trailing return type for complex deduction: auto func() -> decltype(expression)',
+      'decltype(auto) preserves reference types and cv-qualifiers',
+      'Generic lambdas can use auto parameters: [](auto&& x) { return process(x); }'
+    ],
+    feature: 'return-type-deduction',
+    relatedTheory: 'return-type-deduction'
+  },
+
+  // std::make_unique Exercise
+  {
+    id: 'make-unique-exercise',
+    title: 'Smart Pointer Creation with make_unique',
+    standard: 'cpp14',
+    difficulty: 'beginner',
+    description: 'Learn to use std::make_unique for safe and efficient memory management, including arrays and custom deleters.',
+    starterCode: `#include <iostream>
+#include <memory>
+#include <vector>
+#include <string>
+
+// Custom class for testing
+class Resource {
+private:
+    std::string name_;
+    int value_;
+public:
+    Resource(const std::string& name, int value) : name_(name), value_(value) {
+        std::cout << "Resource '" << name_ << "' created with value " << value_ << "\\n";
+    }
+    
+    ~Resource() {
+        std::cout << "Resource '" << name_ << "' destroyed\\n";
+    }
+    
+    void use() const {
+        std::cout << "Using resource '" << name_ << "' (value: " << value_ << ")\\n";
+    }
+    
+    const std::string& name() const { return name_; }
+    int value() const { return value_; }
+};
+
+// TODO: Implement a factory function using make_unique
+std::unique_ptr<Resource> create_resource(const std::string& name, int value) {
+    // TODO: Use std::make_unique instead of new
+}
+
+// TODO: Implement a function that creates an array using make_unique
+std::unique_ptr<int[]> create_number_array(size_t size) {
+    // TODO: Create array and initialize with values 0, 1, 2, ...
+}
+
+int main() {
+    std::cout << "=== make_unique Exercise ===\\n";
+    
+    // TODO: Create a single Resource using make_unique
+    // TODO: Use the resource
+    
+    std::cout << "\\n--- Factory Function ---\\n";
+    // TODO: Use the factory function to create a resource
+    
+    std::cout << "\\n--- Array Creation ---\\n";
+    // TODO: Create an array of 5 integers using make_unique
+    // TODO: Print the array values
+    
+    std::cout << "\\n--- Container of unique_ptrs ---\\n";
+    // TODO: Create a vector of unique_ptrs to Resources
+    // TODO: Add 3 resources using make_unique and emplace_back
+    
+    // TODO: Iterate through the vector and use each resource
+    
+    std::cout << "\\n--- Move Semantics ---\\n";
+    // TODO: Demonstrate moving a unique_ptr
+    
+    return 0;
+}`,
+    expectedOutput: `=== make_unique Exercise ===
+Resource 'MainResource' created with value 42
+Using resource 'MainResource' (value: 42)
+
+--- Factory Function ---
+Resource 'FactoryResource' created with value 100
+Using resource 'FactoryResource' (value: 100)
+Resource 'FactoryResource' destroyed
+
+--- Array Creation ---
+Array values: 0 1 2 3 4 
+
+--- Container of unique_ptrs ---
+Resource 'Item1' created with value 1
+Resource 'Item2' created with value 2
+Resource 'Item3' created with value 3
+Using resource 'Item1' (value: 1)
+Using resource 'Item2' (value: 2)
+Using resource 'Item3' (value: 3)
+
+--- Move Semantics ---
+Resource 'Movable' created with value 99
+Resource moved successfully
+Using moved resource 'Movable' (value: 99)
+Resource 'Movable' destroyed
+Resource 'Item3' destroyed
+Resource 'Item2' destroyed
+Resource 'Item1' destroyed
+Resource 'MainResource' destroyed`,
+    hints: [
+      'Use std::make_unique<Type>(args...) instead of new Type(args...)',
+      'For arrays: std::make_unique<Type[]>(size)',
+      'make_unique is exception-safe and more efficient than new',
+      'Factory function: return std::make_unique<Resource>(name, value);',
+      'Initialize array elements in a loop after creation',
+      'Use emplace_back with make_unique for containers',
+      'Move unique_ptrs with std::move()'
+    ],
+    feature: 'std-make-unique',
+    relatedTheory: 'std-make-unique'
+  },
+
+  // if constexpr Exercise  
+  {
+    id: 'if-constexpr-exercise',
+    title: 'Compile-time Conditional Logic',
+    standard: 'cpp17',
+    difficulty: 'advanced',
+    description: 'Master if constexpr for compile-time branching, template specialization avoidance, and type-dependent code generation.',
+    starterCode: `#include <iostream>
+#include <vector>
+#include <string>
+#include <type_traits>
+
+// TODO: Implement a generic print function that handles different types differently
+template<typename T>
+void print_value(const T& value) {
+    // TODO: Use if constexpr to handle different types:
+    // - For integers: print "Integer: <value>"
+    // - For floating point: print "Float: <value>" with 2 decimal places
+    // - For strings: print "String: '<value>' (length: <length>)"
+    // - For containers: print "Container with <size> elements: [elements...]"
+    // - For other types: print "Other type: <value>"
+}
+
+// TODO: Implement a generic serializer that works differently based on type
+template<typename T>
+std::string serialize(const T& value) {
+    // TODO: Use if constexpr for different serialization strategies:
+    // - Arithmetic types: convert to string
+    // - String types: add quotes
+    // - Containers: serialize as JSON-like array
+    // - Other types: use generic approach
+}
+
+// TODO: Implement a generic algorithm that adapts based on iterator category
+template<typename Iterator>
+auto advance_iterator(Iterator it, int n) {
+    // TODO: Use if constexpr to optimize based on iterator category:
+    // - Random access: use it + n
+    // - Bidirectional: use std::advance
+    // - Forward: use std::advance
+    return it;
+}
+
+// TODO: Implement a constexpr factorial that uses if constexpr for recursion termination
+template<int N>
+constexpr int factorial() {
+    // TODO: Use if constexpr to handle base case and recursion
+}
+
+int main() {
+    std::cout << "=== if constexpr Exercise ===\\n";
+    
+    // Test print_value with different types
+    std::cout << "--- Generic Print Function ---\\n";
+    // TODO: Test with int, double, string, vector
+    
+    std::cout << "\\n--- Generic Serializer ---\\n";  
+    // TODO: Test serialization with different types
+    
+    std::cout << "\\n--- Iterator Optimization ---\\n";
+    // TODO: Test with different iterator types
+    
+    std::cout << "\\n--- Compile-time Factorial ---\\n";
+    // TODO: Test factorial with different values
+    
+    return 0;
+}`,
+    expectedOutput: `=== if constexpr Exercise ===
+--- Generic Print Function ---
+Integer: 42
+Float: 3.14
+String: 'Hello World' (length: 11)
+Container with 4 elements: [1, 2, 3, 4]
+
+--- Generic Serializer ---
+Integer serialized: "42"
+String serialized: "Hello"
+Vector serialized: [1, 2, 3]
+
+--- Iterator Optimization ---
+Random access iterator advanced
+Bidirectional iterator advanced
+Forward iterator advanced
+
+--- Compile-time Factorial ---
+factorial<5> = 120
+factorial<0> = 1
+factorial<7> = 5040`,
+    hints: [
+      'Use if constexpr (condition) for compile-time branching',
+      'Check types with std::is_same_v<T, Type> or std::is_arithmetic_v<T>',
+      'For containers, use SFINAE or concepts to detect begin()/end()',
+      'Iterator categories: std::is_same_v<typename std::iterator_traits<Iterator>::iterator_category, std::random_access_iterator_tag>',
+      'Constexpr recursion: if constexpr (N == 0) return 1; else return N * factorial<N-1>();',
+      'Use std::setprecision for floating point formatting',
+      'Check for container types with decltype and SFINAE patterns'
+    ],
+    feature: 'if-constexpr',
+    relatedTheory: 'if-constexpr'
+  },
+
+  // std::string_view Exercise
+  {
+    id: 'string-view-exercise',
+    title: 'Efficient String Processing with string_view',
+    standard: 'cpp17',
+    difficulty: 'intermediate',
+    description: 'Master std::string_view for efficient string processing without unnecessary copies, including parsing and text analysis.',
+    starterCode: `#include <iostream>
+#include <string_view>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <charconv>
+
+// TODO: Implement a function to count words in a string_view
+size_t count_words(std::string_view text) {
+    // TODO: Count words separated by whitespace
+    // Don't create any string copies!
+}
+
+// TODO: Implement a function to find all occurrences of a substring
+std::vector<size_t> find_all(std::string_view text, std::string_view pattern) {
+    std::vector<size_t> positions;
+    // TODO: Find all positions where pattern occurs in text
+    return positions;
+}
+
+// TODO: Implement a simple CSV parser using string_view
+std::vector<std::string_view> parse_csv_line(std::string_view line) {
+    std::vector<std::string_view> fields;
+    // TODO: Split the line by commas, return string_views to each field
+    return fields;
+}
+
+// TODO: Implement a function to trim whitespace from both ends
+std::string_view trim(std::string_view text) {
+    // TODO: Return a string_view with leading and trailing whitespace removed
+}
+
+// TODO: Implement a function to check if string_view starts with a prefix
+bool starts_with(std::string_view text, std::string_view prefix) {
+    // TODO: Check if text starts with prefix (don't use C++20 starts_with)
+}
+
+// TODO: Implement a function to convert string_view to number safely
+template<typename T>
+bool parse_number(std::string_view text, T& result) {
+    // TODO: Use std::from_chars to parse number from string_view
+    // Return true if successful, false otherwise
+}
+
+int main() {
+    std::cout << "=== string_view Exercise ===\\n";
+    
+    const std::string text = "Hello world this is a test string with multiple words";
+    const char* c_string = "C-style string processing";
+    
+    std::cout << "--- Word Counting ---\\n";
+    // TODO: Test count_words with different inputs
+    
+    std::cout << "\\n--- Pattern Finding ---\\n";
+    // TODO: Find all occurrences of "is" and "test" in the text
+    
+    std::cout << "\\n--- CSV Parsing ---\\n";
+    std::string csv_line = "John,25,Engineer,New York";
+    // TODO: Parse the CSV line and print each field
+    
+    std::cout << "\\n--- String Trimming ---\\n";
+    std::string padded = "   trim me   ";
+    // TODO: Test trimming functionality
+    
+    std::cout << "\\n--- Prefix Checking ---\\n";  
+    // TODO: Test starts_with with various inputs
+    
+    std::cout << "\\n--- Number Parsing ---\\n";
+    // TODO: Parse numbers from string_views
+    
+    return 0;
+}`,
+    expectedOutput: `=== string_view Exercise ===
+--- Word Counting ---
+Text word count: 10
+C-string word count: 3
+
+--- Pattern Finding ---
+Pattern "is" found at positions: 2, 5
+Pattern "test" found at positions: 6
+
+--- CSV Parsing ---
+Field 0: 'John'
+Field 1: '25' 
+Field 2: 'Engineer'
+Field 3: 'New York'
+
+--- String Trimming ---
+Original: '   trim me   '
+Trimmed: 'trim me'
+
+--- Prefix Checking ---
+'Hello world' starts with 'Hello': true
+'Hello world' starts with 'World': false
+
+--- Number Parsing ---
+Parsed integer: 12345
+Parsed double: 123.45
+Invalid number parsing failed correctly`,
+    hints: [
+      'string_view provides efficient string operations without copying',
+      'Use string_view::find and string_view::find_first_not_of for parsing',
+      'Count words by counting transitions from whitespace to non-whitespace',
+      'substr() on string_view returns another string_view (no copy)',
+      'Use std::from_chars for efficient string-to-number conversion',
+      'Trimming: find_first_not_of(" \\t\\n") and find_last_not_of(" \\t\\n")',
+      'For CSV: use find(',') and substr() in a loop'
+    ],
+    feature: 'std-string-view',
+    relatedTheory: 'std-string-view'
+  },
+
+  // std::variant Exercise
+  {
+    id: 'variant-exercise',
+    title: 'Type-Safe Unions with std::variant',
+    standard: 'cpp17',
+    difficulty: 'advanced',
+    description: 'Master std::variant for type-safe unions, visitor pattern implementation, and polymorphic data handling.',
+    starterCode: `#include <iostream>
+#include <variant>
+#include <string>
+#include <vector>
+#include <memory>
+
+// TODO: Define a variant for different data types in a configuration system
+using ConfigValue = std::variant<int, double, std::string, bool>;
+
+// TODO: Define a variant for different geometric shapes
+struct Circle { double radius; };
+struct Rectangle { double width, height; };  
+struct Triangle { double base, height; };
+
+using Shape = std::variant<Circle, Rectangle, Triangle>;
+
+// TODO: Implement a visitor to calculate area of shapes
+struct AreaCalculator {
+    // TODO: Implement operator() for each shape type
+};
+
+// TODO: Implement a generic visitor to print configuration values
+struct ConfigPrinter {
+    // TODO: Implement operator() for each config type
+};
+
+// TODO: Implement a function to parse string into appropriate ConfigValue
+ConfigValue parse_config_value(const std::string& input) {
+    // TODO: Try to parse as bool, int, double, or keep as string
+    // Return the most appropriate type
+}
+
+// TODO: Implement a function that processes a variant and returns a string description
+template<typename T>
+std::string describe_variant(const T& variant_value) {
+    // TODO: Use std::visit to create a description string
+}
+
+int main() {
+    std::cout << "=== std::variant Exercise ===\\n";
+    
+    // Test configuration system
+    std::cout << "--- Configuration System ---\\n";
+    std::vector<ConfigValue> config = {
+        42,           // int
+        3.14,         // double  
+        std::string("hello"), // string
+        true          // bool
+    };
+    
+    // TODO: Print all config values using visitor
+    
+    std::cout << "\\n--- Shape Area Calculation ---\\n";
+    std::vector<Shape> shapes = {
+        Circle{5.0},
+        Rectangle{4.0, 6.0},
+        Triangle{3.0, 8.0}
+    };
+    
+    // TODO: Calculate and print area of each shape
+    
+    std::cout << "\\n--- Dynamic Config Parsing ---\\n";
+    std::vector<std::string> inputs = {"123", "45.67", "true", "hello_world"};
+    
+    // TODO: Parse each input and show the resulting type
+    
+    std::cout << "\\n--- Variant Type Checking ---\\n";
+    ConfigValue mixed_value = 42;
+    
+    // TODO: Demonstrate std::holds_alternative and std::get_if
+    
+    // TODO: Change the variant value and test again
+    
+    return 0;
+}`,
+    expectedOutput: `=== std::variant Exercise ===
+--- Configuration System ---
+Config[0]: 42 (integer)
+Config[1]: 3.14 (double)
+Config[2]: hello (string)
+Config[3]: true (boolean)
+
+--- Shape Area Calculation ---
+Circle area: 78.54
+Rectangle area: 24
+Triangle area: 12
+
+--- Dynamic Config Parsing ---
+"123" -> 123 (integer)
+"45.67" -> 45.67 (double)  
+"true" -> true (boolean)
+"hello_world" -> hello_world (string)
+
+--- Variant Type Checking ---
+Value holds integer: true
+Integer value: 42
+After change - holds string: true
+String value: changed`,
+    hints: [
+      'std::variant can hold one of several specified types',
+      'Use std::visit with visitor pattern for type-safe operations',
+      'std::holds_alternative<T>(variant) checks if variant holds type T',
+      'std::get<T>(variant) extracts value of type T (throws if wrong type)',
+      'std::get_if<T>(&variant) returns pointer to T or nullptr',
+      'Visitor structs need operator() for each variant type',
+      'For parsing, try conversions in order: bool -> int -> double -> string',
+      'std::variant automatically handles construction from compatible types'
+    ],
+    feature: 'std-variant',
+    relatedTheory: 'std-variant'
+  },
+
+  // std::any Exercise
+  {
+    id: 'any-exercise',
+    title: 'Type-Erased Storage with std::any',
+    standard: 'cpp17',
+    difficulty: 'intermediate',
+    description: 'Learn std::any for type-erased storage, runtime polymorphism, and flexible data containers.',
+    starterCode: `#include <iostream>
+#include <any>
+#include <string>
+#include <vector>
+#include <typeinfo>
+#include <map>
+
+// TODO: Implement a flexible property system using std::any
+class PropertyBag {
+private:
+    std::map<std::string, std::any> properties_;
+    
+public:
+    // TODO: Implement set method to store any type
+    template<typename T>
+    void set(const std::string& key, const T& value) {
+        // TODO: Store value in properties map
+    }
+    
+    // TODO: Implement get method to retrieve typed value
+    template<typename T>
+    T get(const std::string& key) const {
+        // TODO: Retrieve and cast value, throw if wrong type
+    }
+    
+    // TODO: Implement has method to check if property exists
+    bool has(const std::string& key) const {
+        // TODO: Check if key exists in properties
+    }
+    
+    // TODO: Implement get_type method to get type information
+    std::string get_type(const std::string& key) const {
+        // TODO: Return type name of stored value
+    }
+    
+    // TODO: Implement safe_get method that returns optional-like result
+    template<typename T>
+    bool safe_get(const std::string& key, T& result) const {
+        // TODO: Try to get value, return true if successful
+    }
+};
+
+// TODO: Implement a function that processes a vector of std::any values
+void process_mixed_data(const std::vector<std::any>& data) {
+    // TODO: Iterate through data and handle different types appropriately
+    // Handle at least: int, double, string, bool
+}
+
+// TODO: Implement a generic container that can store different types
+class FlexibleContainer {
+private:
+    std::vector<std::any> items_;
+    
+public:
+    // TODO: Add method to append any type
+    template<typename T>
+    void add(const T& item) {
+        // TODO: Add item to container
+    }
+    
+    // TODO: Get method with type checking
+    template<typename T>
+    T get(size_t index) const {
+        // TODO: Get item at index with type check
+    }
+    
+    // TODO: Method to get type at index
+    std::string type_at(size_t index) const {
+        // TODO: Return type name at index
+    }
+    
+    size_t size() const { return items_.size(); }
+};
+
+int main() {
+    std::cout << "=== std::any Exercise ===\\n";
+    
+    // Test PropertyBag
+    std::cout << "--- Property Bag System ---\\n";
+    PropertyBag config;
+    
+    // TODO: Set various properties of different types
+    // TODO: Retrieve and print properties
+    // TODO: Demonstrate type safety
+    
+    std::cout << "\\n--- Mixed Data Processing ---\\n";
+    std::vector<std::any> mixed_data = {
+        42,
+        3.14,
+        std::string("hello"),
+        true,
+        'A'
+    };
+    
+    // TODO: Process the mixed data
+    
+    std::cout << "\\n--- Flexible Container ---\\n";
+    FlexibleContainer container;
+    
+    // TODO: Add different types to container
+    // TODO: Retrieve and display items with their types
+    
+    std::cout << "\\n--- Type Safety Demo ---\\n";
+    std::any value = 42;
+    
+    // TODO: Demonstrate std::any_cast, type checking, and error handling
+    
+    return 0;
+}`,
+    expectedOutput: `=== std::any Exercise ===
+--- Property Bag System ---
+Set name: John
+Set age: 30
+Set height: 5.9
+Property 'name': John (type: string)
+Property 'age': 30 (type: int)
+Property 'height': 5.9 (type: double)
+Safe get successful: John
+
+--- Mixed Data Processing ---
+Processing int: 42
+Processing double: 3.14
+Processing string: hello
+Processing bool: true
+Processing char: A
+
+--- Flexible Container ---
+Container[0]: 100 (type: int)
+Container[1]: Hello World (type: string)
+Container[2]: 2.71 (type: double)
+
+--- Type Safety Demo ---
+Value holds int: 42
+Type check passed for int
+Type check failed for string (as expected)
+Changed to string: "Hello Any!"`,
+    hints: [
+      'std::any can store any type but loses type information',
+      'Use std::any_cast<T> to extract values (throws std::bad_any_cast if wrong type)',
+      'Check type with value.type() == typeid(T)',
+      'std::any is empty when default-constructed or reset',
+      'Use has_value() to check if any contains a value',
+      'Store in PropertyBag: properties_[key] = std::any(value);',
+      'For safe operations, use try-catch around any_cast',
+      'typeid().name() returns implementation-specific type name'
+    ],
+    feature: 'std-any',
+    relatedTheory: 'std-any'
+  },
+
+  // std::span Exercise
+  {
+    id: 'span-exercise',
+    title: 'Non-owning Array Views with std::span',
+    standard: 'cpp20',
+    difficulty: 'intermediate',
+    description: 'Master std::span for safe, efficient array and container access without ownership transfer.',
+    starterCode: `#include <iostream>
+#include <span>
+#include <vector>
+#include <array>
+#include <algorithm>
+#include <numeric>
+
+// TODO: Implement a function that processes any contiguous sequence
+template<typename T>
+void print_sequence(std::span<const T> data) {
+    // TODO: Print all elements in the span with indices
+}
+
+// TODO: Implement a function that finds the maximum value in a span
+template<typename T>
+T find_maximum(std::span<const T> data) {
+    // TODO: Find and return maximum value
+    // Handle empty span appropriately
+}
+
+// TODO: Implement a function that modifies elements through a span
+template<typename T>
+void multiply_by_two(std::span<T> data) {
+    // TODO: Multiply each element by 2
+}
+
+// TODO: Implement a function that calculates statistics
+template<typename T>
+struct Statistics {
+    T sum;
+    T mean;
+    T min;
+    T max;
+    size_t count;
+};
+
+template<typename T>
+Statistics<T> calculate_stats(std::span<const T> data) {
+    Statistics<T> stats{};
+    // TODO: Calculate sum, mean, min, max, count
+    return stats;
+}
+
+// TODO: Implement a function that creates subspans
+template<typename T>  
+void analyze_subranges(std::span<const T> data) {
+    // TODO: Create and analyze first half, second half, and middle portion
+    // Handle edge cases for odd-sized spans
+}
+
+// TODO: Implement a safe array accessor that returns span
+template<typename T, size_t N>
+std::span<T> safe_array_access(std::array<T, N>& arr, size_t start, size_t count) {
+    // TODO: Return subspan with bounds checking
+    // Return empty span if invalid range
+}
+
+int main() {
+    std::cout << "=== std::span Exercise ===\\n";
+    
+    // Test with different container types
+    std::vector<int> vec = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::array<double, 5> arr = {1.1, 2.2, 3.3, 4.4, 5.5};
+    int c_array[] = {10, 20, 30, 40, 50};
+    
+    std::cout << "--- Printing Sequences ---\\n";
+    // TODO: Print all three sequences using the same function
+    
+    std::cout << "\\n--- Finding Maximum ---\\n";
+    // TODO: Find maximum in each container
+    
+    std::cout << "\\n--- Modifying Through Span ---\\n";
+    // TODO: Double all values and show results
+    
+    std::cout << "\\n--- Statistical Analysis ---\\n";
+    // TODO: Calculate statistics for the vector
+    
+    std::cout << "\\n--- Subrange Analysis ---\\n";
+    // TODO: Analyze subranges of the vector
+    
+    std::cout << "\\n--- Safe Array Access ---\\n";
+    // TODO: Test safe array access with valid and invalid ranges
+    
+    std::cout << "\\n--- Span Operations ---\\n";
+    // TODO: Demonstrate span slicing, empty checks, and size operations
+    
+    return 0;
+}`,
+    expectedOutput: `=== std::span Exercise ===
+--- Printing Sequences ---
+Vector: [0]:1 [1]:2 [2]:3 [3]:4 [4]:5 [5]:6 [6]:7 [7]:8 [8]:9 [9]:10
+Array: [0]:1.1 [1]:2.2 [2]:3.3 [3]:4.4 [4]:5.5
+C-array: [0]:10 [1]:20 [2]:30 [3]:40 [4]:50
+
+--- Finding Maximum ---
+Vector maximum: 10
+Array maximum: 5.5
+C-array maximum: 50
+
+--- Modifying Through Span ---
+Doubled vector: 2 4 6 8 10 12 14 16 18 20
+Doubled array: 2.2 4.4 6.6 8.8 11
+Doubled C-array: 20 40 60 80 100
+
+--- Statistical Analysis ---
+Statistics: count=10, sum=110, mean=11, min=2, max=20
+
+--- Subrange Analysis ---
+First half: [2, 4, 6, 8, 10]
+Second half: [12, 14, 16, 18, 20]
+Middle portion: [6, 8, 10, 12, 14]
+
+--- Safe Array Access ---
+Safe access [1,3]: [4.4, 6.6, 8.8]
+Invalid access: empty span returned
+
+--- Span Operations ---
+Span size: 10
+Span is not empty
+First 3 elements: [2, 4, 6]
+Last 3 elements: [16, 18, 20]`,
+    hints: [
+      'std::span provides a view over contiguous memory without ownership',
+      'Use std::span<const T> for read-only access',
+      'Create spans from containers: std::span(container)',  
+      'Subspans: span.subspan(offset, count) or span.first(n), span.last(n)',
+      'Check bounds: if (start + count <= arr.size())',
+      'std::span works with vectors, arrays, and C-arrays',
+      'Empty span: return std::span<T>{}; or span.empty() to check',
+      'Use std::ranges algorithms with spans for modern C++ style'
+    ],
+    feature: 'std-span',
+    relatedTheory: 'std-span'
+  },
+
+  // consteval Exercise
+  {
+    id: 'consteval-exercise',
+    title: 'Immediate Functions with consteval',
+    standard: 'cpp20',
+    difficulty: 'advanced',
+    description: 'Master consteval for functions that must be evaluated at compile-time, ensuring zero runtime cost.',
+    starterCode: `#include <iostream>
+#include <array>
+#include <string_view>
+#include <cmath>
+
+// TODO: Implement a consteval function to compute factorial
+consteval int factorial(int n) {
+    // TODO: Implement factorial calculation
+    // Must be computable at compile-time
+}
+
+// TODO: Implement a consteval function to compute Fibonacci numbers
+consteval long long fibonacci(int n) {
+    // TODO: Implement Fibonacci calculation
+    // Use iterative approach for better compile-time performance
+}
+
+// TODO: Implement a consteval function to check if a number is prime
+consteval bool is_prime(int n) {
+    // TODO: Implement prime checking
+    // Must work at compile-time
+}
+
+// TODO: Implement a consteval function to compute string hash at compile-time
+consteval std::size_t compile_time_hash(std::string_view str) {
+    // TODO: Implement simple hash function (e.g., djb2 algorithm)
+    std::size_t hash = 5381;
+    // TODO: Complete the hash calculation
+    return hash;
+}
+
+// TODO: Implement a consteval function to generate lookup tables
+template<int Size>
+consteval std::array<int, Size> generate_squares() {
+    std::array<int, Size> result{};
+    // TODO: Fill array with squares of indices (0^2, 1^2, 2^2, ...)
+    return result;
+}
+
+// TODO: Implement a consteval function for compile-time string operations
+consteval int count_vowels(std::string_view str) {
+    // TODO: Count vowels (a, e, i, o, u) in the string
+    int count = 0;
+    // TODO: Implement counting logic
+    return count;
+}
+
+// TODO: Create a compile-time configuration system
+struct CompileTimeConfig {
+    int version;
+    bool debug_mode;
+    int max_connections;
+    
+    // TODO: Add consteval constructor for validation
+    consteval CompileTimeConfig(int v, bool debug, int max_conn) 
+        : version(v), debug_mode(debug), max_connections(max_conn) {
+        // TODO: Add compile-time validation
+        // Version must be positive, max_connections must be reasonable
+    }
+};
+
+// TODO: Implement consteval function to create compile-time switch/case
+template<int Value>
+consteval const char* number_to_string() {
+    // TODO: Convert numbers 0-9 to string names
+    // Return "unknown" for other values
+}
+
+int main() {
+    std::cout << "=== consteval Exercise ===\\n";
+    
+    // Test factorial
+    std::cout << "--- Factorial (compile-time) ---\\n";
+    // TODO: Test factorial with different values
+    // These should all be computed at compile-time!
+    
+    std::cout << "\\n--- Fibonacci (compile-time) ---\\n";
+    // TODO: Test Fibonacci with different values
+    
+    std::cout << "\\n--- Prime Checking (compile-time) ---\\n";
+    // TODO: Test prime checking with various numbers
+    
+    std::cout << "\\n--- String Hashing (compile-time) ---\\n";
+    // TODO: Test compile-time string hashing
+    
+    std::cout << "\\n--- Lookup Table Generation ---\\n";
+    // TODO: Generate and display squares lookup table
+    
+    std::cout << "\\n--- String Analysis (compile-time) ---\\n";
+    // TODO: Count vowels in various strings at compile-time
+    
+    std::cout << "\\n--- Compile-time Configuration ---\\n";
+    // TODO: Create and use compile-time configuration
+    
+    std::cout << "\\n--- Number to String (compile-time) ---\\n";
+    // TODO: Test number to string conversion
+    
+    // Demonstrate that these are truly compile-time
+    std::cout << "\\n--- Compile-time Proof ---\\n";
+    constexpr int compile_time_result = factorial(5);
+    std::cout << "Factorial result stored in constexpr: " << compile_time_result << "\\n";
+    
+    return 0;
+}`,
+    expectedOutput: `=== consteval Exercise ===
+--- Factorial (compile-time) ---
+factorial(5) = 120
+factorial(0) = 1  
+factorial(7) = 5040
+
+--- Fibonacci (compile-time) ---
+fibonacci(10) = 55
+fibonacci(15) = 610
+fibonacci(20) = 6765
+
+--- Prime Checking (compile-time) ---
+is_prime(17) = true
+is_prime(18) = false
+is_prime(97) = true
+
+--- String Hashing (compile-time) ---
+hash("hello") = 210714636441
+hash("world") = 267487018924
+hash("consteval") = 1934944949833
+
+--- Lookup Table Generation ---
+Squares table: 0 1 4 9 16 25 36 49 64 81
+
+--- String Analysis (compile-time) ---
+"hello world" has 3 vowels
+"programming" has 3 vowels  
+"consteval" has 4 vowels
+
+--- Compile-time Configuration ---
+Config: version=1, debug=true, max_connections=100
+
+--- Number to String (compile-time) ---
+0 -> "zero"
+5 -> "five"  
+9 -> "nine"
+15 -> "unknown"
+
+--- Compile-time Proof ---
+Factorial result stored in constexpr: 120`,
+    hints: [
+      'consteval functions MUST be evaluated at compile-time',
+      'All parameters must be constant expressions',  
+      'Use recursive approach carefully - watch compile-time limits',
+      'String operations: iterate with for loop over string_view',
+      'Hash function: hash = hash * 33 + static_cast<unsigned char>(c)',
+      'Array initialization: use constexpr for loops in consteval context',
+      'Validation: use static_assert-like logic but with exceptions/aborts',
+      'Template specialization can help with compile-time string conversion'
+    ],
+    feature: 'consteval',
+    relatedTheory: 'consteval'
+  },
+
+  // Digit Separators & Binary Literals Exercise
+  {
+    id: 'digit-separators-binary-literals-exercise',
+    title: 'Enhanced Numeric Literals',
+    standard: 'cpp14',
+    difficulty: 'beginner',
+    description: 'Learn to use digit separators and binary literals for more readable and maintainable numeric constants.',
+    starterCode: `#include <iostream>
+#include <bitset>
+#include <iomanip>
+
+int main() {
+    std::cout << "=== Enhanced Numeric Literals Exercise ===\\n";
+    
+    // TODO: Define large numbers using digit separators for readability
+    // Examples: millions, file sizes, memory addresses
+    
+    std::cout << "--- Large Numbers with Separators ---\\n";
+    // TODO: Create variables for:
+    // - Population of a major city (e.g., 8_500_000)
+    // - File size in bytes (e.g., 1_073_741_824 for 1GB)
+    // - National debt (use a very large number)
+    
+    std::cout << "\\n--- Binary Literals for Bit Manipulation ---\\n";
+    // TODO: Define binary constants for:
+    // - File permissions (rwxrwxrwx = 0b111_111_111)
+    // - Status flags (8-bit register with specific bits set)
+    // - Network masks (e.g., 0b1111_1111_1111_1111_1111_1111_0000_0000)
+    
+    std::cout << "\\n--- Hexadecimal with Separators ---\\n";
+    // TODO: Define hex values with separators:
+    // - Memory addresses
+    // - Color codes
+    // - Magic numbers
+    
+    std::cout << "\\n--- Mixed Base Demonstrations ---\\n";
+    // TODO: Show the same value in different bases:
+    // - Decimal with separators
+    // - Binary with separators  
+    // - Hexadecimal with separators
+    // - Octal
+    
+    std::cout << "\\n--- Bit Pattern Analysis ---\\n";
+    // TODO: Create bit patterns and analyze them:
+    // - Show binary representation using std::bitset
+    // - Demonstrate bit operations with readable constants
+    
+    std::cout << "\\n--- Financial Calculations ---\\n";
+    // TODO: Use separators for financial values:
+    // - Large monetary amounts
+    // - Precise decimal calculations (avoid floating point issues)
+    
+    std::cout << "\\n--- Configuration Constants ---\\n";
+    // TODO: Define configuration values using appropriate literals:
+    // - Timeout values in milliseconds
+    // - Buffer sizes
+    // - Protocol constants
+    
+    return 0;
+}`,
+    expectedOutput: `=== Enhanced Numeric Literals Exercise ===
+--- Large Numbers with Separators ---
+NYC Population: 8,500,000
+1GB File Size: 1,073,741,824 bytes
+National Debt: $28,000,000,000,000
+
+--- Binary Literals for Bit Manipulation ---
+File Permissions (rwxrwxrwx): 511 (binary: 111111111)
+Status Register: 170 (binary: 10101010)  
+Network Mask: 4294967040 (binary: 11111111111111111111111100000000)
+
+--- Hexadecimal with Separators ---
+Memory Address: 0x7FFF_5FBF_F000
+Red Color: 0xFF_00_00
+Magic Number: 0xDEAD_BEEF
+
+--- Mixed Base Demonstrations ---
+Value 1000000:
+  Decimal: 1,000,000
+  Binary: 0b11110100001001000000 
+  Hex: 0xF4240
+  Octal: 03641100
+
+--- Bit Pattern Analysis ---
+Flags 0b1010_1010:
+  Binary: 10101010
+  Set bits: 2, 4, 6, 8
+  AND with 0b1111_0000: 10100000
+  OR with 0b0000_1111: 10101111
+
+--- Financial Calculations ---
+Stock Price: $1,234.56 (as cents: 123,456)
+Market Cap: $500,000,000,000
+Bond Value: $10,000,000.00
+
+--- Configuration Constants ---
+Timeout: 30,000 ms (30 seconds)
+Buffer Size: 64,536 bytes
+HTTP Port: 8,080
+Max Connections: 10,000`,
+    hints: [
+      'Use underscores (_) as digit separators: 1_000_000',
+      'Binary literals start with 0b: 0b1010_1010', 
+      'Separators can be used in any numeric base',
+      'Separators improve readability but don\'t affect the value',
+      'Use std::bitset to display binary representations',
+      'Good practice: group binary digits by 4 or 8',
+      'Financial: consider using integer cents instead of floating point',
+      'Hex separators often group by 2 or 4 digits for readability'
+    ],
+    feature: 'digit-separators-binary-literals',
+    relatedTheory: 'digit-separators-binary-literals'
+  },
+
+  // Inline Variables Exercise
+  {
+    id: 'inline-variables-exercise',
+    title: 'Header-only Variable Definitions',
+    standard: 'cpp17',
+    difficulty: 'intermediate',
+    description: 'Master inline variables for header-only libraries, avoiding ODR violations and reducing linking complexity.',
+    starterCode: `// config.hpp - Header file with inline variables
+#pragma once
+#include <string>
+#include <map>
+#include <chrono>
+
+// TODO: Define inline variables for application configuration
+// These can be defined in header without ODR violations
+
+namespace AppConfig {
+    // TODO: Define inline version information
+    inline const std::string version = "1.0.0";
+    inline const int major_version = 1;
+    inline const int minor_version = 0;
+    inline const int patch_version = 0;
+    
+    // TODO: Define inline build configuration
+    // TODO: Define inline default settings
+    // TODO: Define inline limits and constants
+}
+
+// TODO: Create a template variable with inline specifier
+template<typename T>
+inline constexpr bool is_numeric_v = std::is_arithmetic_v<T>;
+
+// TODO: Create inline variable for registry pattern
+inline std::map<std::string, int> global_registry;
+
+// TODO: Create inline variable for singleton-like behavior
+struct Logger {
+    void log(const std::string& msg) {
+        std::cout << "[LOG] " << msg << std::endl;
+    }
+};
+
+// TODO: Define inline logger instance
+inline Logger& get_logger() {
+    static Logger instance;
+    return instance;
+}
+
+// === MAIN EXERCISE FILE ===
+#include <iostream>
+#include <vector>
+#include <type_traits>
+
+int main() {
+    std::cout << "=== Inline Variables Exercise ===\\n";
+    
+    // TODO: Use the inline configuration variables
+    std::cout << "--- Application Configuration ---\\n";
+    // TODO: Display version information
+    // TODO: Display build configuration
+    // TODO: Display default settings
+    
+    std::cout << "\\n--- Template Variable Usage ---\\n";
+    // TODO: Test the is_numeric_v template variable with different types
+    
+    std::cout << "\\n--- Global Registry Usage ---\\n";  
+    // TODO: Add entries to global registry
+    // TODO: Display registry contents
+    
+    std::cout << "\\n--- Singleton Logger Usage ---\\n";
+    // TODO: Use the inline logger from multiple places
+    
+    std::cout << "\\n--- Performance Constants ---\\n";
+    // TODO: Define and use inline performance-related constants
+    
+    std::cout << "\\n--- Feature Flags ---\\n";
+    // TODO: Create inline boolean feature flags
+    
+    return 0;
+}`,
+    expectedOutput: `=== Inline Variables Exercise ===
+--- Application Configuration ---
+Version: 1.0.0
+Version Components: 1.0.0
+Build Type: Debug
+Build Date: 2024-01-15
+Default Timeout: 30000ms
+Default Buffer Size: 8192
+Max Connections: 1000
+Thread Pool Size: 8
+
+--- Template Variable Usage ---
+int is numeric: true
+string is numeric: false
+double is numeric: true
+bool is numeric: true
+
+--- Global Registry Usage ---
+Registry entries:
+  users: 150
+  products: 1250
+  orders: 5680
+Total entries: 3
+
+--- Singleton Logger Usage ---
+[LOG] Application started
+[LOG] Configuration loaded
+[LOG] System ready
+[LOG] Processing complete
+
+--- Performance Constants ---
+Cache Line Size: 64 bytes
+Page Size: 4096 bytes
+Max Memory Pool: 1073741824 bytes
+
+--- Feature Flags ---
+Feature 'advanced_logging': enabled
+Feature 'caching': disabled  
+Feature 'compression': enabled`,
+    hints: [
+      'inline variables can be defined in headers without ODR violations',
+      'Use inline constexpr for compile-time constants',
+      'Template variables are implicitly inline when defined in headers',
+      'inline variables are initialized once across all translation units',
+      'Good for configuration systems and header-only libraries',
+      'Can replace function-local static variables in some cases',
+      'Useful for avoiding separate .cpp files for simple constants',
+      'Works well with namespace organization for configuration'
+    ],
+    feature: 'inline-variables',
+    relatedTheory: 'inline-variables'
   }
 ];
