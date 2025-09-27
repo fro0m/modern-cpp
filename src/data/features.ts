@@ -4254,5 +4254,1426 @@ int main() {
 }`,
     explanation: 'Zero-cost abstractions provide high-level programming constructs that compile down to the same machine code as hand-optimized low-level code. Strong types, CRTP, compile-time polymorphism, and constexpr algorithms enable type safety and expressiveness without runtime overhead, making C++ ideal for performance-critical systems.',
     useCase: 'Critical for high-frequency trading systems, embedded systems, game engines, and any performance-critical application where abstraction cannot come at the cost of runtime performance. Essential for building maintainable yet optimal financial trading systems, real-time systems, and system-level programming.'
+  },
+
+  // === C++20 MODULES ===
+  {
+    id: 'modules',
+    title: 'C++ Modules',
+    standard: 'cpp20',
+    description: 'Modern module system replacing traditional header files with better encapsulation, faster compilation, and cleaner imports.',
+    codeExample: `// === BASIC MODULE EXAMPLE ===
+
+// File: math_utils.cppm (module interface file)
+export module math_utils;
+
+import <iostream>;
+import <vector>;
+import <cmath>;
+
+// Export individual functions
+export double square(double x) {
+    return x * x;
+}
+
+export double cube(double x) {
+    return x * x * x;
+}
+
+// Export a class
+export class Calculator {
+private:
+    double last_result_ = 0.0;
+    
+public:
+    double add(double a, double b) {
+        last_result_ = a + b;
+        return last_result_;
+    }
+    
+    double multiply(double a, double b) {
+        last_result_ = a * b;
+        return last_result_;
+    }
+    
+    double power(double base, double exponent) {
+        last_result_ = std::pow(base, exponent);
+        return last_result_;
+    }
+    
+    double get_last_result() const {
+        return last_result_;
+    }
+};
+
+// Internal helper function (not exported)
+double internal_helper(double x) {
+    return x * 2.0 + 1.0;
+}
+
+// Export with different name
+export {
+    double advanced_square(double x) {
+        return internal_helper(x * x);
+    }
+}
+
+// Export namespace
+export namespace constants {
+    const double PI = 3.14159265358979323846;
+    const double E = 2.71828182845904523536;
+    const double GOLDEN_RATIO = 1.61803398874989484820;
+}
+
+// === PARTITIONS AND SUBMODULES ===
+
+// File: graphics.cppm (main module interface)
+export module graphics;
+
+// Partition declarations
+export import :shapes;
+export import :colors;
+export import :rendering;
+
+// Main graphics interface
+export class Scene {
+public:
+    void render();
+    void add_shape(const Shape& shape);
+    void set_background_color(Color color);
+};
+
+// File: graphics-shapes.cppm (module partition)
+export module graphics:shapes;
+
+import <vector>;
+import <memory>;
+
+export class Point {
+public:
+    double x, y;
+    Point(double x, double y) : x(x), y(y) {}
+};
+
+export class Shape {
+public:
+    virtual ~Shape() = default;
+    virtual double area() const = 0;
+    virtual void draw() const = 0;
+};
+
+export class Circle : public Shape {
+private:
+    Point center_;
+    double radius_;
+    
+public:
+    Circle(Point center, double radius) 
+        : center_(center), radius_(radius) {}
+    
+    double area() const override {
+        return 3.14159 * radius_ * radius_;
+    }
+    
+    void draw() const override {
+        std::cout << "Drawing circle at (" << center_.x 
+                  << ", " << center_.y << ") with radius " << radius_ << std::endl;
+    }
+};
+
+export class Rectangle : public Shape {
+private:
+    Point top_left_;
+    double width_, height_;
+    
+public:
+    Rectangle(Point top_left, double width, double height)
+        : top_left_(top_left), width_(width), height_(height) {}
+    
+    double area() const override {
+        return width_ * height_;
+    }
+    
+    void draw() const override {
+        std::cout << "Drawing rectangle at (" << top_left_.x 
+                  << ", " << top_left_.y << ") size " 
+                  << width_ << "x" << height_ << std::endl;
+    }
+};
+
+// File: main.cpp (using modules)
+import math_utils;
+import graphics;
+import <iostream>;
+import <vector>;
+import <memory>;
+
+int main() {
+    std::cout << "=== C++ Modules Demo ===\\n\\n";
+    
+    // Using basic module functions
+    std::cout << "=== Math Utils Module ===\\n";
+    std::cout << "square(5) = " << square(5) << "\\n";
+    std::cout << "cube(3) = " << cube(3) << "\\n";
+    std::cout << "advanced_square(4) = " << advanced_square(4) << "\\n";
+    
+    // Using exported constants
+    std::cout << "PI = " << constants::PI << "\\n";
+    std::cout << "E = " << constants::E << "\\n";
+    std::cout << "Golden Ratio = " << constants::GOLDEN_RATIO << "\\n\\n";
+    
+    // Using exported class
+    Calculator calc;
+    std::cout << "Calculator operations:\\n";
+    std::cout << "5 + 3 = " << calc.add(5, 3) << "\\n";
+    std::cout << "4 * 7 = " << calc.multiply(4, 7) << "\\n";
+    std::cout << "2^8 = " << calc.power(2, 8) << "\\n";
+    std::cout << "Last result: " << calc.get_last_result() << "\\n\\n";
+    
+    // Using graphics module with partitions
+    std::cout << "=== Graphics Module (with partitions) ===\\n";
+    
+    auto circle = std::make_unique<Circle>(Point{10, 20}, 5.0);
+    auto rectangle = std::make_unique<Rectangle>(Point{0, 0}, 15.0, 10.0);
+    
+    std::cout << "Circle area: " << circle->area() << "\\n";
+    circle->draw();
+    
+    std::cout << "Rectangle area: " << rectangle->area() << "\\n";
+    rectangle->draw();
+    
+    std::cout << "\\n=== Module Benefits ===\\n";
+    std::cout << "✓ Faster compilation (no header re-parsing)\\n";
+    std::cout << "✓ Better encapsulation (implementation details hidden)\\n";
+    std::cout << "✓ No header guards needed\\n";
+    std::cout << "✓ Order-independent imports\\n";
+    std::cout << "✓ Macro isolation (macros don't leak)\\n";
+    std::cout << "✓ Cleaner dependency management\\n";
+    
+    return 0;
+}
+
+// === COMPILATION EXAMPLE ===
+/*
+Module compilation order (simplified):
+
+1. Compile module interface files:
+   clang++ -std=c++20 --precompile math_utils.cppm -o math_utils.pcm
+   clang++ -std=c++20 --precompile graphics-shapes.cppm -o graphics-shapes.pcm
+   clang++ -std=c++20 --precompile graphics.cppm -o graphics.pcm
+
+2. Compile module implementation files (if any):
+   clang++ -std=c++20 -c math_utils.pcm -o math_utils.o
+   clang++ -std=c++20 -c graphics.pcm -o graphics.o
+
+3. Compile main program:
+   clang++ -std=c++20 -c main.cpp -fmodule-file=math_utils.pcm 
+           -fmodule-file=graphics.pcm -o main.o
+
+4. Link:
+   clang++ main.o math_utils.o graphics.o -o program
+*/`,
+    explanation: `C++ Modules revolutionize C++ compilation by replacing the traditional header/source file model with a more robust module system. Modules provide better encapsulation by clearly separating interface from implementation, eliminate issues with macro pollution and header order dependencies, and significantly improve compilation speed by avoiding repeated header parsing. Module partitions allow organizing large modules into logical components while maintaining a single import statement for users.`,
+    useCase: `Essential for large codebases where compilation time and dependency management are critical. Perfect for libraries that need strong API boundaries, enterprise applications requiring modular architecture, and any project suffering from slow compilation due to heavy header dependencies. Modules are the future of C++ code organization and should be adopted for all new projects targeting C++20 and later.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/modules'
+  },
+
+  // === C++20 COROUTINES ===
+  {
+    id: 'coroutines',
+    title: 'Coroutines',
+    standard: 'cpp20',
+    description: 'Cooperative multitasking with co_await, co_yield, and co_return for asynchronous programming and generators.',
+    codeExample: `#include <coroutine>
+#include <iostream>
+#include <vector>
+#include <chrono>
+#include <thread>
+#include <future>
+#include <exception>
+
+// === BASIC GENERATOR ===
+
+template<typename T>
+struct Generator {
+    struct promise_type {
+        T current_value;
+        
+        Generator get_return_object() {
+            return Generator{std::coroutine_handle<promise_type>::from_promise(*this)};
+        }
+        
+        std::suspend_always initial_suspend() { return {}; }
+        std::suspend_always final_suspend() noexcept { return {}; }
+        void unhandled_exception() { std::terminate(); }
+        
+        std::suspend_always yield_value(T value) {
+            current_value = value;
+            return {};
+        }
+        
+        void return_void() {}
+    };
+    
+    std::coroutine_handle<promise_type> coro;
+    
+    Generator(std::coroutine_handle<promise_type> h) : coro(h) {}
+    ~Generator() {
+        if (coro) coro.destroy();
+    }
+    
+    // Move-only type
+    Generator(const Generator&) = delete;
+    Generator& operator=(const Generator&) = delete;
+    Generator(Generator&& other) noexcept : coro(other.coro) {
+        other.coro = {};
+    }
+    Generator& operator=(Generator&& other) noexcept {
+        if (this != &other) {
+            if (coro) coro.destroy();
+            coro = other.coro;
+            other.coro = {};
+        }
+        return *this;
+    }
+    
+    struct iterator {
+        std::coroutine_handle<promise_type> coro;
+        bool done;
+        
+        iterator(std::coroutine_handle<promise_type> h, bool d) : coro(h), done(d) {}
+        
+        T operator*() const {
+            return coro.promise().current_value;
+        }
+        
+        iterator& operator++() {
+            coro.resume();
+            done = coro.done();
+            return *this;
+        }
+        
+        bool operator!=(const iterator& other) const {
+            return done != other.done;
+        }
+    };
+    
+    iterator begin() {
+        if (coro) {
+            coro.resume();
+            return {coro, coro.done()};
+        }
+        return {coro, true};
+    }
+    
+    iterator end() {
+        return {coro, true};
+    }
+};
+
+// Fibonacci generator
+Generator<long long> fibonacci() {
+    long long a = 0, b = 1;
+    
+    while (true) {
+        co_yield a;
+        auto next = a + b;
+        a = b;
+        b = next;
+    }
+}
+
+// Range generator
+Generator<int> range(int start, int end, int step = 1) {
+    for (int i = start; i < end; i += step) {
+        co_yield i;
+    }
+}
+
+// === ASYNC TASK SYSTEM ===
+
+template<typename T>
+struct Task {
+    struct promise_type {
+        T result;
+        std::exception_ptr exception;
+        
+        Task get_return_object() {
+            return Task{std::coroutine_handle<promise_type>::from_promise(*this)};
+        }
+        
+        std::suspend_never initial_suspend() { return {}; }
+        std::suspend_never final_suspend() noexcept { return {}; }
+        
+        void unhandled_exception() {
+            exception = std::current_exception();
+        }
+        
+        void return_value(T value) {
+            result = value;
+        }
+    };
+    
+    std::coroutine_handle<promise_type> coro;
+    
+    Task(std::coroutine_handle<promise_type> h) : coro(h) {}
+    ~Task() {
+        if (coro) coro.destroy();
+    }
+    
+    // Move-only
+    Task(const Task&) = delete;
+    Task& operator=(const Task&) = delete;
+    Task(Task&& other) noexcept : coro(other.coro) {
+        other.coro = {};
+    }
+    Task& operator=(Task&& other) noexcept {
+        if (this != &other) {
+            if (coro) coro.destroy();
+            coro = other.coro;
+            other.coro = {};
+        }
+        return *this;
+    }
+    
+    T get() {
+        if (!coro.done()) {
+            // In a real implementation, this would block or schedule
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        
+        if (coro.promise().exception) {
+            std::rethrow_exception(coro.promise().exception);
+        }
+        
+        return coro.promise().result;
+    }
+    
+    bool is_ready() const {
+        return coro.done();
+    }
+};
+
+// Simple awaitable type
+struct SimpleAwaitable {
+    int value;
+    
+    bool await_ready() const { return false; }
+    void await_suspend(std::coroutine_handle<> handle) const {
+        // Simulate async work
+        std::thread([handle]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            handle.resume();
+        }).detach();
+    }
+    int await_resume() const { return value; }
+};
+
+// Async computation
+Task<int> compute_async(int x) {
+    std::cout << "Starting async computation for " << x << "\\n";
+    
+    // Simulate async work
+    auto result1 = co_await SimpleAwaitable{x * 2};
+    std::cout << "First stage complete: " << result1 << "\\n";
+    
+    auto result2 = co_await SimpleAwaitable{result1 + 10};
+    std::cout << "Second stage complete: " << result2 << "\\n";
+    
+    co_return result2;
+}
+
+// Async aggregation
+Task<int> process_multiple(std::vector<int> values) {
+    int total = 0;
+    
+    for (auto value : values) {
+        auto result = co_await SimpleAwaitable{value * value};
+        total += result;
+        std::cout << "Processed " << value << " -> " << result << " (total: " << total << ")\\n";
+    }
+    
+    co_return total;
+}
+
+// === STATE MACHINE COROUTINE ===
+
+struct StateMachine {
+    enum class State { Init, Processing, Waiting, Done };
+    
+    struct promise_type {
+        State current_state = State::Init;
+        
+        StateMachine get_return_object() {
+            return StateMachine{std::coroutine_handle<promise_type>::from_promise(*this)};
+        }
+        
+        std::suspend_never initial_suspend() { return {}; }
+        std::suspend_always final_suspend() noexcept { return {}; }
+        void unhandled_exception() { std::terminate(); }
+        void return_void() {}
+        
+        std::suspend_always await_transform(State new_state) {
+            current_state = new_state;
+            return {};
+        }
+    };
+    
+    std::coroutine_handle<promise_type> coro;
+    
+    StateMachine(std::coroutine_handle<promise_type> h) : coro(h) {}
+    ~StateMachine() {
+        if (coro) coro.destroy();
+    }
+    
+    State get_state() const {
+        return coro.promise().current_state;
+    }
+    
+    void step() {
+        if (!coro.done()) {
+            coro.resume();
+        }
+    }
+    
+    bool is_done() const {
+        return coro.done();
+    }
+};
+
+StateMachine create_state_machine() {
+    std::cout << "State machine starting\\n";
+    
+    co_await StateMachine::State::Init;
+    std::cout << "State: Init\\n";
+    
+    co_await StateMachine::State::Processing;
+    std::cout << "State: Processing\\n";
+    
+    co_await StateMachine::State::Waiting;
+    std::cout << "State: Waiting\\n";
+    
+    co_await StateMachine::State::Done;
+    std::cout << "State: Done\\n";
+}
+
+int main() {
+    std::cout << "=== C++ Coroutines Demo ===\\n\\n";
+    
+    // Generator example
+    std::cout << "=== Fibonacci Generator ===\\n";
+    auto fib = fibonacci();
+    int count = 0;
+    for (auto value : fib) {
+        std::cout << value << " ";
+        if (++count >= 15) break;  // First 15 numbers
+    }
+    std::cout << "\\n\\n";
+    
+    // Range generator
+    std::cout << "=== Range Generator ===\\n";
+    std::cout << "range(5, 20, 3): ";
+    for (auto value : range(5, 20, 3)) {
+        std::cout << value << " ";
+    }
+    std::cout << "\\n\\n";
+    
+    // Async task example
+    std::cout << "=== Async Tasks ===\\n";
+    auto task1 = compute_async(5);
+    auto task2 = process_multiple({1, 2, 3, 4});
+    
+    std::cout << "Task 1 result: " << task1.get() << "\\n";
+    std::cout << "Task 2 result: " << task2.get() << "\\n\\n";
+    
+    // State machine example
+    std::cout << "=== State Machine ===\\n";
+    auto machine = create_state_machine();
+    
+    while (!machine.is_done()) {
+        std::cout << "Current state: " << static_cast<int>(machine.get_state()) << "\\n";
+        machine.step();
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    
+    std::cout << "\\n=== Coroutine Benefits ===\\n";
+    std::cout << "✓ Cooperative multitasking without threads\\n";
+    std::cout << "✓ Lazy evaluation and infinite sequences\\n";
+    std::cout << "✓ Clean async code without callback hell\\n";
+    std::cout << "✓ State machines with natural syntax\\n";
+    std::cout << "✓ Memory efficient (stackless)\\n";
+    std::cout << "✓ Composable and reusable async operations\\n";
+    
+    return 0;
+}`,
+    explanation: `Coroutines enable cooperative multitasking where functions can suspend and resume execution at specific points. The co_await operator suspends the coroutine until the awaited operation completes, co_yield produces values for generators, and co_return returns the final result. This enables writing asynchronous code that reads like synchronous code, creating efficient generators, and implementing complex state machines naturally.`,
+    useCase: `Perfect for asynchronous I/O operations, parsing large files incrementally, implementing state machines, creating infinite sequences, and building responsive applications without the complexity of traditional threading. Essential for networking code, data processing pipelines, game AI systems, and any scenario requiring cooperative multitasking.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/coroutines'
+  },
+
+  // === EXECUTION POLICIES ===
+  {
+    id: 'execution-policies',
+    title: 'Execution Policies in Standard Algorithms',
+    standard: 'cpp17',
+    description: 'Parallel execution of STL algorithms using execution policies for performance optimization.',
+    codeExample: `#include <execution>
+#include <algorithm>
+#include <numeric>
+#include <vector>
+#include <chrono>
+#include <iostream>
+#include <random>
+#include <future>
+#include <thread>
+
+class PerformanceBenchmark {
+private:
+    std::vector<int> large_dataset_;
+    std::vector<double> financial_data_;
+    
+public:
+    PerformanceBenchmark(size_t size = 10000000) {
+        // Create large dataset for benchmarking
+        large_dataset_.reserve(size);
+        financial_data_.reserve(size);
+        
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<int> int_dist(1, 1000);
+        std::uniform_real_distribution<double> price_dist(50.0, 500.0);
+        
+        for (size_t i = 0; i < size; ++i) {
+            large_dataset_.push_back(int_dist(gen));
+            financial_data_.push_back(price_dist(gen));
+        }
+    }
+    
+    // Benchmark different execution policies
+    void benchmark_sort() {
+        std::cout << "=== Sorting Benchmark ===\\n";
+        
+        // Sequential execution
+        auto data_copy = large_dataset_;
+        auto start = std::chrono::high_resolution_clock::now();
+        std::sort(std::execution::seq, data_copy.begin(), data_copy.end());
+        auto end = std::chrono::high_resolution_clock::now();
+        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        // Parallel execution
+        data_copy = large_dataset_;
+        start = std::chrono::high_resolution_clock::now();
+        std::sort(std::execution::par, data_copy.begin(), data_copy.end());
+        end = std::chrono::high_resolution_clock::now();
+        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        // Parallel unsequenced execution
+        data_copy = large_dataset_;
+        start = std::chrono::high_resolution_clock::now();
+        std::sort(std::execution::par_unseq, data_copy.begin(), data_copy.end());
+        end = std::chrono::high_resolution_clock::now();
+        auto par_unseq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        std::cout << "Sequential sort: " << seq_time.count() << "ms\\n";
+        std::cout << "Parallel sort: " << par_time.count() << "ms\\n";
+        std::cout << "Par+unseq sort: " << par_unseq_time.count() << "ms\\n";
+        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+    }
+    
+    void benchmark_transform() {
+        std::cout << "=== Transform Benchmark ===\\n";
+        std::vector<double> results(financial_data_.size());
+        
+        // Complex calculation: compound interest
+        auto compound_interest = [](double principal) {
+            const double rate = 0.05;  // 5% annual rate
+            const int years = 10;
+            double result = principal;
+            for (int i = 0; i < years; ++i) {
+                result *= (1.0 + rate);
+            }
+            return result;
+        };
+        
+        // Sequential transform
+        auto start = std::chrono::high_resolution_clock::now();
+        std::transform(std::execution::seq, 
+                      financial_data_.begin(), financial_data_.end(),
+                      results.begin(), compound_interest);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        // Parallel transform
+        start = std::chrono::high_resolution_clock::now();
+        std::transform(std::execution::par, 
+                      financial_data_.begin(), financial_data_.end(),
+                      results.begin(), compound_interest);
+        end = std::chrono::high_resolution_clock::now();
+        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        std::cout << "Sequential transform: " << seq_time.count() << "ms\\n";
+        std::cout << "Parallel transform: " << par_time.count() << "ms\\n";
+        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+    }
+    
+    void benchmark_reduce() {
+        std::cout << "=== Reduce Benchmark ===\\n";
+        
+        // Sequential reduce
+        auto start = std::chrono::high_resolution_clock::now();
+        auto seq_sum = std::reduce(std::execution::seq,
+                                  large_dataset_.begin(), large_dataset_.end(),
+                                  0LL);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        // Parallel reduce
+        start = std::chrono::high_resolution_clock::now();
+        auto par_sum = std::reduce(std::execution::par,
+                                  large_dataset_.begin(), large_dataset_.end(),
+                                  0LL);
+        end = std::chrono::high_resolution_clock::now();
+        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        
+        std::cout << "Sequential sum: " << seq_sum << " (time: " << seq_time.count() << "ms)\\n";
+        std::cout << "Parallel sum: " << par_sum << " (time: " << par_time.count() << "ms)\\n";
+        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+    }
+};
+
+// Financial calculation examples
+class FinancialAlgorithms {
+public:
+    // Parallel portfolio risk calculation
+    static double calculate_portfolio_var(const std::vector<double>& returns, double confidence = 0.95) {
+        std::vector<double> sorted_returns = returns;
+        
+        // Parallel sort for large datasets
+        std::sort(std::execution::par, sorted_returns.begin(), sorted_returns.end());
+        
+        // Calculate Value at Risk at given confidence level
+        size_t var_index = static_cast<size_t>((1.0 - confidence) * sorted_returns.size());
+        return sorted_returns[var_index];
+    }
+    
+    // Parallel Monte Carlo simulation
+    static double monte_carlo_option_price(double S0, double K, double r, double sigma, 
+                                         double T, size_t num_simulations = 1000000) {
+        std::vector<double> payoffs(num_simulations);
+        std::vector<size_t> indices(num_simulations);
+        std::iota(indices.begin(), indices.end(), 0);
+        
+        std::random_device rd;
+        thread_local std::mt19937 gen(rd());
+        std::normal_distribution<double> norm(0.0, 1.0);
+        
+        // Parallel transform to calculate payoffs
+        std::transform(std::execution::par, 
+                      indices.begin(), indices.end(),
+                      payoffs.begin(),
+                      [&](size_t i) {
+                          thread_local std::mt19937 local_gen(rd() + i);
+                          std::normal_distribution<double> local_norm(0.0, 1.0);
+                          
+                          // Geometric Brownian Motion
+                          double Z = local_norm(local_gen);
+                          double ST = S0 * std::exp((r - 0.5 * sigma * sigma) * T + sigma * std::sqrt(T) * Z);
+                          
+                          // European call option payoff
+                          return std::max(ST - K, 0.0);
+                      });
+        
+        // Parallel reduce to calculate average payoff
+        double average_payoff = std::reduce(std::execution::par, 
+                                          payoffs.begin(), payoffs.end(), 0.0) / num_simulations;
+        
+        // Discount to present value
+        return average_payoff * std::exp(-r * T);
+    }
+    
+    // Parallel technical indicator calculation
+    static std::vector<double> calculate_moving_average(const std::vector<double>& prices, int period) {
+        if (prices.size() < period) return {};
+        
+        std::vector<double> ma_values(prices.size() - period + 1);
+        std::vector<size_t> indices(ma_values.size());
+        std::iota(indices.begin(), indices.end(), 0);
+        
+        // Parallel calculation of moving averages
+        std::transform(std::execution::par,
+                      indices.begin(), indices.end(),
+                      ma_values.begin(),
+                      [&](size_t i) {
+                          double sum = std::reduce(std::execution::seq,  // Inner sum can be sequential
+                                                 prices.begin() + i,
+                                                 prices.begin() + i + period,
+                                                 0.0);
+                          return sum / period;
+                      });
+        
+        return ma_values;
+    }
+};
+
+int main() {
+    std::cout << "=== Execution Policies Demo ===\\n\\n";
+    std::cout << "Hardware concurrency: " << std::thread::hardware_concurrency() << " threads\\n\\n";
+    
+    // Basic algorithm benchmarks
+    PerformanceBenchmark benchmark(5000000);  // 5M elements
+    benchmark.benchmark_sort();
+    benchmark.benchmark_transform();
+    benchmark.benchmark_reduce();
+    
+    // Financial algorithms
+    std::cout << "=== Financial Parallel Algorithms ===\\n";
+    
+    // Generate sample stock returns
+    std::vector<double> returns(100000);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<double> return_dist(0.001, 0.02);  // Daily returns
+    
+    std::generate(std::execution::par, returns.begin(), returns.end(),
+                 [&]() { return return_dist(gen); });
+    
+    // Calculate VaR
+    double var_95 = FinancialAlgorithms::calculate_portfolio_var(returns, 0.95);
+    std::cout << "Portfolio VaR (95% confidence): " << var_95 * 100 << "%\\n";
+    
+    // Monte Carlo option pricing
+    double option_price = FinancialAlgorithms::monte_carlo_option_price(
+        100.0,  // Current price
+        110.0,  // Strike price
+        0.05,   // Risk-free rate
+        0.2,    // Volatility
+        1.0,    // Time to expiration (1 year)
+        500000  // Number of simulations
+    );
+    std::cout << "European call option price (Monte Carlo): $" << option_price << "\\n";
+    
+    // Generate price series and calculate moving average
+    std::vector<double> prices(1000);
+    double price = 100.0;
+    std::generate(prices.begin(), prices.end(), [&]() {
+        price *= (1.0 + return_dist(gen));
+        return price;
+    });
+    
+    auto ma = FinancialAlgorithms::calculate_moving_average(prices, 20);
+    std::cout << "20-period moving average calculated for " << ma.size() << " points\\n";
+    
+    std::cout << "\\n=== Execution Policy Benefits ===\\n";
+    std::cout << "✓ Easy parallelization of STL algorithms\\n";
+    std::cout << "✓ Significant speedup for CPU-intensive operations\\n";
+    std::cout << "✓ Scales automatically with available CPU cores\\n";
+    std::cout << "✓ No manual thread management required\\n";
+    std::cout << "✓ Exception-safe parallel execution\\n";
+    std::cout << "✓ Perfect for financial calculations and data processing\\n";
+    
+    return 0;
+}`,
+    explanation: `Execution policies in C++17 enable parallel execution of STL algorithms by simply specifying the execution policy as the first parameter. std::execution::seq runs sequentially, std::execution::par runs in parallel with synchronized access, and std::execution::par_unseq allows both parallelization and vectorization. This provides massive performance improvements for CPU-intensive operations without complex thread management.`,
+    useCase: `Critical for high-performance computing, financial modeling, data analytics, and any application processing large datasets. Perfect for Monte Carlo simulations, risk calculations, sorting large financial datasets, parallel transformations of market data, and scientific computing where algorithm parallelization can provide significant speedup.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t'
+  },
+
+  // === CLASS TEMPLATE ARGUMENT DEDUCTION (CTAD) ===
+  {
+    id: 'ctad',
+    title: 'Class Template Argument Deduction (CTAD)',
+    standard: 'cpp17',
+    description: 'Automatic template argument deduction for class templates, making template usage more concise and intuitive.',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <map>
+#include <pair>
+#include <memory>
+#include <string>
+#include <optional>
+#include <array>
+#include <tuple>
+#include <mutex>
+#include <thread>
+
+// === BASIC CTAD EXAMPLES ===
+
+// Custom class template that benefits from CTAD
+template<typename T, typename U = T>
+class Pair {
+private:
+    T first_;
+    U second_;
+    
+public:
+    Pair(const T& first, const U& second) : first_(first), second_(second) {}
+    
+    const T& first() const { return first_; }
+    const U& second() const { return second_; }
+    
+    void print() const {
+        std::cout << "(" << first_ << ", " << second_ << ")";
+    }
+};
+
+// Optional deduction guide (not needed for this simple case)
+// template<typename T, typename U>
+// Pair(T, U) -> Pair<T, U>;
+
+// Advanced template with multiple parameters
+template<typename Key, typename Value, typename Hash = std::hash<Key>>
+class SimpleMap {
+private:
+    std::map<Key, Value> data_;
+    Hash hasher_;
+    
+public:
+    SimpleMap() = default;
+    SimpleMap(std::initializer_list<std::pair<Key, Value>> init) {
+        for (auto& p : init) {
+            data_[p.first] = p.second;
+        }
+    }
+    
+    void insert(const Key& key, const Value& value) {
+        data_[key] = value;
+    }
+    
+    Value* find(const Key& key) {
+        auto it = data_.find(key);
+        return (it != data_.end()) ? &it->second : nullptr;
+    }
+    
+    size_t size() const { return data_.size(); }
+    
+    void print() const {
+        std::cout << "{";
+        for (auto it = data_.begin(); it != data_.end(); ++it) {
+            if (it != data_.begin()) std::cout << ", ";
+            std::cout << it->first << ": " << it->second;
+        }
+        std::cout << "}";
+    }
+};
+
+// Deduction guide for initializer list constructor
+template<typename Key, typename Value>
+SimpleMap(std::initializer_list<std::pair<Key, Value>>) -> SimpleMap<Key, Value>;
+
+// === COMPLEX CTAD SCENARIOS ===
+
+// Template class for financial instruments
+template<typename PriceType, typename QuantityType = int64_t>
+class Order {
+private:
+    std::string symbol_;
+    PriceType price_;
+    QuantityType quantity_;
+    bool is_buy_;
+    
+public:
+    Order(const std::string& symbol, PriceType price, QuantityType quantity, bool is_buy)
+        : symbol_(symbol), price_(price), quantity_(quantity), is_buy_(is_buy) {}
+    
+    double get_notional() const {
+        return static_cast<double>(price_) * static_cast<double>(quantity_);
+    }
+    
+    void print() const {
+        std::cout << (is_buy_ ? "BUY " : "SELL ") << quantity_ << " " << symbol_ 
+                  << " @ " << price_ << " (notional: $" << get_notional() << ")";
+    }
+};
+
+// Container template with custom allocator
+template<typename T, typename Allocator = std::allocator<T>>
+class CustomVector {
+private:
+    std::vector<T, Allocator> data_;
+    
+public:
+    CustomVector() = default;
+    
+    template<typename Iterator>
+    CustomVector(Iterator begin, Iterator end) : data_(begin, end) {}
+    
+    CustomVector(std::initializer_list<T> init) : data_(init) {}
+    
+    void push_back(const T& value) { data_.push_back(value); }
+    size_t size() const { return data_.size(); }
+    const T& operator[](size_t index) const { return data_[index]; }
+    
+    void print() const {
+        std::cout << "[";
+        for (size_t i = 0; i < data_.size(); ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << data_[i];
+        }
+        std::cout << "]";
+    }
+};
+
+// Deduction guides for different constructors
+template<typename Iterator>
+CustomVector(Iterator, Iterator) -> CustomVector<typename std::iterator_traits<Iterator>::value_type>;
+
+template<typename T>
+CustomVector(std::initializer_list<T>) -> CustomVector<T>;
+
+// === THREAD-SAFE WRAPPER WITH CTAD ===
+
+template<typename T, typename Mutex = std::mutex>
+class ThreadSafe {
+private:
+    mutable Mutex mutex_;
+    T data_;
+    
+public:
+    ThreadSafe() = default;
+    ThreadSafe(const T& data) : data_(data) {}
+    ThreadSafe(T&& data) : data_(std::move(data)) {}
+    
+    template<typename... Args>
+    ThreadSafe(Args&&... args) : data_(std::forward<Args>(args)...) {}
+    
+    template<typename Func>
+    auto with_lock(Func&& func) const -> decltype(func(data_)) {
+        std::lock_guard<Mutex> lock(mutex_);
+        return func(data_);
+    }
+    
+    template<typename Func>
+    auto with_lock(Func&& func) -> decltype(func(data_)) {
+        std::lock_guard<Mutex> lock(mutex_);
+        return func(data_);
+    }
+    
+    T get() const {
+        std::lock_guard<Mutex> lock(mutex_);
+        return data_;
+    }
+    
+    void set(const T& new_data) {
+        std::lock_guard<Mutex> lock(mutex_);
+        data_ = new_data;
+    }
+};
+
+// Deduction guides
+template<typename T>
+ThreadSafe(T) -> ThreadSafe<T>;
+
+int main() {
+    std::cout << "=== Class Template Argument Deduction (CTAD) Demo ===\\n\\n";
+    
+    // === Standard Library CTAD ===
+    std::cout << "=== Standard Library CTAD ===\\n";
+    
+    // Before C++17: Required explicit template arguments
+    // std::vector<int> numbers{1, 2, 3, 4, 5};
+    // std::pair<int, std::string> p{42, "hello"};
+    
+    // C++17 CTAD: Template arguments deduced automatically
+    std::vector numbers{1, 2, 3, 4, 5};  // Deduced as vector<int>
+    std::pair p{42, std::string("hello")}; // Deduced as pair<int, string>
+    std::optional opt{3.14}; // Deduced as optional<double>
+    std::array arr{1, 2, 3, 4}; // Deduced as array<int, 4>
+    std::tuple t{1, 2.5, "hello"}; // Deduced as tuple<int, double, const char*>
+    
+    std::cout << "Vector size: " << numbers.size() << "\\n";
+    std::cout << "Pair: (" << p.first << ", " << p.second << ")\\n";
+    std::cout << "Optional value: " << opt.value() << "\\n";
+    std::cout << "Array size: " << arr.size() << "\\n\\n";
+    
+    // === Custom Class CTAD ===
+    std::cout << "=== Custom Class CTAD ===\\n";
+    
+    // Our custom Pair class with CTAD
+    Pair pair1{10, 20};        // Deduced as Pair<int>
+    Pair pair2{3.14, "pi"};    // Deduced as Pair<double, const char*>
+    Pair pair3{std::string("key"), 42}; // Deduced as Pair<string, int>
+    
+    std::cout << "pair1: "; pair1.print(); std::cout << "\\n";
+    std::cout << "pair2: "; pair2.print(); std::cout << "\\n";
+    std::cout << "pair3: "; pair3.print(); std::cout << "\\n\\n";
+    
+    // Custom map with initializer list
+    SimpleMap map1{
+        {"apple", 1.50},
+        {"banana", 0.75},
+        {"orange", 2.00}
+    }; // Deduced as SimpleMap<const char*, double>
+    
+    SimpleMap map2{
+        {std::string("AAPL"), 150.0},
+        {std::string("GOOGL"), 2500.0},
+        {std::string("MSFT"), 300.0}
+    }; // Deduced as SimpleMap<string, double>
+    
+    std::cout << "Fruit prices: "; map1.print(); std::cout << "\\n";
+    std::cout << "Stock prices: "; map2.print(); std::cout << "\\n\\n";
+    
+    // === Financial Order Example ===
+    std::cout << "=== Financial Orders with CTAD ===\\n";
+    
+    Order buy_order{"AAPL", 150.50, 100, true};    // Deduced as Order<double, int>
+    Order sell_order{"GOOGL", 2500.75, 50L, false}; // Deduced as Order<double, long>
+    
+    std::cout << "Buy order: "; buy_order.print(); std::cout << "\\n";
+    std::cout << "Sell order: "; sell_order.print(); std::cout << "\\n\\n";
+    
+    // === Container with CTAD ===
+    std::cout << "=== Custom Container with CTAD ===\\n";
+    
+    CustomVector vec1{1, 2, 3, 4, 5}; // Deduced as CustomVector<int>
+    CustomVector vec2{1.1, 2.2, 3.3}; // Deduced as CustomVector<double>
+    
+    // Using iterator constructor
+    std::vector<std::string> source{"hello", "world", "ctad"};
+    CustomVector vec3{source.begin(), source.end()}; // Deduced as CustomVector<string>
+    
+    std::cout << "int vector: "; vec1.print(); std::cout << "\\n";
+    std::cout << "double vector: "; vec2.print(); std::cout << "\\n";
+    std::cout << "string vector: "; vec3.print(); std::cout << "\\n\\n";
+    
+    // === Thread-Safe Wrapper ===
+    std::cout << "=== Thread-Safe Wrapper with CTAD ===\\n";
+    
+    ThreadSafe counter{0}; // Deduced as ThreadSafe<int>
+    ThreadSafe message{std::string("Hello CTAD")}; // Deduced as ThreadSafe<string>
+    
+    // Use the thread-safe wrappers
+    counter.with_lock([](int& c) { c += 10; });
+    auto current_count = counter.get();
+    auto current_message = message.get();
+    
+    std::cout << "Thread-safe counter: " << current_count << "\\n";
+    std::cout << "Thread-safe message: " << current_message << "\\n\\n";
+    
+    std::cout << "=== CTAD Benefits ===\\n";
+    std::cout << "✓ Less verbose template instantiation\\n";
+    std::cout << "✓ Improved code readability and maintainability\\n";
+    std::cout << "✓ Automatic type deduction reduces errors\\n";
+    std::cout << "✓ Works seamlessly with auto and generic code\\n";
+    std::cout << "✓ Custom deduction guides for complex scenarios\\n";
+    std::cout << "✓ Better integration with modern C++ idioms\\n";
+    
+    return 0;
+}`,
+    explanation: `Class Template Argument Deduction (CTAD) allows the compiler to automatically deduce template arguments for class templates from their constructor arguments, eliminating the need for explicit template parameter specification. This makes code more concise and readable while maintaining type safety. Custom deduction guides can be provided for complex scenarios where the default deduction isn't sufficient or desired.`,
+    useCase: `Essential for writing modern, clean C++ code with heavy template usage. Perfect for container classes, factory functions, wrapper classes, and any template code where explicit template arguments make code verbose. Particularly useful in financial applications with complex templated types like orders, instruments, and mathematical objects.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/class_template_argument_deduction'
+  },
+
+  // === FOLD EXPRESSIONS (EXPANDED) ===
+  {
+    id: 'fold-expressions',
+    title: 'Fold Expressions',
+    standard: 'cpp17',
+    description: 'Concise syntax for applying binary operators to parameter packs, enabling powerful variadic template patterns.',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <string>
+#include <type_traits>
+#include <sstream>
+#include <functional>
+#include <memory>
+
+// === BASIC FOLD EXPRESSIONS ===
+
+// Unary right fold: (pack op ...)
+template<typename... Args>
+auto sum(Args... args) {
+    return (args + ...);  // Expands to: arg1 + (arg2 + (arg3 + ...))
+}
+
+// Unary left fold: (... op pack)
+template<typename... Args>
+auto sum_left(Args... args) {
+    return (... + args);  // Expands to: ((... + arg1) + arg2) + arg3
+}
+
+// Binary right fold: (pack op ... op init)
+template<typename... Args>
+auto sum_with_init(int init, Args... args) {
+    return (args + ... + init);  // Expands to: arg1 + (arg2 + (... + init))
+}
+
+// Binary left fold: (init op ... op pack)
+template<typename... Args>
+auto sum_with_init_left(int init, Args... args) {
+    return (init + ... + args);  // Expands to: ((init + arg1) + arg2) + ...
+}
+
+// === LOGICAL OPERATIONS ===
+
+// All elements satisfy condition
+template<typename... Args>
+bool all_positive(Args... args) {
+    return ((args > 0) && ...);  // All arguments must be positive
+}
+
+// Any element satisfies condition
+template<typename... Args>
+bool any_negative(Args... args) {
+    return ((args < 0) || ...);  // At least one argument is negative
+}
+
+// Count elements satisfying condition
+template<typename... Args>
+size_t count_positive(Args... args) {
+    return ((args > 0 ? 1 : 0) + ...);
+}
+
+// === STRING OPERATIONS ===
+
+// Concatenate strings with separator
+template<typename... Args>
+std::string join_with_comma(Args... args) {
+    std::ostringstream oss;
+    size_t count = 0;
+    ((oss << (count++ > 0 ? ", " : "") << args), ...);
+    return oss.str();
+}
+
+// Print with separators
+template<typename... Args>
+void print_all(Args... args) {
+    ((std::cout << args << " "), ...);
+    std::cout << std::endl;
+}
+
+// Print with custom separator
+template<char Separator, typename... Args>
+void print_separated(Args... args) {
+    size_t count = 0;
+    ((std::cout << (count++ > 0 ? Separator : ' ') << args), ...);
+    std::cout << std::endl;
+}
+
+// === FUNCTION APPLICATION ===
+
+// Apply function to all arguments
+template<typename Func, typename... Args>
+void apply_to_all(Func func, Args... args) {
+    (func(args), ...);
+}
+
+// Transform and sum
+template<typename Func, typename... Args>
+auto transform_and_sum(Func func, Args... args) {
+    return (func(args) + ...);
+}
+
+// === CONTAINER OPERATIONS ===
+
+// Push all elements to vector
+template<typename T, typename... Args>
+void push_all(std::vector<T>& vec, Args... args) {
+    (vec.push_back(args), ...);
+}
+
+// Check if value exists in multiple containers
+template<typename Value, typename... Containers>
+bool exists_in_any(const Value& value, const Containers&... containers) {
+    return ((std::find(containers.begin(), containers.end(), value) != containers.end()) || ...);
+}
+
+// Get total size of all containers
+template<typename... Containers>
+size_t total_size(const Containers&... containers) {
+    return (containers.size() + ...);
+}
+
+// === TYPE OPERATIONS ===
+
+// Check if all types are the same
+template<typename T, typename... Args>
+constexpr bool all_same_type() {
+    return (std::is_same_v<T, Args> && ...);
+}
+
+// Check if all types are arithmetic
+template<typename... Args>
+constexpr bool all_arithmetic() {
+    return (std::is_arithmetic_v<Args> && ...);
+}
+
+// Count types satisfying predicate
+template<template<typename> class Predicate, typename... Args>
+constexpr size_t count_types() {
+    return (Predicate<Args>::value + ...);
+}
+
+// === ADVANCED PATTERNS ===
+
+// Recursive data structure traversal
+template<typename Visitor, typename... Nodes>
+void visit_all(Visitor&& visitor, Nodes&&... nodes) {
+    (visitor(std::forward<Nodes>(nodes)), ...);
+}
+
+// Factory pattern with fold expressions
+template<typename Base, typename... Args>
+auto create_all(Args&&... args) {
+    std::vector<std::unique_ptr<Base>> objects;
+    (objects.push_back(std::make_unique<Args>(std::forward<Args>(args))), ...);
+    return objects;
+}
+
+// Comparison operations
+template<typename T, typename... Args>
+bool all_equal(const T& first, Args... args) {
+    return ((first == args) && ...);
+}
+
+template<typename T, typename... Args>
+T min_of_all(T first, Args... args) {
+    return ((first = (first < args ? first : args)), ...);
+}
+
+template<typename T, typename... Args>
+T max_of_all(T first, Args... args) {
+    return ((first = (first > args ? first : args)), ...);
+}
+
+// === MATHEMATICAL OPERATIONS ===
+
+// Product of all arguments
+template<typename... Args>
+auto product(Args... args) {
+    return (args * ...);
+}
+
+// Average of all arguments
+template<typename... Args>
+auto average(Args... args) {
+    return (args + ...) / sizeof...(args);
+}
+
+// Euclidean distance (n-dimensional)
+template<typename... Args>
+auto euclidean_distance(Args... args) {
+    return std::sqrt((args * args + ...));
+}
+
+// Dot product of two parameter packs
+template<typename... Args1, typename... Args2>
+auto dot_product(std::tuple<Args1...> pack1, std::tuple<Args2...> pack2) {
+    return [&]<size_t... Is>(std::index_sequence<Is...>) {
+        return ((std::get<Is>(pack1) * std::get<Is>(pack2)) + ...);
+    }(std::index_sequence_for<Args1...>{});
+}
+
+// === DEMONSTRATION CLASSES ===
+
+class Shape {
+public:
+    virtual ~Shape() = default;
+    virtual void draw() const = 0;
+    virtual double area() const = 0;
+};
+
+class Circle : public Shape {
+private:
+    double radius_;
+public:
+    Circle(double r) : radius_(r) {}
+    void draw() const override { std::cout << "Circle(r=" << radius_ << ")"; }
+    double area() const override { return 3.14159 * radius_ * radius_; }
+};
+
+class Rectangle : public Shape {
+private:
+    double width_, height_;
+public:
+    Rectangle(double w, double h) : width_(w), height_(h) {}
+    void draw() const override { std::cout << "Rectangle(" << width_ << "x" << height_ << ")"; }
+    double area() const override { return width_ * height_; }
+};
+
+int main() {
+    std::cout << "=== Fold Expressions Demo ===\\n\\n";
+    
+    // === Basic arithmetic ===
+    std::cout << "=== Basic Arithmetic ===\\n";
+    std::cout << "sum(1, 2, 3, 4, 5) = " << sum(1, 2, 3, 4, 5) << "\\n";
+    std::cout << "product(2, 3, 4) = " << product(2, 3, 4) << "\\n";
+    std::cout << "average(10, 20, 30) = " << average(10, 20, 30) << "\\n";
+    std::cout << "euclidean_distance(3, 4) = " << euclidean_distance(3, 4) << "\\n\\n";
+    
+    // === Logical operations ===
+    std::cout << "=== Logical Operations ===\\n";
+    std::cout << "all_positive(1, 2, 3) = " << all_positive(1, 2, 3) << "\\n";
+    std::cout << "all_positive(1, -2, 3) = " << all_positive(1, -2, 3) << "\\n";
+    std::cout << "any_negative(-1, 2, 3) = " << any_negative(-1, 2, 3) << "\\n";
+    std::cout << "count_positive(1, -2, 3, -4, 5) = " << count_positive(1, -2, 3, -4, 5) << "\\n\\n";
+    
+    // === String operations ===
+    std::cout << "=== String Operations ===\\n";
+    std::cout << "join_with_comma(\\\"apple\\\", \\\"banana\\\", \\\"cherry\\\"): " 
+              << join_with_comma("apple", "banana", "cherry") << "\\n";
+    std::cout << "print_all output: ";
+    print_all("Hello", "world", "from", "fold", "expressions");
+    std::cout << "print_separated<'|'> output: ";
+    print_separated<'|'>("C++", "fold", "expressions", "rock");
+    std::cout << "\\n";
+    
+    // === Container operations ===
+    std::cout << "=== Container Operations ===\\n";
+    std::vector<int> vec;
+    push_all(vec, 10, 20, 30, 40, 50);
+    std::cout << "Vector after push_all: [";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        if (i > 0) std::cout << ", ";
+        std::cout << vec[i];
+    }
+    std::cout << "]\\n";
+    
+    std::vector<int> v1{1, 2, 3};
+    std::vector<int> v2{4, 5, 6};
+    std::vector<int> v3{7, 8, 9};
+    std::cout << "Total size of three vectors: " << total_size(v1, v2, v3) << "\\n";
+    std::cout << "Value 5 exists in any vector: " << exists_in_any(5, v1, v2, v3) << "\\n\\n";
+    
+    // === Type operations ===
+    std::cout << "=== Type Operations ===\\n";
+    std::cout << "all_same_type<int, int, int>(): " << all_same_type<int, int, int>() << "\\n";
+    std::cout << "all_same_type<int, double, int>(): " << all_same_type<int, double, int>() << "\\n";
+    std::cout << "all_arithmetic<int, double, float>(): " << all_arithmetic<int, double, float>() << "\\n";
+    std::cout << "all_arithmetic<int, std::string, float>(): " << all_arithmetic<int, std::string, float>() << "\\n\\n";
+    
+    // === Advanced patterns ===
+    std::cout << "=== Advanced Patterns ===\\n";
+    
+    // Function application
+    auto square = [](int x) { std::cout << x << "² = " << x*x << " "; };
+    std::cout << "Applying square function: ";
+    apply_to_all(square, 2, 3, 4, 5);
+    std::cout << "\\n";
+    
+    // Transform and sum
+    auto cube = [](int x) { return x * x * x; };
+    std::cout << "Sum of cubes of (1,2,3,4): " << transform_and_sum(cube, 1, 2, 3, 4) << "\\n";
+    
+    // Comparisons
+    std::cout << "all_equal(5, 5, 5, 5): " << all_equal(5, 5, 5, 5) << "\\n";
+    std::cout << "all_equal(5, 5, 4, 5): " << all_equal(5, 5, 4, 5) << "\\n";
+    std::cout << "min_of_all(10, 3, 7, 2, 8): " << min_of_all(10, 3, 7, 2, 8) << "\\n";
+    std::cout << "max_of_all(10, 3, 7, 15, 8): " << max_of_all(10, 3, 7, 15, 8) << "\\n\\n";
+    
+    std::cout << "=== Fold Expression Benefits ===\\n";
+    std::cout << "✓ Concise variadic template patterns\\n";
+    std::cout << "✓ No recursive template instantiation needed\\n";
+    std::cout << "✓ Better compile-time performance\\n";
+    std::cout << "✓ More readable than SFINAE alternatives\\n";
+    std::cout << "✓ Works with any binary operator\\n";
+    std::cout << "✓ Perfect for functional programming patterns\\n";
+    
+    return 0;
+}`,
+    explanation: `Fold expressions provide a concise way to apply binary operators to parameter packs without writing recursive templates. The four forms are: unary right fold (pack op ...), unary left fold (... op pack), binary right fold (pack op ... op init), and binary left fold (init op ... op pack). This enables powerful variadic template patterns for mathematical operations, logical tests, container manipulations, and type operations with clean, readable syntax.`,
+    useCase: `Perfect for variadic template functions that need to apply operations across all parameters, such as mathematical libraries, logging systems with multiple arguments, container operations, type trait checking, and any functional programming patterns. Essential for modern C++ template metaprogramming and generic algorithm design.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/fold'
   }
 ];
