@@ -5611,7 +5611,7 @@ int main() {
     
     // === String operations ===
     std::cout << "=== String Operations ===\\n";
-    std::cout << "join_with_comma(\\\"apple\\\", \\\"banana\\\", \\\"cherry\\\"): " 
+    std::cout << "join_with_comma(apple, banana, cherry): " 
               << join_with_comma("apple", "banana", "cherry") << "\\n";
     std::cout << "print_all output: ";
     print_all("Hello", "world", "from", "fold", "expressions");
@@ -8323,5 +8323,795 @@ int main() {
     explanation: `Inline variables in C++17 allow defining variables directly in header files without ODR (One Definition Rule) violations. This enables header-only libraries with global constants, simplifies static data member initialization in templates, and eliminates the need for .cpp files for simple constant definitions. The compiler ensures only one definition exists across all translation units while allowing the variable to be defined in headers.`,
     useCase: `Perfect for header-only libraries, configuration systems with global constants, template static members, mathematical constants, application-wide settings, and any scenario where you need global variables accessible from headers without linker errors. Essential for modern C++ library design and reducing compilation dependencies.`,
     referenceUrl: 'https://en.cppreference.com/w/cpp/language/inline'
+  },
+
+  // Static Polymorphism and Compile-Time Alternatives to Virtual Functions
+  {
+    id: 'crtp-static-polymorphism',
+    title: 'CRTP: Static Polymorphism Pattern',
+    standard: 'templates',
+    description: 'Curiously Recurring Template Pattern (CRTP) for compile-time polymorphism without virtual function overhead',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <chrono>
+#include <memory>
+
+// === CRTP Base Template ===
+template<typename Derived>
+class Shape {
+public:
+    // Interface methods that delegate to derived class
+    double area() const {
+        return static_cast<const Derived*>(this)->area_impl();
+    }
+    
+    double perimeter() const {
+        return static_cast<const Derived*>(this)->perimeter_impl();
+    }
+    
+    void draw() const {
+        static_cast<const Derived*>(this)->draw_impl();
+    }
+    
+    // Common functionality implemented in base
+    void describe() const {
+        std::cout << "Shape with area: " << area() 
+                  << ", perimeter: " << perimeter() << "\\n";
+    }
+};
+
+// === Derived Classes ===
+class Circle : public Shape<Circle> {
+private:
+    double radius_;
+    
+public:
+    explicit Circle(double r) : radius_(r) {}
+    
+    // Implementation methods (no virtual keyword!)
+    double area_impl() const {
+        return 3.14159 * radius_ * radius_;
+    }
+    
+    double perimeter_impl() const {
+        return 2 * 3.14159 * radius_;
+    }
+    
+    void draw_impl() const {
+        std::cout << "Drawing circle with radius " << radius_ << "\\n";
+    }
+};
+
+class Rectangle : public Shape<Rectangle> {
+private:
+    double width_, height_;
+    
+public:
+    Rectangle(double w, double h) : width_(w), height_(h) {}
+    
+    double area_impl() const {
+        return width_ * height_;
+    }
+    
+    double perimeter_impl() const {
+        return 2 * (width_ + height_);
+    }
+    
+    void draw_impl() const {
+        std::cout << "Drawing rectangle " << width_ << "x" << height_ << "\\n";
+    }
+};
+
+// === Generic Algorithm Using CRTP ===
+template<typename Derived>
+void process_shape(const Shape<Derived>& shape) {
+    std::cout << "Processing shape:\\n";
+    shape.draw();
+    shape.describe();
+}
+
+// === Performance Comparison: CRTP vs Virtual ===
+class VirtualShape {
+public:
+    virtual ~VirtualShape() = default;
+    virtual double area() const = 0;
+    virtual double perimeter() const = 0;
+};
+
+class VirtualCircle : public VirtualShape {
+    double radius_;
+public:
+    explicit VirtualCircle(double r) : radius_(r) {}
+    double area() const override { return 3.14159 * radius_ * radius_; }
+    double perimeter() const override { return 2 * 3.14159 * radius_; }
+};
+
+int main() {
+    std::cout << "=== CRTP Static Polymorphism ===\\n\\n";
+    
+    // Create shapes using CRTP
+    Circle circle(5.0);
+    Rectangle rect(4.0, 6.0);
+    
+    // Direct calls - resolved at compile time
+    std::cout << "Circle area: " << circle.area() << "\\n";
+    std::cout << "Rectangle area: " << rect.area() << "\\n\\n";
+    
+    // Generic algorithm with CRTP
+    process_shape(circle);
+    std::cout << "\\n";
+    process_shape(rect);
+    
+    // === Performance Comparison ===
+    std::cout << "\\n=== Performance Comparison ===\\n";
+    constexpr int ITERATIONS = 10000000;
+    
+    // CRTP version
+    {
+        Circle c(5.0);
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        volatile double sum = 0;
+        for (int i = 0; i < ITERATIONS; ++i) {
+            sum += c.area();
+        }
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "CRTP: " << duration.count() << " microseconds\\n";
+    }
+    
+    // Virtual version
+    {
+        std::unique_ptr<VirtualShape> shape = std::make_unique<VirtualCircle>(5.0);
+        auto start = std::chrono::high_resolution_clock::now();
+        
+        volatile double sum = 0;
+        for (int i = 0; i < ITERATIONS; ++i) {
+            sum += shape->area();
+        }
+        
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "Virtual: " << duration.count() << " microseconds\\n";
+    }
+    
+    std::cout << "\\n=== CRTP Benefits ===\\n";
+    std::cout << "✓ Zero runtime overhead\\n";
+    std::cout << "✓ Compile-time polymorphism\\n";
+    std::cout << "✓ Inline-friendly (better optimization)\\n";
+    std::cout << "✓ No vtable pointer overhead\\n";
+    std::cout << "✓ Better cache locality\\n";
+    std::cout << "✓ Type-safe at compile time\\n";
+    
+    return 0;
+}`,
+    explanation: `CRTP (Curiously Recurring Template Pattern) is a C++ idiom where a class derives from a template instantiation of itself. This enables static polymorphism - compile-time resolution of function calls without virtual functions. The base class uses static_cast to call the derived class's methods, which the compiler can inline and optimize aggressively. Unlike runtime polymorphism with virtual functions, CRTP has zero runtime overhead and better performance, especially in tight loops.`,
+    useCase: `Use CRTP when you need polymorphic behavior but can't afford virtual function overhead: game engines (entity component systems), high-performance libraries, template metaprogramming, mixin classes, and interface implementations where types are known at compile time. Perfect for performance-critical code paths and library design patterns.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/language/crtp'
+  },
+
+  {
+    id: 'variant-polymorphism',
+    title: 'std::variant for Compile-Time Polymorphism',
+    standard: 'cpp17',
+    description: 'Using std::variant as a type-safe, performant alternative to runtime polymorphism with virtual functions',
+    codeExample: `#include <iostream>
+#include <variant>
+#include <vector>
+#include <string>
+#include <memory>
+
+// === Shape Types (No inheritance!) ===
+struct Circle {
+    double radius;
+    
+    double area() const {
+        return 3.14159 * radius * radius;
+    }
+    
+    void draw() const {
+        std::cout << "Drawing circle with radius " << radius << "\\n";
+    }
+};
+
+struct Rectangle {
+    double width, height;
+    
+    double area() const {
+        return width * height;
+    }
+    
+    void draw() const {
+        std::cout << "Drawing rectangle " << width << "x" << height << "\\n";
+    }
+};
+
+struct Triangle {
+    double base, height;
+    
+    double area() const {
+        return 0.5 * base * height;
+    }
+    
+    void draw() const {
+        std::cout << "Drawing triangle with base " << base << ", height " << height << "\\n";
+    }
+};
+
+// === Using std::variant for Polymorphism ===
+using Shape = std::variant<Circle, Rectangle, Triangle>;
+
+// === Generic Visitors ===
+
+// Visitor for area calculation
+struct AreaVisitor {
+    double operator()(const Circle& c) const { return c.area(); }
+    double operator()(const Rectangle& r) const { return r.area(); }
+    double operator()(const Triangle& t) const { return t.area(); }
+};
+
+// Visitor for drawing
+struct DrawVisitor {
+    void operator()(const Circle& c) const { c.draw(); }
+    void operator()(const Rectangle& r) const { r.draw(); }
+    void operator()(const Triangle& t) const { t.draw(); }
+};
+
+// Generic lambda visitor (C++17)
+auto get_area = [](const auto& shape) { return shape.area(); };
+auto draw_shape = [](const auto& shape) { shape.draw(); };
+
+// === Utility Functions ===
+double calculate_area(const Shape& shape) {
+    return std::visit(AreaVisitor{}, shape);
+}
+
+void draw(const Shape& shape) {
+    std::visit(DrawVisitor{}, shape);
+}
+
+// Process with generic lambda
+void process_shape(const Shape& shape) {
+    std::cout << "Area: " << std::visit(get_area, shape) << "\\n";
+    std::visit(draw_shape, shape);
+}
+
+// === Advanced: Type-safe shape factory ===
+template<typename T, typename... Args>
+Shape create_shape(Args&&... args) {
+    return Shape(std::in_place_type<T>, std::forward<Args>(args)...);
+}
+
+// === Comparison with Virtual Functions ===
+class VirtualShape {
+public:
+    virtual ~VirtualShape() = default;
+    virtual double area() const = 0;
+    virtual void draw() const = 0;
+};
+
+class VirtualCircle : public VirtualShape {
+    double radius_;
+public:
+    explicit VirtualCircle(double r) : radius_(r) {}
+    double area() const override { return 3.14159 * radius_ * radius_; }
+    void draw() const override { 
+        std::cout << "Drawing virtual circle\\n"; 
+    }
+};
+
+int main() {
+    std::cout << "=== std::variant Polymorphism ===\\n\\n";
+    
+    // Create shapes using variant
+    std::vector<Shape> shapes;
+    shapes.push_back(Circle{5.0});
+    shapes.push_back(Rectangle{4.0, 6.0});
+    shapes.push_back(Triangle{3.0, 8.0});
+    
+    // Factory creation
+    shapes.push_back(create_shape<Circle>(7.0));
+    
+    std::cout << "Processing all shapes:\\n";
+    for (const auto& shape : shapes) {
+        process_shape(shape);
+        std::cout << "\\n";
+    }
+    
+    // === Type checking and extraction ===
+    std::cout << "=== Type-safe operations ===\\n";
+    Shape s = Circle{10.0};
+    
+    // Check which type is currently held
+    if (std::holds_alternative<Circle>(s)) {
+        std::cout << "Shape is a Circle\\n";
+        const Circle& circle = std::get<Circle>(s);
+        std::cout << "Radius: " << circle.radius << "\\n";
+    }
+    
+    // Safe access with std::get_if
+    if (auto* circle = std::get_if<Circle>(&s)) {
+        std::cout << "Accessed Circle safely\\n";
+    }
+    
+    // Pattern matching with visitor
+    std::cout << "\\n=== Advanced visitor pattern ===\\n";
+    std::visit([](const auto& shape) {
+        using T = std::decay_t<decltype(shape)>;
+        if constexpr (std::is_same_v<T, Circle>) {
+            std::cout << "Special handling for Circle\\n";
+        } else if constexpr (std::is_same_v<T, Rectangle>) {
+            std::cout << "Special handling for Rectangle\\n";
+        } else {
+            std::cout << "Default handling for other shapes\\n";
+        }
+        shape.draw();
+    }, s);
+    
+    std::cout << "\\n=== Variant vs Virtual Functions ===\\n";
+    std::cout << "Variant advantages:\\n";
+    std::cout << "✓ No heap allocation required\\n";
+    std::cout << "✓ Better cache locality\\n";
+    std::cout << "✓ No vtable overhead\\n";
+    std::cout << "✓ Compile-time type resolution\\n";
+    std::cout << "✓ Value semantics (no pointers needed)\\n";
+    std::cout << "✓ Exception-safe\\n";
+    std::cout << "✓ Can hold non-polymorphic types\\n";
+    
+    // Size comparison
+    std::cout << "\\nSize comparison:\\n";
+    std::cout << "sizeof(Shape variant): " << sizeof(Shape) << " bytes\\n";
+    std::cout << "sizeof(unique_ptr<VirtualShape>): " 
+              << sizeof(std::unique_ptr<VirtualShape>) << " bytes\\n";
+    std::cout << "(+ heap allocation for virtual version)\\n";
+    
+    return 0;
+}`,
+    explanation: `std::variant provides a type-safe union that can hold one of several alternative types. When combined with std::visit, it enables compile-time polymorphism without inheritance or virtual functions. The visitor pattern resolves which function to call at compile time, allowing aggressive inlining and optimization. Unlike virtual functions, variant uses stack storage, has better cache locality, and eliminates vtable overhead. The compiler can optimize variant dispatch very efficiently, often resulting in performance comparable to or better than virtual functions.`,
+    useCase: `Ideal for closed sets of types where you know all alternatives at compile time: state machines, AST nodes, message types, event systems, command patterns, and data serialization. Perfect when you want value semantics without heap allocation. Use when you need polymorphic behavior but want better performance than virtual functions, or when working with non-polymorphic types that can't use inheritance.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/variant'
+  },
+
+  {
+    id: 'policy-based-design',
+    title: 'Policy-Based Design for Static Polymorphism',
+    standard: 'templates',
+    description: 'Use policy classes as template parameters to achieve flexible, compile-time configuration without virtual functions',
+    codeExample: `#include <iostream>
+#include <vector>
+#include <memory>
+#include <fstream>
+#include <sstream>
+
+// === Logging Policies ===
+struct ConsoleLogger {
+    static void log(const std::string& message) {
+        std::cout << "[Console] " << message << "\\n";
+    }
+};
+
+struct FileLogger {
+    static void log(const std::string& message) {
+        static std::ofstream file("log.txt", std::ios::app);
+        file << "[File] " << message << "\\n";
+    }
+};
+
+struct NullLogger {
+    static void log(const std::string&) {
+        // Do nothing - zero overhead
+    }
+};
+
+// === Error Handling Policies ===
+struct ExceptionErrorPolicy {
+    static void handle_error(const std::string& error) {
+        throw std::runtime_error(error);
+    }
+};
+
+struct ReturnCodeErrorPolicy {
+    static bool handle_error(const std::string& error) {
+        std::cerr << "Error: " << error << "\\n";
+        return false;
+    }
+};
+
+struct IgnoreErrorPolicy {
+    static void handle_error(const std::string&) {
+        // Silently ignore errors
+    }
+};
+
+// === Storage Policies ===
+template<typename T>
+struct VectorStorage {
+    using Container = std::vector<T>;
+    
+    static void add(Container& container, const T& item) {
+        container.push_back(item);
+    }
+    
+    static const T& get(const Container& container, size_t index) {
+        return container[index];
+    }
+    
+    static size_t size(const Container& container) {
+        return container.size();
+    }
+};
+
+template<typename T, size_t N>
+struct ArrayStorage {
+    struct Container {
+        T data[N];
+        size_t count = 0;
+    };
+    
+    static void add(Container& container, const T& item) {
+        if (container.count < N) {
+            container.data[container.count++] = item;
+        }
+    }
+    
+    static const T& get(const Container& container, size_t index) {
+        return container.data[index];
+    }
+    
+    static size_t size(const Container& container) {
+        return container.count;
+    }
+};
+
+// === Policy-Based Generic Class ===
+template<
+    typename T,
+    template<typename> class StoragePolicy = VectorStorage,
+    typename LoggingPolicy = ConsoleLogger,
+    typename ErrorPolicy = ExceptionErrorPolicy
+>
+class DataManager {
+private:
+    typename StoragePolicy<T>::Container data_;
+    
+public:
+    void add(const T& item) {
+        LoggingPolicy::log("Adding item");
+        StoragePolicy<T>::add(data_, item);
+    }
+    
+    T get(size_t index) const {
+        std::ostringstream oss;
+        oss << "Getting item at index " << index;
+        LoggingPolicy::log(oss.str());
+        
+        if (index >= StoragePolicy<T>::size(data_)) {
+            ErrorPolicy::handle_error("Index out of range");
+            return T{};
+        }
+        
+        return StoragePolicy<T>::get(data_, index);
+    }
+    
+    size_t size() const {
+        return StoragePolicy<T>::size(data_);
+    }
+    
+    void process() {
+        LoggingPolicy::log("Processing all items");
+        for (size_t i = 0; i < size(); ++i) {
+            // Process each item
+            volatile T item = get(i); // Use volatile to prevent optimization
+        }
+    }
+};
+
+// === Pre-configured Type Aliases ===
+template<typename T>
+using ProductionManager = DataManager<T, VectorStorage, FileLogger, ExceptionErrorPolicy>;
+
+template<typename T>
+using DebugManager = DataManager<T, VectorStorage, ConsoleLogger, ExceptionErrorPolicy>;
+
+template<typename T>
+using PerformanceManager = DataManager<T, VectorStorage, NullLogger, IgnoreErrorPolicy>;
+
+// === Advanced: Compile-time policy selection ===
+template<bool UseLogging>
+struct ConditionalLogger {
+    static void log(const std::string& message) {
+        if constexpr (UseLogging) {
+            std::cout << "[Conditional] " << message << "\\n";
+        }
+        // If UseLogging is false, this compiles to nothing
+    }
+};
+
+int main() {
+    std::cout << "=== Policy-Based Design ===\\n\\n";
+    
+    // Different configurations with different policies
+    std::cout << "--- Console Logging Configuration ---\\n";
+    DataManager<int, VectorStorage, ConsoleLogger> console_manager;
+    console_manager.add(10);
+    console_manager.add(20);
+    console_manager.add(30);
+    std::cout << "Size: " << console_manager.size() << "\\n\\n";
+    
+    // High-performance configuration (no logging)
+    std::cout << "--- High Performance Configuration (No Logging) ---\\n";
+    PerformanceManager<int> perf_manager;
+    perf_manager.add(100);
+    perf_manager.add(200);
+    std::cout << "Added items with zero logging overhead\\n";
+    std::cout << "Size: " << perf_manager.size() << "\\n\\n";
+    
+    // Array-based storage (stack allocation)
+    std::cout << "--- Stack-Based Storage ---\\n";
+    DataManager<int, ArrayStorage<int, 10>::template Rebind, ConsoleLogger> 
+        array_manager;
+    array_manager.add(1);
+    array_manager.add(2);
+    std::cout << "Using stack storage (no heap allocation)\\n\\n";
+    
+    // Conditional logging at compile time
+    std::cout << "--- Conditional Compilation ---\\n";
+    DataManager<int, VectorStorage, ConditionalLogger<true>> debug_mgr;
+    DataManager<int, VectorStorage, ConditionalLogger<false>> release_mgr;
+    
+    debug_mgr.add(42);   // Logs message
+    release_mgr.add(42);  // No logging code generated
+    
+    std::cout << "\\n=== Policy-Based Design Benefits ===\\n";
+    std::cout << "✓ Zero runtime overhead (all resolved at compile time)\\n";
+    std::cout << "✓ No virtual functions or vtables\\n";
+    std::cout << "✓ Aggressive inlining opportunities\\n";
+    std::cout << "✓ Dead code elimination for unused policies\\n";
+    std::cout << "✓ Type-safe configuration\\n";
+    std::cout << "✓ Compile-time errors for invalid combinations\\n";
+    std::cout << "✓ Easy to create pre-configured type aliases\\n";
+    std::cout << "✓ Maximum flexibility with zero cost\\n";
+    
+    return 0;
+}`,
+    explanation: `Policy-based design uses template parameters to inject different implementations (policies) into a class at compile time. Each policy is a class with static methods or type definitions that defines a specific aspect of behavior (logging, error handling, storage strategy, etc.). The compiler resolves all policy calls at compile time, enabling aggressive optimization and complete dead code elimination for unused policies. This achieves the flexibility of runtime polymorphism without any runtime overhead.`,
+    useCase: `Ideal for configurable library components where different behavior is needed in different contexts: logging frameworks with different backends, memory allocators with different strategies, threading policies, serialization formats, and any system requiring flexible configuration at compile time. Perfect for creating both debug and release builds with different behavior from the same codebase, or for libraries that need to adapt to different environments without runtime cost.`,
+    referenceUrl: 'https://en.wikipedia.org/wiki/Modern_C%2B%2B_Design'
+  },
+
+  {
+    id: 'type-erasure-pattern',
+    title: 'Type Erasure: Bridging Static and Dynamic Polymorphism',
+    standard: 'templates',
+    description: 'Advanced pattern combining templates and virtual functions for flexible value-based polymorphism',
+    codeExample: `#include <iostream>
+#include <memory>
+#include <vector>
+#include <functional>
+
+// === Type Erasure Implementation ===
+
+class Drawable {
+private:
+    // Interface for type-erased operations
+    struct DrawableConcept {
+        virtual ~DrawableConcept() = default;
+        virtual void draw() const = 0;
+        virtual double area() const = 0;
+        virtual std::unique_ptr<DrawableConcept> clone() const = 0;
+    };
+    
+    // Template model that wraps any type
+    template<typename T>
+    struct DrawableModel : DrawableConcept {
+        T object_;
+        
+        explicit DrawableModel(T obj) : object_(std::move(obj)) {}
+        
+        void draw() const override {
+            // Call non-virtual method on the actual object
+            object_.draw();
+        }
+        
+        double area() const override {
+            return object_.area();
+        }
+        
+        std::unique_ptr<DrawableConcept> clone() const override {
+            return std::make_unique<DrawableModel>(object_);
+        }
+    };
+    
+    std::unique_ptr<DrawableConcept> pimpl_;
+    
+public:
+    // Constructor accepts any type with draw() and area() methods
+    template<typename T>
+    Drawable(T obj) 
+        : pimpl_(std::make_unique<DrawableModel<T>>(std::move(obj))) {}
+    
+    // Copy and move semantics
+    Drawable(const Drawable& other) 
+        : pimpl_(other.pimpl_->clone()) {}
+    
+    Drawable& operator=(const Drawable& other) {
+        pimpl_ = other.pimpl_->clone();
+        return *this;
+    }
+    
+    Drawable(Drawable&&) = default;
+    Drawable& operator=(Drawable&&) = default;
+    
+    // Public interface (forwarding to type-erased implementation)
+    void draw() const { pimpl_->draw(); }
+    double area() const { return pimpl_->area(); }
+};
+
+// === Concrete types (no inheritance required!) ===
+
+struct Circle {
+    double radius;
+    
+    void draw() const {
+        std::cout << "Drawing circle with radius " << radius << "\\n";
+    }
+    
+    double area() const {
+        return 3.14159 * radius * radius;
+    }
+};
+
+struct Rectangle {
+    double width, height;
+    
+    void draw() const {
+        std::cout << "Drawing rectangle " << width << "x" << height << "\\n";
+    }
+    
+    double area() const {
+        return width * height;
+    }
+};
+
+struct Triangle {
+    double base, height;
+    
+    void draw() const {
+        std::cout << "Drawing triangle: base=" << base << ", height=" << height << "\\n";
+    }
+    
+    double area() const {
+        return 0.5 * base * height;
+    }
+};
+
+// === std::function-style type erasure (simpler alternative) ===
+
+class SimpleDrawable {
+private:
+    std::function<void()> draw_fn_;
+    std::function<double()> area_fn_;
+    
+public:
+    template<typename T>
+    SimpleDrawable(T obj) 
+        : draw_fn_([obj]() { obj.draw(); })
+        , area_fn_([obj]() { return obj.area(); }) {}
+    
+    void draw() const { draw_fn_(); }
+    double area() const { return area_fn_(); }
+};
+
+// === Advanced: Small Buffer Optimization (SBO) ===
+
+class OptimizedDrawable {
+private:
+    static constexpr size_t BUFFER_SIZE = 32;
+    
+    struct DrawableConcept {
+        virtual ~DrawableConcept() = default;
+        virtual void draw() const = 0;
+        virtual double area() const = 0;
+    };
+    
+    template<typename T>
+    struct DrawableModel : DrawableConcept {
+        T object_;
+        explicit DrawableModel(T obj) : object_(std::move(obj)) {}
+        void draw() const override { object_.draw(); }
+        double area() const override { return object_.area(); }
+    };
+    
+    alignas(DrawableConcept) std::byte buffer_[BUFFER_SIZE];
+    DrawableConcept* ptr_;
+    bool uses_heap_;
+    
+public:
+    template<typename T>
+    OptimizedDrawable(T obj) {
+        if constexpr (sizeof(DrawableModel<T>) <= BUFFER_SIZE) {
+            // Small object: use stack buffer
+            ptr_ = new (buffer_) DrawableModel<T>(std::move(obj));
+            uses_heap_ = false;
+        } else {
+            // Large object: use heap
+            ptr_ = new DrawableModel<T>(std::move(obj));
+            uses_heap_ = true;
+        }
+    }
+    
+    ~OptimizedDrawable() {
+        if (uses_heap_) {
+            delete ptr_;
+        } else {
+            ptr_->~DrawableConcept();
+        }
+    }
+    
+    void draw() const { ptr_->draw(); }
+    double area() const { return ptr_->area(); }
+};
+
+int main() {
+    std::cout << "=== Type Erasure Pattern ===\\n\\n";
+    
+    // Create type-erased objects (no common base class needed!)
+    std::vector<Drawable> shapes;
+    shapes.emplace_back(Circle{5.0});
+    shapes.emplace_back(Rectangle{4.0, 6.0});
+    shapes.emplace_back(Triangle{3.0, 8.0});
+    
+    std::cout << "Processing type-erased shapes:\\n";
+    double total_area = 0.0;
+    for (const auto& shape : shapes) {
+        shape.draw();
+        double a = shape.area();
+        std::cout << "  Area: " << a << "\\n";
+        total_area += a;
+    }
+    std::cout << "Total area: " << total_area << "\\n\\n";
+    
+    // Value semantics work naturally
+    std::cout << "--- Value Semantics ---\\n";
+    Drawable original = Circle{10.0};
+    Drawable copy = original;  // Deep copy
+    
+    std::cout << "Original: ";
+    original.draw();
+    std::cout << "Copy: ";
+    copy.draw();
+    
+    // Simple type erasure with std::function
+    std::cout << "\\n--- Simple Type Erasure ---\\n";
+    std::vector<SimpleDrawable> simple_shapes;
+    simple_shapes.emplace_back(Circle{7.0});
+    simple_shapes.emplace_back(Rectangle{5.0, 5.0});
+    
+    for (const auto& shape : simple_shapes) {
+        shape.draw();
+    }
+    
+    std::cout << "\\n=== Type Erasure Benefits ===\\n";
+    std::cout << "✓ No inheritance required in wrapped types\\n";
+    std::cout << "✓ Value semantics (no pointers in user code)\\n";
+    std::cout << "✓ Works with any type matching the interface\\n";
+    std::cout << "✓ Can be optimized with SBO (Small Buffer Optimization)\\n";
+    std::cout << "✓ Type-safe and exception-safe\\n";
+    std::cout << "✓ Decouples interface from implementation\\n";
+    std::cout << "✓ Natural copy/move semantics\\n";
+    
+    std::cout << "\\n=== When to Use Each Pattern ===\\n";
+    std::cout << "CRTP: Known types at compile time, maximum performance\\n";
+    std::cout << "std::variant: Closed set of types, value semantics\\n";
+    std::cout << "Policy-based: Compile-time configuration, zero overhead\\n";
+    std::cout << "Type Erasure: Runtime flexibility, value semantics, unknown types\\n";
+    std::cout << "Virtual Functions: Open polymorphism, reference semantics\\n";
+    
+    return 0;
+}`,
+    explanation: `Type erasure is a technique that combines templates and virtual functions to provide runtime polymorphism with value semantics. It wraps any type matching an interface in a type-erasing container, hiding the actual type behind a uniform interface. Unlike traditional inheritance, wrapped types don't need a common base class. The pattern uses a small internal class hierarchy (concept/model) that's invisible to users, while the public interface works with values, not pointers. This enables storing heterogeneous objects in containers with natural copy/move semantics. Advanced implementations use Small Buffer Optimization (SBO) to avoid heap allocation for small objects.`,
+    useCase: `Ideal when you need runtime polymorphism but want value semantics: plugin systems where plugins are loaded dynamically, callbacks and event systems, generic containers for diverse types, API boundaries where implementation details should be hidden, and any situation where you want std::function-like behavior for custom types. Perfect for libraries that need to accept user-defined types without requiring inheritance. Use when you need the flexibility of virtual functions but want to work with values instead of pointers.`,
+    referenceUrl: 'https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Type_Erasure'
   }
 ];

@@ -4603,5 +4603,568 @@ Feature 'compression': enabled`,
     ],
     feature: 'inline-variables',
     relatedTheory: 'inline-variables'
+  },
+
+  // Static Polymorphism Exercises
+  {
+    id: 'crtp-basic',
+    title: 'Implement CRTP for Shape Hierarchy',
+    standard: 'templates',
+    difficulty: 'intermediate',
+    description: 'Create a CRTP-based shape hierarchy with compile-time polymorphism. Implement a base template class and derive specific shapes from it.',
+    starterCode: `#include <iostream>
+#include <cmath>
+
+// TODO: Create a CRTP base template class named 'Shape'
+// It should have:
+// - area() method that delegates to derived class
+// - perimeter() method that delegates to derived class
+// - describe() method that prints shape info using area() and perimeter()
+
+// TODO: Implement Circle class derived from Shape<Circle>
+// Private member: radius_
+// Implement: area_impl() and perimeter_impl()
+
+// TODO: Implement Square class derived from Shape<Square>
+// Private member: side_
+// Implement: area_impl() and perimeter_impl()
+
+// TODO: Create a generic function template process_shape()
+// that accepts Shape<T> and calls describe() on it
+
+int main() {
+    // Test your implementation
+    Circle circle(5.0);
+    Square square(4.0);
+    
+    std::cout << "Circle:" << std::endl;
+    process_shape(circle);
+    
+    std::cout << "\\nSquare:" << std::endl;
+    process_shape(square);
+    
+    return 0;
+}`,
+    expectedOutput: `Circle:
+Shape - Area: 78.5398, Perimeter: 31.4159
+
+Square:
+Shape - Area: 16, Perimeter: 16`,
+    hints: [
+      'CRTP pattern: class Derived : public Base<Derived>',
+      'Use static_cast<const Derived*>(this) to access derived class',
+      'Implementation methods should be named differently (e.g., area_impl)',
+      'No virtual keyword needed - everything is compile-time',
+      'Generic function template: template<typename T> void f(const Shape<T>&)',
+      'Use 3.14159 for pi constant',
+      'Circle perimeter = 2 * pi * radius',
+      'Square perimeter = 4 * side'
+    ],
+    feature: 'crtp-static-polymorphism',
+    relatedTheory: 'crtp-static-polymorphism'
+  },
+
+  {
+    id: 'crtp-advanced',
+    title: 'CRTP Mixin Classes',
+    standard: 'templates',
+    difficulty: 'advanced',
+    description: 'Implement reusable mixin functionality using CRTP to add capabilities to classes at compile time.',
+    starterCode: `#include <iostream>
+#include <string>
+
+// TODO: Create a Printable<Derived> mixin that adds print() method
+// The print() method should call derived class's to_string() method
+
+// TODO: Create a Comparable<Derived> mixin that adds comparison operators
+// Use derived class's compare_to() method (should return int: <0, 0, >0)
+// Implement: operator<, operator<=, operator>, operator>=, operator==, operator!=
+
+// TODO: Create a Person class that uses both mixins
+// class Person : public Printable<Person>, public Comparable<Person>
+// Private members: name_, age_
+// Implement: to_string() and compare_to() methods
+
+int main() {
+    Person p1("Alice", 30);
+    Person p2("Bob", 25);
+    Person p3("Alice", 30);
+    
+    // Test Printable mixin
+    std::cout << "Person 1: ";
+    p1.print();
+    std::cout << "Person 2: ";
+    p2.print();
+    
+    // Test Comparable mixin
+    std::cout << "\\nComparisons:" << std::endl;
+    std::cout << "p1 > p2: " << (p1 > p2) << std::endl;
+    std::cout << "p1 == p3: " << (p1 == p3) << std::endl;
+    std::cout << "p2 < p1: " << (p2 < p1) << std::endl;
+    
+    return 0;
+}`,
+    expectedOutput: `Person 1: Alice (30)
+Person 2: Bob (25)
+
+Comparisons:
+p1 > p2: 1
+p1 == p3: 1
+p2 < p1: 1`,
+    hints: [
+      'Mixin pattern allows composing functionality from multiple base classes',
+      'Use static_cast<Derived*>(this) to access derived class methods',
+      'Person::compare_to() should compare by name first, then age',
+      'operator< : return compare_to() < 0',
+      'operator== : return compare_to() == 0',
+      'to_string() should return formatted string: "name (age)"',
+      'You can derive from multiple CRTP bases: class D : Base1<D>, Base2<D>',
+      'CRTP mixins provide zero-overhead compile-time composition'
+    ],
+    feature: 'crtp-static-polymorphism',
+    relatedTheory: 'crtp-static-polymorphism'
+  },
+
+  {
+    id: 'variant-polymorphism-basic',
+    title: 'std::variant Shape System',
+    standard: 'cpp17',
+    difficulty: 'intermediate',
+    description: 'Create a polymorphic shape system using std::variant instead of virtual functions.',
+    starterCode: `#include <iostream>
+#include <variant>
+#include <vector>
+#include <cmath>
+
+// TODO: Define three shape structs (no inheritance!):
+// Circle { double radius; double area() const; }
+// Rectangle { double width, height; double area() const; }
+// Triangle { double base, height; double area() const; }
+
+// TODO: Create a Shape variant type that can hold any of the three shapes
+
+// TODO: Implement a visitor struct 'AreaCalculator' with operator() for each shape type
+
+// TODO: Implement a function 'get_total_area' that takes vector<Shape>
+// and returns the sum of all areas using std::visit
+
+// TODO: Implement a function 'print_shape_info' that uses std::visit with
+// a generic lambda to print type-specific information
+
+int main() {
+    std::vector<Shape> shapes;
+    shapes.push_back(Circle{5.0});
+    shapes.push_back(Rectangle{4.0, 6.0});
+    shapes.push_back(Triangle{3.0, 8.0});
+    
+    std::cout << "Shape information:" << std::endl;
+    for (const auto& shape : shapes) {
+        print_shape_info(shape);
+    }
+    
+    double total = get_total_area(shapes);
+    std::cout << "\\nTotal area: " << total << std::endl;
+    
+    return 0;
+}`,
+    expectedOutput: `Shape information:
+Circle with radius 5 - Area: 78.5398
+Rectangle 4x6 - Area: 24
+Triangle with base 3, height 8 - Area: 12
+
+Total area: 114.54`,
+    hints: [
+      'using Shape = std::variant<Circle, Rectangle, Triangle>;',
+      'std::visit applies a visitor to the currently held type',
+      'Visitor needs operator() overload for each alternative type',
+      'Generic lambda: [](const auto& shape) { ... }',
+      'Use if constexpr with std::is_same_v for type-specific handling',
+      'Circle area = π * r²',
+      'Rectangle area = width * height',
+      'Triangle area = 0.5 * base * height',
+      'Accumulate areas in a loop using std::visit'
+    ],
+    feature: 'variant-polymorphism',
+    relatedTheory: 'variant-polymorphism'
+  },
+
+  {
+    id: 'variant-state-machine',
+    title: 'State Machine with std::variant',
+    standard: 'cpp17',
+    difficulty: 'advanced',
+    description: 'Implement a type-safe state machine using std::variant for compile-time polymorphism.',
+    starterCode: `#include <iostream>
+#include <variant>
+#include <string>
+
+// TODO: Define state structs
+// struct Idle { };
+// struct Running { int progress; };
+// struct Paused { int saved_progress; };
+// struct Completed { std::string result; };
+
+// TODO: Create a State variant type
+
+// TODO: Implement transition functions:
+// State start(const Idle&) -> returns Running{0}
+// State pause(const Running& r) -> returns Paused{r.progress}
+// State resume(const Paused& p) -> returns Running{p.saved_progress}
+// State complete(const Running& r) -> returns Completed{"Done at " + progress}
+// State reset(const auto&) -> returns Idle{}
+
+// TODO: Create a StateMachine class with:
+// - current_state_ member of type State
+// - apply_event() method that takes event string and transitions state
+// - print_state() method that prints current state using std::visit
+
+// Event strings: "start", "pause", "resume", "complete", "reset"
+
+int main() {
+    StateMachine machine;
+    
+    std::cout << "Initial: ";
+    machine.print_state();
+    
+    machine.apply_event("start");
+    std::cout << "After start: ";
+    machine.print_state();
+    
+    machine.apply_event("pause");
+    std::cout << "After pause: ";
+    machine.print_state();
+    
+    machine.apply_event("resume");
+    std::cout << "After resume: ";
+    machine.print_state();
+    
+    machine.apply_event("complete");
+    std::cout << "After complete: ";
+    machine.print_state();
+    
+    machine.apply_event("reset");
+    std::cout << "After reset: ";
+    machine.print_state();
+    
+    return 0;
+}`,
+    expectedOutput: `Initial: State: Idle
+After start: State: Running (progress: 0)
+After pause: State: Paused (saved: 0)
+After resume: State: Running (progress: 0)
+After complete: State: Completed - Done at 0
+After reset: State: Idle`,
+    hints: [
+      'using State = std::variant<Idle, Running, Paused, Completed>;',
+      'Use std::visit to apply transitions based on current state',
+      'Transition functions take one state type and return State variant',
+      'std::holds_alternative<T>(variant) checks current type',
+      'std::get<T>(variant) extracts value of type T',
+      'Use generic lambda with if constexpr for state-specific logic',
+      'Overloaded visitor pattern can make transitions cleaner',
+      'State machine pattern with variant is type-safe and efficient'
+    ],
+    feature: 'variant-polymorphism',
+    relatedTheory: 'variant-polymorphism'
+  },
+
+  {
+    id: 'policy-based-logger',
+    title: 'Policy-Based Logging System',
+    standard: 'templates',
+    difficulty: 'intermediate',
+    description: 'Create a configurable logging system using policy-based design for compile-time customization.',
+    starterCode: `#include <iostream>
+#include <string>
+#include <fstream>
+
+// TODO: Implement logging policies:
+// ConsoleLogger - logs to std::cout with "[Console]" prefix
+// FileLogger - logs to "app.log" with "[File]" prefix
+// NullLogger - does nothing (zero overhead)
+
+// TODO: Implement formatting policies:
+// SimpleFormatter - just returns the message as-is
+// TimestampFormatter - adds "[TIMESTAMP] " prefix to message
+// VerboseFormatter - adds "[LEVEL: INFO] " prefix to message
+
+// TODO: Create Logger template class:
+// template<typename LogPolicy, typename FormatPolicy>
+// class Logger {
+//   public:
+//     static void log(const std::string& message);
+// };
+// 
+// The log() method should format with FormatPolicy then output with LogPolicy
+
+// TODO: Create type aliases for common configurations:
+// using ConsoleLog = Logger<ConsoleLogger, SimpleFormatter>;
+// using VerboseLog = Logger<ConsoleLogger, VerboseFormatter>;
+// using ProductionLog = Logger<FileLogger, TimestampFormatter>;
+// using NoLog = Logger<NullLogger, SimpleFormatter>;
+
+int main() {
+    std::cout << "=== Policy-Based Logging Demo ===\\n\\n";
+    
+    ConsoleLog::log("Application started");
+    VerboseLog::log("Configuration loaded");
+    ProductionLog::log("Database connected");
+    NoLog::log("This will not appear");
+    
+    std::cout << "\\nLog messages sent with different policies" << std::endl;
+    
+    return 0;
+}`,
+    expectedOutput: `=== Policy-Based Logging Demo ===
+
+[Console] Application started
+[Console] [LEVEL: INFO] Configuration loaded
+
+Log messages sent with different policies`,
+    hints: [
+      'Policies are classes with static methods',
+      'LogPolicy::log(const std::string&) outputs the message',
+      'FormatPolicy::format(const std::string&) returns formatted string',
+      'Use both policies in Logger: LogPolicy::log(FormatPolicy::format(msg))',
+      'NullLogger::log should be empty - compiler will optimize it out',
+      'All policy resolution happens at compile time',
+      'FileLogger should use static std::ofstream for file handle',
+      'No virtual functions needed - zero runtime overhead'
+    ],
+    feature: 'policy-based-design',
+    relatedTheory: 'policy-based-design'
+  },
+
+  {
+    id: 'policy-based-container',
+    title: 'Policy-Based Smart Container',
+    standard: 'templates',
+    difficulty: 'advanced',
+    description: 'Design a flexible container with configurable storage, error handling, and thread-safety policies.',
+    starterCode: `#include <iostream>
+#include <vector>
+#include <array>
+#include <stdexcept>
+#include <mutex>
+
+// TODO: Implement storage policies:
+// template<typename T> struct DynamicStorage { using Container = std::vector<T>; }
+// template<typename T, size_t N> struct FixedStorage { 
+//   struct Container { T data[N]; size_t size; }; 
+// }
+// Each should provide: add(), get(), size() static methods
+
+// TODO: Implement error policies:
+// struct ThrowOnError { static void handle(const char*); } - throws exception
+// struct IgnoreError { static void handle(const char*); } - does nothing
+
+// TODO: Implement thread-safety policies:
+// struct ThreadSafe { 
+//   using Lock = std::lock_guard<std::mutex>; 
+//   static std::mutex& get_mutex(); 
+// }
+// struct NoThreadSafety { 
+//   struct Lock { Lock(int) {} }; 
+//   static int get_mutex() { return 0; } 
+// }
+
+// TODO: Create SmartContainer template:
+// template<typename T, template<typename> class StoragePolicy, 
+//          typename ErrorPolicy, typename ThreadPolicy>
+// class SmartContainer
+// Methods: add(), get(), size()
+// Use ThreadPolicy::Lock for thread safety where needed
+
+int main() {
+    // Dynamic storage, throw on error, no thread safety
+    SmartContainer<int, DynamicStorage, ThrowOnError, NoThreadSafety> container1;
+    container1.add(10);
+    container1.add(20);
+    std::cout << "Container 1 size: " << container1.size() << std::endl;
+    std::cout << "Container 1[0]: " << container1.get(0) << std::endl;
+    
+    // Fixed storage, ignore errors
+    SmartContainer<int, FixedStorage<int, 5>::template Type, 
+                   IgnoreError, NoThreadSafety> container2;
+    container2.add(1);
+    container2.add(2);
+    std::cout << "\\nContainer 2 size: " << container2.size() << std::endl;
+    
+    try {
+        container1.get(100); // Should throw
+    } catch (const std::exception& e) {
+        std::cout << "\\nCaught exception: " << e.what() << std::endl;
+    }
+    
+    return 0;
+}`,
+    expectedOutput: `Container 1 size: 2
+Container 1[0]: 10
+
+Container 2 size: 2
+
+Caught exception: Index out of bounds`,
+    hints: [
+      'StoragePolicy provides Container type and static methods',
+      'Use typename StoragePolicy<T>::Container for storage',
+      'ThreadPolicy::Lock guard(ThreadPolicy::get_mutex()) for locking',
+      'Check bounds before get() and call ErrorPolicy::handle() if invalid',
+      'FixedStorage needs nested template Type for proper syntax',
+      'static std::mutex in ThreadSafe ensures single mutex instance',
+      'NoThreadSafety::Lock is dummy type with no-op constructor',
+      'All policy combinations are resolved at compile time'
+    ],
+    feature: 'policy-based-design',
+    relatedTheory: 'policy-based-design'
+  },
+
+  {
+    id: 'type-erasure-basic',
+    title: 'Simple Type Erasure for Any Drawable',
+    standard: 'templates',
+    difficulty: 'advanced',
+    description: 'Implement a basic type-erasure container that can hold any type with a draw() method.',
+    starterCode: `#include <iostream>
+#include <memory>
+#include <vector>
+#include <string>
+
+// TODO: Implement AnyDrawable class with type erasure
+// Should have:
+// - Private concept interface with virtual draw()
+// - Private model template that wraps any type T
+// - Public constructor template that accepts any T
+// - Public draw() method that forwards to stored object
+// - Copy constructor using clone pattern
+
+// TODO: Define concrete types (no common base class needed!):
+// struct Circle { double radius; void draw() const; }
+// struct Text { std::string content; void draw() const; }
+// struct Icon { std::string name; void draw() const; }
+
+int main() {
+    std::vector<AnyDrawable> drawables;
+    
+    // Store different types without common base class
+    drawables.emplace_back(Circle{5.0});
+    drawables.emplace_back(Text{"Hello, World!"});
+    drawables.emplace_back(Icon{"star"});
+    
+    std::cout << "Drawing all objects:" << std::endl;
+    for (const auto& drawable : drawables) {
+        drawable.draw();
+    }
+    
+    // Test copy semantics
+    AnyDrawable original = Circle{10.0};
+    AnyDrawable copy = original;
+    
+    std::cout << "\\nOriginal: ";
+    original.draw();
+    std::cout << "Copy: ";
+    copy.draw();
+    
+    return 0;
+}`,
+    expectedOutput: `Drawing all objects:
+Circle with radius 5
+Text: Hello, World!
+Icon: star
+
+Original: Circle with radius 10
+Copy: Circle with radius 10`,
+    hints: [
+      'Type erasure uses internal concept/model pattern',
+      'struct Concept { virtual ~Concept() = default; virtual void draw() = 0; };',
+      'template<typename T> struct Model : Concept { T obj; ... };',
+      'Store std::unique_ptr<Concept> as member',
+      'Constructor: template<typename T> AnyDrawable(T obj)',
+      'Use std::make_unique<Model<T>>(std::move(obj)) in constructor',
+      'Copy constructor needs clone() method in Concept',
+      'Wrapped types need no inheritance - just draw() method',
+      'Forward draw() call: pimpl_->draw()'
+    ],
+    feature: 'type-erasure-pattern',
+    relatedTheory: 'type-erasure-pattern'
+  },
+
+  {
+    id: 'type-erasure-function',
+    title: 'Custom Function Wrapper with Type Erasure',
+    standard: 'templates',
+    difficulty: 'advanced',
+    description: 'Create a simplified version of std::function using type erasure to store any callable object.',
+    starterCode: `#include <iostream>
+#include <memory>
+#include <string>
+
+// TODO: Implement Function<R(Args...)> template class
+// Similar to std::function but simpler
+// Should support:
+// - Storing any callable (lambda, function pointer, functor)
+// - operator() to invoke the stored callable
+// - Move semantics
+// - Empty state checking with operator bool()
+
+// Internal structure:
+// - Concept interface with virtual call(Args...) -> R
+// - Model<F> template storing callable of type F
+// - std::unique_ptr<Concept> member
+
+// TODO: Implement these callables for testing:
+// - free function: int add(int a, int b) { return a + b; }
+// - functor: struct Multiplier { int factor; int operator()(int x) const; }
+// - lambda will be used directly
+
+int main() {
+    std::cout << "=== Custom Function Wrapper ===\\n\\n";
+    
+    // Store free function
+    Function<int(int, int)> f1 = add;
+    std::cout << "f1(3, 4) = " << f1(3, 4) << std::endl;
+    
+    // Store functor
+    Function<int(int)> f2 = Multiplier{5};
+    std::cout << "f2(6) = " << f2(6) << std::endl;
+    
+    // Store lambda
+    Function<int(int, int)> f3 = [](int a, int b) { return a * b + 10; };
+    std::cout << "f3(2, 3) = " << f3(2, 3) << std::endl;
+    
+    // Empty function
+    Function<void()> f4;
+    if (!f4) {
+        std::cout << "\\nf4 is empty" << std::endl;
+    }
+    
+    // Store lambda in f4
+    f4 = []() { std::cout << "Hello from f4!" << std::endl; };
+    if (f4) {
+        f4();
+    }
+    
+    return 0;
+}`,
+    expectedOutput: `=== Custom Function Wrapper ===
+
+f1(3, 4) = 7
+f2(6) = 30
+f3(2, 3) = 16
+
+f4 is empty
+Hello from f4!`,
+    hints: [
+      'Use template specialization: template<typename R, typename... Args> class Function<R(Args...)>',
+      'Concept: virtual R call(Args...) = 0;',
+      'Model: template<typename F> struct Model : Concept',
+      'Model stores F and implements call() by invoking F',
+      'operator(): return pimpl_->call(std::forward<Args>(args)...);',
+      'operator bool(): return pimpl_ != nullptr;',
+      'Constructor: template<typename F> Function(F f)',
+      'Move std::forward<F>(f) into Model',
+      'This is how std::function works internally!'
+    ],
+    feature: 'type-erasure-pattern',
+    relatedTheory: 'type-erasure-pattern'
   }
 ];
