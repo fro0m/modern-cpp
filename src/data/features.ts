@@ -9113,5 +9113,396 @@ int main() {
     explanation: `Type erasure is a technique that combines templates and virtual functions to provide runtime polymorphism with value semantics. It wraps any type matching an interface in a type-erasing container, hiding the actual type behind a uniform interface. Unlike traditional inheritance, wrapped types don't need a common base class. The pattern uses a small internal class hierarchy (concept/model) that's invisible to users, while the public interface works with values, not pointers. This enables storing heterogeneous objects in containers with natural copy/move semantics. Advanced implementations use Small Buffer Optimization (SBO) to avoid heap allocation for small objects.`,
     useCase: `Ideal when you need runtime polymorphism but want value semantics: plugin systems where plugins are loaded dynamically, callbacks and event systems, generic containers for diverse types, API boundaries where implementation details should be hidden, and any situation where you want std::function-like behavior for custom types. Perfect for libraries that need to accept user-defined types without requiring inheritance. Use when you need the flexibility of virtual functions but want to work with values instead of pointers.`,
     referenceUrl: 'https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Type_Erasure'
+  },
+
+  // === MULTITHREADING FEATURES ===
+  {
+    id: 'thread-basics',
+    title: 'Thread Fundamentals',
+    standard: 'multithreading',
+    description: 'Introduction to C++11 threading: creating, joining, and managing threads with std::thread',
+    codeExample: `#include <iostream>
+#include <thread>
+#include <chrono>
+#include <vector>
+
+void simple_task(int id) {
+    std::cout << "Thread " << id << " running\\n";
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+}
+
+int main() {
+    std::cout << "Hardware concurrency: " 
+              << std::thread::hardware_concurrency() << " cores\\n\\n";
+    
+    // Create and join threads
+    std::thread t1(simple_task, 1);
+    std::thread t2(simple_task, 2);
+    
+    t1.join();
+    t2.join();
+    
+    // Lambda thread
+    std::thread t3([]() {
+        std::cout << "Lambda thread\\n";
+    });
+    t3.join();
+    
+    // Multiple threads
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 4; ++i) {
+        threads.emplace_back([i]() {
+            std::cout << "Thread " << i << "\\n";
+        });
+    }
+    
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    return 0;
+}`,
+    explanation: `std::thread is C++11's fundamental threading primitive enabling concurrent execution. Threads execute functions, lambdas, or callable objects concurrently. Every thread must be either joined (wait for completion) or detached before destruction, otherwise the program terminates.`,
+    useCase: `Essential for parallel tasks, background operations, responsive UIs, and server request handling. Use for utilizing multi-core processors effectively. Foundation for all multithreaded C++ programs.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/thread/thread'
+  },
+
+  {
+    id: 'mutex-basics',
+    title: 'Mutexes and Synchronization',
+    standard: 'multithreading',
+    description: 'Thread-safe data access using std::mutex, std::lock_guard, and RAII lock management',
+    codeExample: `#include <iostream>
+#include <thread>
+#include <mutex>
+#include <vector>
+
+class Counter {
+private:
+    int value_ = 0;
+    std::mutex mutex_;
+public:
+    void increment() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ++value_;
+    }
+    int get() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return value_;
+    }
+};
+
+int main() {
+    Counter counter;
+    std::vector<std::thread> threads;
+    
+    // 10 threads incrementing 1000 times each
+    for (int i = 0; i < 10; ++i) {
+        threads.emplace_back([&counter]() {
+            for (int j = 0; j < 1000; ++j) {
+                counter.increment();
+            }
+        });
+    }
+    
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    std::cout << "Final count: " << counter.get() << "\\n";
+    std::cout << "Expected: 10000\\n";
+    
+    return 0;
+}`,
+    explanation: `Mutexes (mutual exclusion locks) protect shared data from simultaneous access. std::lock_guard provides RAII-based automatic locking/unlocking, ensuring exception safety. Always use RAII locks instead of manual lock/unlock.`,
+    useCase: `Essential for protecting any shared mutable state: counters, containers, caches, and configuration data. Use lock_guard for simple critical sections. Critical for preventing data races.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/thread/mutex'
+  },
+
+  {
+    id: 'atomic-operations',
+    title: 'Atomic Operations',
+    standard: 'multithreading',
+    description: 'Lock-free synchronization using std::atomic for high-performance concurrent access',
+    codeExample: `#include <iostream>
+#include <atomic>
+#include <thread>
+#include <vector>
+
+class AtomicCounter {
+private:
+    std::atomic<int> value_{0};
+public:
+    void increment() {
+        value_.fetch_add(1, std::memory_order_relaxed);
+    }
+    int get() const {
+        return value_.load(std::memory_order_relaxed);
+    }
+};
+
+int main() {
+    AtomicCounter counter;
+    std::vector<std::thread> threads;
+    
+    for (int i = 0; i < 10; ++i) {
+        threads.emplace_back([&counter]() {
+            for (int j = 0; j < 1000; ++j) {
+                counter.increment();
+            }
+        });
+    }
+    
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    std::cout << "Atomic count: " << counter.get() << "\\n";
+    
+    // Compare-and-swap example
+    std::atomic<int> value{10};
+    int expected = 10;
+    int desired = 20;
+    
+    if (value.compare_exchange_strong(expected, desired)) {
+        std::cout << "CAS succeeded: " << value << "\\n";
+    }
+    
+    return 0;
+}`,
+    explanation: `Atomic operations provide lock-free synchronization by guaranteeing operations complete without interruption. std::atomic supports load, store, fetch_add, and compare-and-swap (CAS) operations. Lock-free programming avoids mutex overhead but is more complex.`,
+    useCase: `Use for high-performance counters, flags, and simple shared state where mutex overhead is unacceptable. Essential in lock-free data structures and low-latency systems. Profile before choosing over mutexes.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic'
+  },
+
+  {
+    id: 'condition-variables',
+    title: 'Condition Variables',
+    standard: 'multithreading',
+    description: 'Thread coordination using std::condition_variable for producer-consumer patterns',
+    codeExample: `#include <iostream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+
+template<typename T>
+class ThreadSafeQueue {
+private:
+    std::queue<T> queue_;
+    mutable std::mutex mutex_;
+    std::condition_variable cv_;
+    bool done_ = false;
+public:
+    void push(T value) {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            queue_.push(std::move(value));
+        }
+        cv_.notify_one();
+    }
+    
+    bool pop(T& value) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait(lock, [this]() {
+            return !queue_.empty() || done_;
+        });
+        
+        if (queue_.empty()) return false;
+        
+        value = std::move(queue_.front());
+        queue_.pop();
+        return true;
+    }
+    
+    void mark_done() {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            done_ = true;
+        }
+        cv_.notify_all();
+    }
+};
+
+int main() {
+    ThreadSafeQueue<int> queue;
+    
+    // Producer
+    std::thread producer([&queue]() {
+        for (int i = 0; i < 10; ++i) {
+            queue.push(i);
+            std::cout << "Produced: " << i << "\\n";
+        }
+        queue.mark_done();
+    });
+    
+    // Consumer
+    std::thread consumer([&queue]() {
+        int value;
+        while (queue.pop(value)) {
+            std::cout << "Consumed: " << value << "\\n";
+        }
+    });
+    
+    producer.join();
+    consumer.join();
+    
+    return 0;
+}`,
+    explanation: `Condition variables enable threads to wait for specific conditions without busy-waiting. They work with mutexes to atomically release locks while waiting. Use predicates with wait() to handle spurious wakeups. Essential for producer-consumer patterns.`,
+    useCase: `Perfect for producer-consumer queues, thread pools, task schedulers, and event-driven systems. Use when threads must coordinate based on data availability. More efficient than polling.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/thread/condition_variable'
+  },
+
+  {
+    id: 'async-futures',
+    title: 'Async and Futures',
+    standard: 'multithreading',
+    description: 'High-level asynchronous programming with std::async and std::future',
+    codeExample: `#include <iostream>
+#include <future>
+#include <vector>
+#include <numeric>
+
+int compute_square(int n) {
+    return n * n;
+}
+
+int main() {
+    // Simple async task
+    std::future<int> result = std::async(std::launch::async, 
+                                         compute_square, 10);
+    
+    std::cout << "Doing other work...\\n";
+    std::cout << "Result: " << result.get() << "\\n\\n";
+    
+    // Multiple parallel tasks
+    std::vector<std::future<int>> futures;
+    
+    for (int i = 1; i <= 5; ++i) {
+        futures.push_back(std::async(std::launch::async, 
+                                     compute_square, i));
+    }
+    
+    int sum = 0;
+    for (auto& fut : futures) {
+        sum += fut.get();
+    }
+    
+    std::cout << "Sum of squares: " << sum << "\\n\\n";
+    
+    // Exception handling
+    auto risky = std::async(std::launch::async, []() -> int {
+        throw std::runtime_error("Task failed");
+        return 42;
+    });
+    
+    try {
+        risky.get();
+    } catch (const std::exception& e) {
+        std::cout << "Caught: " << e.what() << "\\n";
+    }
+    
+    return 0;
+}`,
+    explanation: `std::async provides high-level task-based parallelism, automatically managing threads. std::future represents a value available in the future. Exceptions are automatically propagated through futures. Cleaner and safer than manual thread management.`,
+    useCase: `Ideal for parallel algorithms, background computations, and asynchronous operations. Use for task-based parallelism without managing threads explicitly. Perfect for dividing work across cores cleanly.`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/thread/async'
+  },
+
+  {
+    id: 'lock-free-stack',
+    title: 'Lock-Free Data Structures',
+    standard: 'multithreading',
+    description: 'Building lock-free concurrent data structures using atomic operations and CAS',
+    codeExample: `#include <iostream>
+#include <atomic>
+#include <thread>
+#include <vector>
+
+template<typename T>
+class LockFreeStack {
+private:
+    struct Node {
+        T data;
+        Node* next;
+        Node(const T& val) : data(val), next(nullptr) {}
+    };
+    
+    std::atomic<Node*> head_{nullptr};
+    
+public:
+    void push(const T& value) {
+        Node* new_node = new Node(value);
+        new_node->next = head_.load(std::memory_order_relaxed);
+        
+        while (!head_.compare_exchange_weak(
+            new_node->next,
+            new_node,
+            std::memory_order_release,
+            std::memory_order_relaxed
+        )) {
+            // Retry until CAS succeeds
+        }
+    }
+    
+    bool pop(T& value) {
+        Node* old_head = head_.load(std::memory_order_relaxed);
+        
+        while (old_head && !head_.compare_exchange_weak(
+            old_head,
+            old_head->next,
+            std::memory_order_acquire,
+            std::memory_order_relaxed
+        )) {
+            // Retry
+        }
+        
+        if (old_head) {
+            value = old_head->data;
+            delete old_head;
+            return true;
+        }
+        return false;
+    }
+    
+    ~LockFreeStack() {
+        T value;
+        while (pop(value)) {}
+    }
+};
+
+int main() {
+    LockFreeStack<int> stack;
+    std::vector<std::thread> threads;
+    
+    // Multiple threads pushing
+    for (int i = 0; i < 5; ++i) {
+        threads.emplace_back([&stack, i]() {
+            for (int j = 0; j < 100; ++j) {
+                stack.push(i * 100 + j);
+            }
+        });
+    }
+    
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    // Pop all items
+    int value;
+    int count = 0;
+    while (stack.pop(value)) {
+        ++count;
+    }
+    
+    std::cout << "Popped " << count << " items\\n";
+    std::cout << "Expected: 500\\n";
+    
+    return 0;
+}`,
+    explanation: `Lock-free data structures use atomic operations and compare-and-swap (CAS) to coordinate without locks. CAS retries until successful, avoiding mutex overhead. Challenging to implement correctly but offers excellent performance under high contention. Beware of the ABA problem.`,
+    useCase: `Use in high-performance systems where lock contention is a bottleneck: real-time systems, high-frequency trading, game engines. Essential when predictable latency matters. Requires deep understanding of memory models. Test thoroughly!`,
+    referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic'
   }
 ];

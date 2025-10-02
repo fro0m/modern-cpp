@@ -5166,5 +5166,392 @@ Hello from f4!`,
     ],
     feature: 'type-erasure-pattern',
     relatedTheory: 'type-erasure-pattern'
+  },
+
+  // === MULTITHREADING EXERCISES ===
+  {
+    id: 'thread-basics-intro',
+    title: 'Create and Join Threads',
+    standard: 'multithreading',
+    difficulty: 'beginner',
+    description: 'Learn thread creation basics by launching multiple threads and waiting for their completion.',
+    starterCode: `#include <iostream>
+#include <thread>
+#include <vector>
+#include <chrono>
+
+// TODO: Implement worker_function that:
+// - Takes an id parameter
+// - Prints "Worker X starting"
+// - Sleeps for 100ms
+// - Prints "Worker X done"
+
+int main() {
+    std::cout << "Main thread starting\\n";
+    std::cout << "Hardware cores: " 
+              << std::thread::hardware_concurrency() << "\\n\\n";
+    
+    // TODO: Create 3 threads using worker_function with ids 1, 2, 3
+    
+    // TODO: Join all threads
+    
+    std::cout << "\\nAll threads completed\\n";
+    return 0;
+}`,
+    expectedOutput: `Main thread starting
+Hardware cores: 4
+
+Worker 1 starting
+Worker 2 starting
+Worker 3 starting
+Worker 1 done
+Worker 2 done
+Worker 3 done
+
+All threads completed`,
+    hints: [
+      'std::thread t(function, arg1, arg2, ...);',
+      'Always call t.join() before thread goes out of scope',
+      'std::this_thread::sleep_for(std::chrono::milliseconds(100));',
+      'Create threads in a vector for easier management',
+      'Each thread must be joined or detached',
+      'Join in same order you created threads'
+    ],
+    feature: 'thread-basics',
+    relatedTheory: 'thread-basics'
+  },
+
+  {
+    id: 'mutex-counter',
+    title: 'Thread-Safe Counter',
+    standard: 'multithreading',
+    difficulty: 'beginner',
+    description: 'Implement a thread-safe counter using mutex to prevent data races.',
+    starterCode: `#include <iostream>
+#include <thread>
+#include <mutex>
+#include <vector>
+
+// TODO: Implement SafeCounter class with:
+// - private: int value_ = 0
+// - private: std::mutex mutex_
+// - public: void increment() - protected by lock_guard
+// - public: int get() const - protected by lock_guard
+
+int main() {
+    SafeCounter counter;
+    std::vector<std::thread> threads;
+    
+    // Create 10 threads, each incrementing 1000 times
+    for (int i = 0; i < 10; ++i) {
+        threads.emplace_back([&counter]() {
+            for (int j = 0; j < 1000; ++j) {
+                counter.increment();
+            }
+        });
+    }
+    
+    // Join all threads
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    std::cout << "Final count: " << counter.get() << "\\n";
+    std::cout << "Expected: 10000\\n";
+    
+    return 0;
+}`,
+    expectedOutput: `Final count: 10000
+Expected: 10000`,
+    hints: [
+      'std::lock_guard<std::mutex> lock(mutex_);',
+      'Lock guard automatically unlocks when going out of scope',
+      'Protect both read and write operations',
+      'Keep critical sections as small as possible',
+      'mutable keyword needed for mutex in const methods',
+      'Without mutex, you will get incorrect results due to data races'
+    ],
+    feature: 'mutex-basics',
+    relatedTheory: 'mutex-basics'
+  },
+
+  {
+    id: 'producer-consumer',
+    title: 'Producer-Consumer Queue',
+    standard: 'multithreading',
+    difficulty: 'intermediate',
+    description: 'Implement a thread-safe queue using condition variables for producer-consumer pattern.',
+    starterCode: `#include <iostream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+
+// TODO: Implement ThreadSafeQueue<T> class with:
+// - private: std::queue<T> queue_
+// - private: std::mutex mutex_
+// - private: std::condition_variable cv_
+// - private: bool done_ = false
+// 
+// - public: void push(T value)
+//   * Lock mutex, push to queue, notify one waiter
+// 
+// - public: bool pop(T& value)
+//   * Lock with unique_lock
+//   * Wait until queue not empty or done
+//   * If empty and done, return false
+//   * Otherwise pop and return true
+//
+// - public: void mark_done()
+//   * Set done_ to true and notify all waiters
+
+int main() {
+    ThreadSafeQueue<int> queue;
+    
+    // Producer thread
+    std::thread producer([&queue]() {
+        for (int i = 1; i <= 5; ++i) {
+            queue.push(i * 10);
+            std::cout << "Produced: " << (i * 10) << "\\n";
+        }
+        queue.mark_done();
+        std::cout << "Producer done\\n";
+    });
+    
+    // Consumer thread
+    std::thread consumer([&queue]() {
+        int value;
+        while (queue.pop(value)) {
+            std::cout << "Consumed: " << value << "\\n";
+        }
+        std::cout << "Consumer done\\n";
+    });
+    
+    producer.join();
+    consumer.join();
+    
+    return 0;
+}`,
+    expectedOutput: `Produced: 10
+Consumed: 10
+Produced: 20
+Consumed: 20
+Produced: 30
+Consumed: 30
+Produced: 40
+Consumed: 40
+Produced: 50
+Consumed: 50
+Producer done
+Consumer done`,
+    hints: [
+      'Use std::unique_lock<std::mutex> for condition_variable',
+      'cv_.wait(lock, [this](){ return !queue_.empty() || done_; });',
+      'notify_one() wakes one waiting thread',
+      'notify_all() wakes all waiting threads',
+      'Always use predicate with wait() to handle spurious wakeups',
+      'Push/pop operations must be protected by mutex',
+      'mark_done() should notify_all() to wake all consumers'
+    ],
+    feature: 'condition-variables',
+    relatedTheory: 'condition-variables'
+  },
+
+  {
+    id: 'atomic-counter',
+    title: 'Atomic Counter Performance',
+    standard: 'multithreading',
+    difficulty: 'intermediate',
+    description: 'Compare mutex-based and atomic-based counters to understand lock-free performance.',
+    starterCode: `#include <iostream>
+#include <thread>
+#include <atomic>
+#include <mutex>
+#include <vector>
+#include <chrono>
+
+// TODO: Implement MutexCounter with mutex protection
+
+// TODO: Implement AtomicCounter with std::atomic<int>
+// Use fetch_add with std::memory_order_relaxed
+
+template<typename Counter>
+double benchmark(const std::string& name) {
+    Counter counter;
+    std::vector<std::thread> threads;
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    // 4 threads, each incrementing 100000 times
+    for (int i = 0; i < 4; ++i) {
+        threads.emplace_back([&counter]() {
+            for (int j = 0; j < 100000; ++j) {
+                counter.increment();
+            }
+        });
+    }
+    
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    std::cout << name << ": " << duration.count() << " ms, "
+              << "count = " << counter.get() << "\\n";
+    
+    return duration.count();
+}
+
+int main() {
+    double mutex_time = benchmark<MutexCounter>("Mutex");
+    double atomic_time = benchmark<AtomicCounter>("Atomic");
+    
+    std::cout << "\\nAtomic is " 
+              << (mutex_time / atomic_time) << "x faster\\n";
+    
+    return 0;
+}`,
+    expectedOutput: `Mutex: XX ms, count = 400000
+Atomic: XX ms, count = 400000
+
+Atomic is X.Xx faster`,
+    hints: [
+      'std::atomic<int> provides lock-free operations',
+      'fetch_add(1, std::memory_order_relaxed) for increment',
+      'load(std::memory_order_relaxed) for reading',
+      'Atomics are faster than mutexes for simple operations',
+      'memory_order_relaxed is fastest, no synchronization overhead',
+      'Both should produce correct count of 400000',
+      'Atomic typically 2-5x faster than mutex for this use case'
+    ],
+    feature: 'atomic-operations',
+    relatedTheory: 'atomic-operations'
+  },
+
+  {
+    id: 'async-parallel-sum',
+    title: 'Parallel Sum with std::async',
+    standard: 'multithreading',
+    difficulty: 'intermediate',
+    description: 'Implement parallel summation using std::async and std::future.',
+    starterCode: `#include <iostream>
+#include <future>
+#include <vector>
+#include <numeric>
+
+// TODO: Implement parallel_sum function that:
+// - Takes begin and end iterators
+// - If size < 1000, compute sequentially with std::accumulate
+// - Otherwise, split range in half
+// - Compute first half async with std::async
+// - Compute second half in current thread (recursive call)
+// - Return sum of both halves using future.get()
+
+int main() {
+    std::vector<int> numbers(10000);
+    std::iota(numbers.begin(), numbers.end(), 1); // 1, 2, 3, ..., 10000
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    int result = parallel_sum(numbers.begin(), numbers.end());
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    
+    std::cout << "Sum: " << result << "\\n";
+    std::cout << "Expected: " << (10000 * 10001 / 2) << "\\n";
+    std::cout << "Time: " << duration.count() << " μs\\n";
+    
+    return 0;
+}`,
+    expectedOutput: `Sum: 50005000
+Expected: 50005000
+Time: XXXX μs`,
+    hints: [
+      'Use std::distance(begin, end) to get size',
+      'Base case: size < 1000, use std::accumulate',
+      'std::advance(mid, len / 2) to find middle',
+      'auto future = std::async(std::launch::async, parallel_sum, begin, mid);',
+      'Recursive call for second half in current thread',
+      'return future.get() + second_half_sum;',
+      'std::async automatically manages threads',
+      'This is divide-and-conquer parallelism'
+    ],
+    feature: 'async-futures',
+    relatedTheory: 'async-futures'
+  },
+
+  {
+    id: 'lock-free-stack-impl',
+    title: 'Lock-Free Stack Implementation',
+    standard: 'multithreading',
+    difficulty: 'advanced',
+    description: 'Implement a lock-free stack using atomic operations and compare-and-swap.',
+    starterCode: `#include <iostream>
+#include <atomic>
+#include <thread>
+#include <vector>
+
+// TODO: Implement LockFreeStack<T> class with:
+// - private struct Node { T data; Node* next; }
+// - private std::atomic<Node*> head_{nullptr}
+//
+// - public void push(const T& value)
+//   * Create new node
+//   * Set new_node->next = head_.load(relaxed)
+//   * Loop with compare_exchange_weak until success
+//
+// - public bool pop(T& value)
+//   * Load old_head
+//   * Loop with compare_exchange_weak(old_head, old_head->next)
+//   * If successful, copy data and delete node
+//
+// - Destructor: pop all remaining nodes
+
+int main() {
+    LockFreeStack<int> stack;
+    std::vector<std::thread> threads;
+    
+    // Multiple threads pushing
+    for (int i = 0; i < 4; ++i) {
+        threads.emplace_back([&stack, i]() {
+            for (int j = 0; j < 100; ++j) {
+                stack.push(i * 100 + j);
+            }
+        });
+    }
+    
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    // Count popped items
+    int value;
+    int count = 0;
+    while (stack.pop(value)) {
+        ++count;
+    }
+    
+    std::cout << "Pushed: 400 items\\n";
+    std::cout << "Popped: " << count << " items\\n";
+    
+    return 0;
+}`,
+    expectedOutput: `Pushed: 400 items
+Popped: 400 items`,
+    hints: [
+      'compare_exchange_weak retries in a loop',
+      'Use memory_order_release for writes, acquire for reads',
+      'memory_order_relaxed for intermediate operations',
+      'CAS: compare_exchange_weak(expected, desired, success, failure)',
+      'If CAS fails, expected is updated with current value',
+      'Loop until CAS succeeds: while (!cas(...)) {}',
+      'Delete nodes carefully to avoid memory leaks',
+      'This is ABA problem prone - production code needs more care'
+    ],
+    feature: 'lock-free-stack',
+    relatedTheory: 'lock-free-stack'
   }
 ];

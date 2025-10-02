@@ -2,8 +2,8 @@ import React from 'react';
 import { Standard } from '../types';
 
 interface StandardSelectorProps {
-  selectedStandard: Standard | 'performance' | 'templates' | 'all';
-  onStandardChange: (standard: Standard | 'performance' | 'templates' | 'all') => void;
+  selectedStandard: Standard | 'performance' | 'templates' | 'multithreading' | 'all';
+  onStandardChange: (standard: Standard | 'performance' | 'templates' | 'multithreading' | 'all') => void;
 }
 
 const StandardSelector: React.FC<StandardSelectorProps> = ({
@@ -17,7 +17,8 @@ const StandardSelector: React.FC<StandardSelectorProps> = ({
     { id: 'cpp20' as Standard, name: 'C++20', color: 'bg-purple-100 text-purple-700' },
     { id: 'cpp23' as Standard, name: 'C++23', color: 'bg-green-100 text-green-700' },
     { id: 'performance', name: 'Performance', color: 'bg-red-100 text-red-700' },
-    { id: 'templates', name: 'Templates', color: 'bg-indigo-100 text-indigo-700' }
+    { id: 'templates', name: 'Templates', color: 'bg-indigo-100 text-indigo-700' },
+    { id: 'multithreading', name: 'Multithreading', color: 'bg-teal-100 text-teal-700' }
   ];
 
   return (
@@ -34,7 +35,8 @@ const StandardSelector: React.FC<StandardSelectorProps> = ({
                   id === 'cpp20' ? 'ring-purple-300' :
                   id === 'cpp23' ? 'ring-green-300' :
                   id === 'performance' ? 'ring-red-300' :
-                  id === 'templates' ? 'ring-indigo-300' : 'ring-gray-300'
+                  id === 'templates' ? 'ring-indigo-300' :
+                  id === 'multithreading' ? 'ring-teal-300' : 'ring-gray-300'
                 }`
               : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:shadow-sm'
           }`}

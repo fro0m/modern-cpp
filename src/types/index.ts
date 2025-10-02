@@ -1,7 +1,7 @@
 export interface CppFeature {
   id: string;
   title: string;
-  standard: 'cpp14' | 'cpp17' | 'cpp20' | 'cpp23' | 'performance' | 'templates';
+  standard: 'cpp14' | 'cpp17' | 'cpp20' | 'cpp23' | 'performance' | 'templates' | 'multithreading';
   description: string;
   codeExample: string;
   explanation: string;
@@ -9,10 +9,12 @@ export interface CppFeature {
   referenceUrl?: string; // Optional cppreference.com link
 }
 
+export type Standard = 'cpp14' | 'cpp17' | 'cpp20' | 'cpp23';
+
 export interface Exercise {
   id: string;
   title: string;
-  standard: 'cpp14' | 'cpp17' | 'cpp20' | 'cpp23' | 'performance' | 'templates';
+  standard: 'cpp14' | 'cpp17' | 'cpp20' | 'cpp23' | 'performance' | 'templates' | 'multithreading';
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   description: string;
   starterCode: string;
