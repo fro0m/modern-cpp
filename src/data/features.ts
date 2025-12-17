@@ -1,13 +1,13 @@
 import { CppFeature } from '../types';
 
 export const cppFeatures: CppFeature[] = [
-  // C++14 Features
-  {
-    id: 'generic-lambdas',
-    title: 'Generic Lambdas',
-    standard: 'cpp14',
-    description: 'Lambda expressions with auto parameters for generic programming',
-    codeExample: `#include <iostream>
+    // C++14 Features
+    {
+        id: 'generic-lambdas',
+        title: 'Generic Lambdas',
+        standard: 'cpp14',
+        description: 'Lambda expressions with auto parameters for generic programming',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -53,16 +53,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'Generic lambdas introduced in C++14 allow lambda parameters to use auto, making them work with multiple types without explicit template syntax. This enables writing more flexible and reusable lambda expressions.',
-    useCase: 'Perfect for creating reusable lambda expressions that work with multiple types, especially useful in STL algorithms and functional programming patterns.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/lambda'
-  },
-  {
-    id: 'variable-templates',
-    title: 'Variable Templates',
-    standard: 'cpp14',
-    description: 'Template variables for compile-time constants and type traits',
-    codeExample: `#include <iostream>
+        explanation: 'Generic lambdas introduced in C++14 allow lambda parameters to use auto, making them work with multiple types without explicit template syntax. This enables writing more flexible and reusable lambda expressions.',
+        useCase: 'Perfect for creating reusable lambda expressions that work with multiple types, especially useful in STL algorithms and functional programming patterns.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/lambda'
+    },
+    {
+        id: 'variable-templates',
+        title: 'Variable Templates',
+        standard: 'cpp14',
+        description: 'Template variables for compile-time constants and type traits',
+        codeExample: `#include <iostream>
 #include <type_traits>
 
 // Variable template for mathematical constants
@@ -114,16 +114,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'Variable templates allow you to create template variables, making it easier to define compile-time constants and simplify type trait usage. They provide a more concise syntax compared to traditional approaches.',
-    useCase: 'Ideal for mathematical constants that need different precision for different types, and for creating more readable type trait checks in template metaprogramming.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/variable_template'
-  },
-  {
-    id: 'return-type-deduction',
-    title: 'Return Type Deduction',
-    standard: 'cpp14',
-    description: 'Automatic deduction of function return types using auto',
-    codeExample: `#include <iostream>
+        explanation: 'Variable templates allow you to create template variables, making it easier to define compile-time constants and simplify type trait usage. They provide a more concise syntax compared to traditional approaches.',
+        useCase: 'Ideal for mathematical constants that need different precision for different types, and for creating more readable type trait checks in template metaprogramming.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/variable_template'
+    },
+    {
+        id: 'return-type-deduction',
+        title: 'Return Type Deduction',
+        standard: 'cpp14',
+        description: 'Automatic deduction of function return types using auto',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <string>
 
@@ -210,16 +210,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'C++14 extended auto return type deduction to regular functions (not just lambdas). The compiler automatically deduces the return type from return statements, making code more maintainable and enabling easier refactoring.',
-    useCase: 'Excellent for template functions where the return type depends on template parameters, and for simplifying function signatures when the return type is obvious from the implementation.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/function#Return_type_deduction'
-  },
-  {
-    id: 'std-make-unique',
-    title: 'std::make_unique',
-    standard: 'cpp14',
-    description: 'Safe and efficient creation of unique_ptr objects',
-    codeExample: `#include <iostream>
+        explanation: 'C++14 extended auto return type deduction to regular functions (not just lambdas). The compiler automatically deduces the return type from return statements, making code more maintainable and enabling easier refactoring.',
+        useCase: 'Excellent for template functions where the return type depends on template parameters, and for simplifying function signatures when the return type is obvious from the implementation.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/function#Return_type_deduction'
+    },
+    {
+        id: 'std-make-unique',
+        title: 'std::make_unique',
+        standard: 'cpp14',
+        description: 'Safe and efficient creation of unique_ptr objects',
+        codeExample: `#include <iostream>
 #include <memory>
 #include <vector>
 #include <string>
@@ -464,18 +464,18 @@ int main() {
     return 0;
     // All unique_ptrs automatically clean up here
 }`,
-    explanation: 'std::make_unique provides a safe and efficient way to create std::unique_ptr objects. It offers exception safety, prevents memory leaks, and is more readable than using new directly. It also enables perfect forwarding of constructor arguments.',
-    useCase: 'Essential for modern C++ memory management, factory functions, RAII patterns, and any scenario where you need single ownership semantics. Prefer make_unique over direct new to ensure exception safety and cleaner code.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/memory/unique_ptr/make_unique'
-  },
+        explanation: 'std::make_unique provides a safe and efficient way to create std::unique_ptr objects. It offers exception safety, prevents memory leaks, and is more readable than using new directly. It also enables perfect forwarding of constructor arguments.',
+        useCase: 'Essential for modern C++ memory management, factory functions, RAII patterns, and any scenario where you need single ownership semantics. Prefer make_unique over direct new to ensure exception safety and cleaner code.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/memory/unique_ptr/make_unique'
+    },
 
-  // C++17 Features (Enhanced with more detailed comments)
-  {
-    id: 'structured-bindings',
-    title: 'Structured Bindings',
-    standard: 'cpp17',
-    description: 'Decompose objects into individual variables',
-    codeExample: `#include <tuple>
+    // C++17 Features (Enhanced with more detailed comments)
+    {
+        id: 'structured-bindings',
+        title: 'Structured Bindings',
+        standard: 'cpp17',
+        description: 'Decompose objects into individual variables',
+        codeExample: `#include <tuple>
 #include <map>
 #include <iostream>
 #include <array>
@@ -554,16 +554,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'Structured bindings allow you to decompose objects like tuples, pairs, arrays, and structs into individual named variables in a single declaration. This feature makes code more readable by eliminating the need for std::get<> or manual member access.',
-    useCase: 'Perfect for unpacking return values from functions that return multiple values, iterating over maps with readable key-value names, and working with structured data without verbose syntax.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/structured_binding'
-  },
-  {
-    id: 'std-optional',
-    title: 'std::optional',
-    standard: 'cpp17',
-    description: 'Represent values that may or may not exist',
-    codeExample: `#include <optional>
+        explanation: 'Structured bindings allow you to decompose objects like tuples, pairs, arrays, and structs into individual named variables in a single declaration. This feature makes code more readable by eliminating the need for std::get<> or manual member access.',
+        useCase: 'Perfect for unpacking return values from functions that return multiple values, iterating over maps with readable key-value names, and working with structured data without verbose syntax.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/structured_binding'
+    },
+    {
+        id: 'std-optional',
+        title: 'std::optional',
+        standard: 'cpp17',
+        description: 'Represent values that may or may not exist',
+        codeExample: `#include <optional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -673,16 +673,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'std::optional represents a value that may or may not be present, providing a type-safe alternative to null pointers or special sentinel values. It eliminates the ambiguity of whether a function succeeded or failed, making error handling more explicit and safer.',
-    useCase: 'Ideal for functions that may fail to return a meaningful value (like parsing, searching, or mathematical operations), configuration values that might not be set, and any scenario where you want to avoid exceptions or null pointer issues.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/optional'
-  },
-  {
-    id: 'if-constexpr',
-    title: 'if constexpr',
-    standard: 'cpp17',
-    description: 'Conditional compilation based on compile-time conditions',
-    codeExample: `#include <iostream>
+        explanation: 'std::optional represents a value that may or may not be present, providing a type-safe alternative to null pointers or special sentinel values. It eliminates the ambiguity of whether a function succeeded or failed, making error handling more explicit and safer.',
+        useCase: 'Ideal for functions that may fail to return a meaningful value (like parsing, searching, or mathematical operations), configuration values that might not be set, and any scenario where you want to avoid exceptions or null pointer issues.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/utility/optional'
+    },
+    {
+        id: 'if-constexpr',
+        title: 'if constexpr',
+        standard: 'cpp17',
+        description: 'Conditional compilation based on compile-time conditions',
+        codeExample: `#include <iostream>
 #include <type_traits>
 #include <vector>
 #include <string>
@@ -815,16 +815,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'if constexpr allows conditional compilation based on compile-time conditions, enabling different code paths without template specialization. Unlike regular if statements, only the matching branch is compiled, preventing compilation errors in unused branches and enabling more efficient generic code.',
-    useCase: 'Essential for writing generic code that behaves differently based on type traits, template parameters, or other compile-time conditions. Perfect for creating type-safe generic algorithms and avoiding the complexity of SFINAE or template specialization.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/if'
-  },
-  {
-    id: 'std-string-view',
-    title: 'std::string_view',
-    standard: 'cpp17',
-    description: 'Non-owning string references for efficient string operations',
-    codeExample: `#include <iostream>
+        explanation: 'if constexpr allows conditional compilation based on compile-time conditions, enabling different code paths without template specialization. Unlike regular if statements, only the matching branch is compiled, preventing compilation errors in unused branches and enabling more efficient generic code.',
+        useCase: 'Essential for writing generic code that behaves differently based on type traits, template parameters, or other compile-time conditions. Perfect for creating type-safe generic algorithms and avoiding the complexity of SFINAE or template specialization.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/if'
+    },
+    {
+        id: 'std-string-view',
+        title: 'std::string_view',
+        standard: 'cpp17',
+        description: 'Non-owning string references for efficient string operations',
+        codeExample: `#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -938,16 +938,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'std::string_view provides a non-owning reference to a string, allowing efficient string operations without copying data. It can reference any contiguous sequence of characters and provides a read-only view into existing string data.',
-    useCase: 'Perfect for function parameters that only read strings, parsing operations where you need to extract substrings without copying, and APIs that work with multiple string types. Essential for performance-critical code that processes large amounts of text.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/string/basic_string_view'
-  },
-  {
-    id: 'std-variant',
-    title: 'std::variant',
-    standard: 'cpp17',
-    description: 'Type-safe union for holding values of different types',
-    codeExample: `#include <iostream>
+        explanation: 'std::string_view provides a non-owning reference to a string, allowing efficient string operations without copying data. It can reference any contiguous sequence of characters and provides a read-only view into existing string data.',
+        useCase: 'Perfect for function parameters that only read strings, parsing operations where you need to extract substrings without copying, and APIs that work with multiple string types. Essential for performance-critical code that processes large amounts of text.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/string/basic_string_view'
+    },
+    {
+        id: 'std-variant',
+        title: 'std::variant',
+        standard: 'cpp17',
+        description: 'Type-safe union for holding values of different types',
+        codeExample: `#include <iostream>
 #include <string>
 #include <variant>
 #include <vector>
@@ -1077,16 +1077,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'std::variant is a type-safe union that can hold a value of one of several specified types. It knows which type it currently holds and provides safe access mechanisms. Combined with std::visit, it enables powerful pattern matching and visitor patterns.',
-    useCase: 'Excellent for representing data that can be one of several types (like JSON values), implementing state machines, error handling without exceptions, and building recursive data structures like expression trees or parsers.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/variant'
-  },
-  {
-    id: 'std-any',
-    title: 'std::any',
-    standard: 'cpp17',
-    description: 'Type-safe container for single values of any type',
-    codeExample: `#include <iostream>
+        explanation: 'std::variant is a type-safe union that can hold a value of one of several specified types. It knows which type it currently holds and provides safe access mechanisms. Combined with std::visit, it enables powerful pattern matching and visitor patterns.',
+        useCase: 'Excellent for representing data that can be one of several types (like JSON values), implementing state machines, error handling without exceptions, and building recursive data structures like expression trees or parsers.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/utility/variant'
+    },
+    {
+        id: 'std-any',
+        title: 'std::any',
+        standard: 'cpp17',
+        description: 'Type-safe container for single values of any type',
+        codeExample: `#include <iostream>
 #include <any>
 #include <string>
 #include <vector>
@@ -1338,18 +1338,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'std::any can hold any type of value and provides type-safe access to the stored value. Unlike std::variant which has a fixed set of possible types, std::any can store any type, making it useful for dynamic typing scenarios, plugin systems, and generic data containers.',
-    useCase: 'Perfect for configuration systems, event handling with diverse payload types, plugin interfaces, scripting language bindings, and any scenario where you need to store and retrieve values of unknown types at compile time.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/any'
-  },
+        explanation: 'std::any can hold any type of value and provides type-safe access to the stored value. Unlike std::variant which has a fixed set of possible types, std::any can store any type, making it useful for dynamic typing scenarios, plugin systems, and generic data containers.',
+        useCase: 'Perfect for configuration systems, event handling with diverse payload types, plugin interfaces, scripting language bindings, and any scenario where you need to store and retrieve values of unknown types at compile time.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/utility/any'
+    },
 
-  // C++20 Features (Enhanced)
-  {
-    id: 'concepts',
-    title: 'Concepts',
-    standard: 'cpp20',
-    description: 'Constrain template parameters with semantic requirements',
-    codeExample: `#include <iostream>
+    // C++20 Features (Enhanced)
+    {
+        id: 'concepts',
+        title: 'Concepts',
+        standard: 'cpp20',
+        description: 'Constrain template parameters with semantic requirements',
+        codeExample: `#include <iostream>
 #include <concepts>
 #include <string>
 #include <vector>
@@ -1527,16 +1527,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'Concepts provide a way to specify requirements on template parameters, making templates more readable and providing better error messages. They allow you to express what operations a type must support, leading to more self-documenting and maintainable generic code.',
-    useCase: 'Essential for creating self-documenting generic code with clear constraints, better compilation errors, and enabling concept-based overloading. Perfect for library development where you need to clearly specify what types are acceptable.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/constraints'
-  },
-  {
-    id: 'ranges',
-    title: 'Ranges Library',
-    standard: 'cpp20',
-    description: 'Composable algorithms and lazy evaluation',
-    codeExample: `#include <iostream>
+        explanation: 'Concepts provide a way to specify requirements on template parameters, making templates more readable and providing better error messages. They allow you to express what operations a type must support, leading to more self-documenting and maintainable generic code.',
+        useCase: 'Essential for creating self-documenting generic code with clear constraints, better compilation errors, and enabling concept-based overloading. Perfect for library development where you need to clearly specify what types are acceptable.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/constraints'
+    },
+    {
+        id: 'ranges',
+        title: 'Ranges Library',
+        standard: 'cpp20',
+        description: 'Composable algorithms and lazy evaluation',
+        codeExample: `#include <iostream>
 #include <ranges>
 #include <vector>
 #include <string>
@@ -1697,16 +1697,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'The Ranges library provides a new way to work with sequences of data using composable views and algorithms. Views are lazy - they don\'t perform computation until you iterate over them, enabling efficient chaining of operations and working with infinite sequences.',
-    useCase: 'Enables functional programming patterns with lazy evaluation, making complex data transformations more readable and efficient. Perfect for data processing pipelines, filtering and transforming collections, and working with large datasets where you only need part of the result.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
-  },
-  {
-    id: 'std-span',
-    title: 'std::span',
-    standard: 'cpp20',
-    description: 'Non-owning view over a contiguous sequence of objects',
-    codeExample: `#include <iostream>
+        explanation: 'The Ranges library provides a new way to work with sequences of data using composable views and algorithms. Views are lazy - they don\'t perform computation until you iterate over them, enabling efficient chaining of operations and working with infinite sequences.',
+        useCase: 'Enables functional programming patterns with lazy evaluation, making complex data transformations more readable and efficient. Perfect for data processing pipelines, filtering and transforming collections, and working with large datasets where you only need part of the result.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
+    },
+    {
+        id: 'std-span',
+        title: 'std::span',
+        standard: 'cpp20',
+        description: 'Non-owning view over a contiguous sequence of objects',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <array>
 #include <span>
@@ -1868,16 +1868,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'std::span provides a non-owning view over a contiguous sequence of objects, similar to string_view but for any type. It encapsulates a pointer and size, providing safe access to arrays, vectors, and other contiguous containers without owning the memory.',
-    useCase: 'Perfect for function parameters that work with any contiguous container, safe array manipulation, implementing views over data structures (like matrix rows), and avoiding raw pointer parameters in APIs while maintaining performance.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/container/span'
-  },
-  {
-    id: 'consteval',
-    title: 'consteval',
-    standard: 'cpp20',
-    description: 'Immediate functions that must be evaluated at compile time',
-    codeExample: `#include <iostream>
+        explanation: 'std::span provides a non-owning view over a contiguous sequence of objects, similar to string_view but for any type. It encapsulates a pointer and size, providing safe access to arrays, vectors, and other contiguous containers without owning the memory.',
+        useCase: 'Perfect for function parameters that work with any contiguous container, safe array manipulation, implementing views over data structures (like matrix rows), and avoiding raw pointer parameters in APIs while maintaining performance.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/container/span'
+    },
+    {
+        id: 'consteval',
+        title: 'consteval',
+        standard: 'cpp20',
+        description: 'Immediate functions that must be evaluated at compile time',
+        codeExample: `#include <iostream>
 #include <string_view>
 #include <array>
 
@@ -2071,18 +2071,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'consteval declares immediate functions that must be evaluated at compile time. Unlike constexpr functions that can run at either compile time or runtime, consteval functions are guaranteed to execute during compilation, making them perfect for compile-time computations and validation.',
-    useCase: 'Essential for compile-time configuration, validation of template parameters, generating compile-time constants, implementing compile-time parsers or DSLs, and ensuring certain computations never impact runtime performance.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/consteval'
-  },
+        explanation: 'consteval declares immediate functions that must be evaluated at compile time. Unlike constexpr functions that can run at either compile time or runtime, consteval functions are guaranteed to execute during compilation, making them perfect for compile-time computations and validation.',
+        useCase: 'Essential for compile-time configuration, validation of template parameters, generating compile-time constants, implementing compile-time parsers or DSLs, and ensuring certain computations never impact runtime performance.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/consteval'
+    },
 
-  // C++23 Features (Enhanced)
-  {
-    id: 'std-expected',
-    title: 'std::expected',
-    standard: 'cpp23',
-    description: 'Type-safe error handling without exceptions',
-    codeExample: `#include <expected>
+    // C++23 Features (Enhanced)
+    {
+        id: 'std-expected',
+        title: 'std::expected',
+        standard: 'cpp23',
+        description: 'Type-safe error handling without exceptions',
+        codeExample: `#include <expected>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -2328,16 +2328,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'std::expected provides a type-safe way to handle operations that can fail, containing either a value or an error. Unlike exceptions, errors are part of the type system, making error handling explicit and allowing you to know exactly what can go wrong and why.',
-    useCase: 'Perfect for error handling in systems where exceptions are not desired, APIs that can fail in predictable ways, parsing operations, file I/O, network operations, and any scenario where you want explicit, type-safe error handling with detailed error information.',
-    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/expected'
-  },
-  {
-    id: 'ranges-to',
-    title: 'std::ranges::to',
-    standard: 'cpp23',
-    description: 'Convert range views directly into containers with std::ranges::to.',
-    codeExample: `#include <ranges>
+        explanation: 'std::expected provides a type-safe way to handle operations that can fail, containing either a value or an error. Unlike exceptions, errors are part of the type system, making error handling explicit and allowing you to know exactly what can go wrong and why.',
+        useCase: 'Perfect for error handling in systems where exceptions are not desired, APIs that can fail in predictable ways, parsing operations, file I/O, network operations, and any scenario where you want explicit, type-safe error handling with detailed error information.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/utility/expected'
+    },
+    {
+        id: 'ranges-to',
+        title: 'std::ranges::to',
+        standard: 'cpp23',
+        description: 'Convert range views directly into containers with std::ranges::to.',
+        codeExample: `#include <ranges>
 #include <vector>
 #include <set>
 #include <iostream>
@@ -2354,18 +2354,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'std::ranges::to provides a convenient way to materialize range views into concrete containers. This eliminates the need for manual iteration or using algorithms like std::copy to convert lazy range views into actual container objects.',
-    useCase: `Essential for converting the result of range operations into specific container types for storage, further processing, or API compatibility. Perfect for data processing pipelines where you need the final result in a particular container format, and for performance-critical code where you want to minimize intermediate allocations.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
-  },
+        explanation: 'std::ranges::to provides a convenient way to materialize range views into concrete containers. This eliminates the need for manual iteration or using algorithms like std::copy to convert lazy range views into actual container objects.',
+        useCase: `Essential for converting the result of range operations into specific container types for storage, further processing, or API compatibility. Perfect for data processing pipelines where you need the final result in a particular container format, and for performance-critical code where you want to minimize intermediate allocations.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/ranges'
+    },
 
-  // === TEMPLATE METAPROGRAMMING FEATURES ===
-  {
-    id: 'template-basics',
-    title: 'Template Fundamentals',
-    standard: 'templates',
-    description: 'Master the fundamentals of C++ templates including function templates, class templates, and template specialization.',
-    codeExample: `#include <iostream>
+    // === TEMPLATE METAPROGRAMMING FEATURES ===
+    {
+        id: 'template-basics',
+        title: 'Template Fundamentals',
+        standard: 'templates',
+        description: 'Master the fundamentals of C++ templates including function templates, class templates, and template specialization.',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <string>
 #include <type_traits>
@@ -2446,16 +2446,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Templates are C++'s mechanism for generic programming, allowing you to write code that works with multiple types while maintaining type safety and performance. Function templates enable generic algorithms, class templates create generic data structures, and template specialization allows customization for specific types. Templates are resolved at compile time, resulting in zero runtime overhead.`,
-    useCase: `Templates are fundamental to modern C++ libraries like STL. Use function templates for generic algorithms (sorting, searching), class templates for containers and smart pointers, and specialization for type-specific optimizations. Essential for library development and performance-critical generic code.`
-  },
+        explanation: `Templates are C++'s mechanism for generic programming, allowing you to write code that works with multiple types while maintaining type safety and performance. Function templates enable generic algorithms, class templates create generic data structures, and template specialization allows customization for specific types. Templates are resolved at compile time, resulting in zero runtime overhead.`,
+        useCase: `Templates are fundamental to modern C++ libraries like STL. Use function templates for generic algorithms (sorting, searching), class templates for containers and smart pointers, and specialization for type-specific optimizations. Essential for library development and performance-critical generic code.`
+    },
 
-  {
-    id: 'sfinae-concepts',
-    title: 'SFINAE and Modern Concepts',
-    standard: 'templates',
-    description: 'Learn Substitution Failure Is Not An Error (SFINAE) techniques and how modern concepts provide cleaner template constraints.',
-    codeExample: `#include <iostream>
+    {
+        id: 'sfinae-concepts',
+        title: 'SFINAE and Modern Concepts',
+        standard: 'templates',
+        description: 'Learn Substitution Failure Is Not An Error (SFINAE) techniques and how modern concepts provide cleaner template constraints.',
+        codeExample: `#include <iostream>
 #include <type_traits>
 #include <concepts>
 #include <vector>
@@ -2563,16 +2563,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: `SFINAE (Substitution Failure Is Not An Error) is a C++ technique that allows template specialization based on whether certain expressions are valid. When template argument substitution fails, the compiler doesn't generate an error but instead removes that template from consideration. Modern C++20 concepts provide a cleaner, more readable way to constrain templates with better error messages.`,
-    useCase: `SFINAE is crucial for creating flexible template libraries that adapt to different types. Use it for type detection, conditional compilation, and creating different implementations based on type properties. Modern concepts make template constraints self-documenting and provide much clearer error messages than SFINAE.`
-  },
+        explanation: `SFINAE (Substitution Failure Is Not An Error) is a C++ technique that allows template specialization based on whether certain expressions are valid. When template argument substitution fails, the compiler doesn't generate an error but instead removes that template from consideration. Modern C++20 concepts provide a cleaner, more readable way to constrain templates with better error messages.`,
+        useCase: `SFINAE is crucial for creating flexible template libraries that adapt to different types. Use it for type detection, conditional compilation, and creating different implementations based on type properties. Modern concepts make template constraints self-documenting and provide much clearer error messages than SFINAE.`
+    },
 
-  {
-    id: 'variadic-templates',
-    title: 'Variadic Templates and Perfect Forwarding',
-    standard: 'templates',
-    description: 'Master variadic templates for handling variable numbers of arguments and perfect forwarding for efficient parameter passing.',
-    codeExample: `#include <iostream>
+    {
+        id: 'variadic-templates',
+        title: 'Variadic Templates and Perfect Forwarding',
+        standard: 'templates',
+        description: 'Master variadic templates for handling variable numbers of arguments and perfect forwarding for efficient parameter passing.',
+        codeExample: `#include <iostream>
 #include <memory>
 #include <utility>
 #include <string>
@@ -2704,17 +2704,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Variadic templates allow functions and classes to accept a variable number of template arguments. Perfect forwarding preserves the value category (lvalue/rvalue) of arguments when passing them to other functions, enabling efficient generic wrappers. C++17 fold expressions provide a concise way to apply operations to parameter packs.`,
-    useCase: `Variadic templates are essential for generic factory functions, logging systems, and container constructors. Perfect forwarding is crucial for wrapper functions, factory methods, and any code that needs to preserve argument semantics. Used extensively in standard library functions like std::make_unique and std::forward.`
-  },
+        explanation: `Variadic templates allow functions and classes to accept a variable number of template arguments. Perfect forwarding preserves the value category (lvalue/rvalue) of arguments when passing them to other functions, enabling efficient generic wrappers. C++17 fold expressions provide a concise way to apply operations to parameter packs.`,
+        useCase: `Variadic templates are essential for generic factory functions, logging systems, and container constructors. Perfect forwarding is crucial for wrapper functions, factory methods, and any code that needs to preserve argument semantics. Used extensively in standard library functions like std::make_unique and std::forward.`
+    },
 
-  // === PERFORMANCE OPTIMIZATION FEATURES ===
-  {
-    id: 'memory-layout-optimization',
-    title: 'Memory Layout & Cache Optimization',
-    standard: 'performance',
-    description: 'Optimize data structures for cache performance and memory access patterns',
-    codeExample: `#include <iostream>
+    // === PERFORMANCE OPTIMIZATION FEATURES ===
+    {
+        id: 'memory-layout-optimization',
+        title: 'Memory Layout & Cache Optimization',
+        standard: 'performance',
+        description: 'Optimize data structures for cache performance and memory access patterns',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <chrono>
 #include <memory>
@@ -2847,15 +2847,15 @@ int main() {
     benchmark_memory_access();
     return 0;
 }`,
-    explanation: 'Memory layout optimization is crucial for high-performance applications. Structure of Arrays (SoA) provides better cache locality than Array of Structures (AoS) when processing specific fields. Proper alignment reduces memory waste and enables SIMD optimizations, while cache-line awareness prevents false sharing in multi-threaded code.',
-    useCase: 'Essential for high-frequency trading systems, game engines, scientific computing, and any performance-critical application where memory access patterns significantly impact performance. Critical for SIMD vectorization and multi-threaded applications.'
-  },
-  {
-    id: 'lock-free-programming',
-    title: 'Lock-Free Programming & Atomics',
-    standard: 'performance',
-    description: 'Implement high-performance concurrent data structures without locks',
-    codeExample: `#include <atomic>
+        explanation: 'Memory layout optimization is crucial for high-performance applications. Structure of Arrays (SoA) provides better cache locality than Array of Structures (AoS) when processing specific fields. Proper alignment reduces memory waste and enables SIMD optimizations, while cache-line awareness prevents false sharing in multi-threaded code.',
+        useCase: 'Essential for high-frequency trading systems, game engines, scientific computing, and any performance-critical application where memory access patterns significantly impact performance. Critical for SIMD vectorization and multi-threaded applications.'
+    },
+    {
+        id: 'lock-free-programming',
+        title: 'Lock-Free Programming & Atomics',
+        standard: 'performance',
+        description: 'Implement high-performance concurrent data structures without locks',
+        codeExample: `#include <atomic>
 #include <memory>
 #include <iostream>
 #include <thread>
@@ -3088,15 +3088,15 @@ int main() {
     test_lock_free_queue();
     return 0;
 }`,
-    explanation: 'Lock-free programming uses atomic operations and memory ordering to achieve thread safety without locks, eliminating contention and improving scalability. Compare-and-swap operations enable lock-free data structures, while different memory orderings provide trade-offs between performance and synchronization guarantees.',
-    useCase: 'Critical for high-frequency trading systems, real-time applications, and high-throughput servers where lock contention would be a bottleneck. Essential for building scalable concurrent data structures and minimizing latency in multi-threaded applications.'
-  },
-  {
-    id: 'simd-vectorization',
-    title: 'SIMD Vectorization & Intrinsics',
-    standard: 'performance',
-    description: 'Leverage CPU vector instructions for parallel data processing',
-    codeExample: `#include <immintrin.h>  // Intel intrinsics
+        explanation: 'Lock-free programming uses atomic operations and memory ordering to achieve thread safety without locks, eliminating contention and improving scalability. Compare-and-swap operations enable lock-free data structures, while different memory orderings provide trade-offs between performance and synchronization guarantees.',
+        useCase: 'Critical for high-frequency trading systems, real-time applications, and high-throughput servers where lock contention would be a bottleneck. Essential for building scalable concurrent data structures and minimizing latency in multi-threaded applications.'
+    },
+    {
+        id: 'simd-vectorization',
+        title: 'SIMD Vectorization & Intrinsics',
+        standard: 'performance',
+        description: 'Leverage CPU vector instructions for parallel data processing',
+        codeExample: `#include <immintrin.h>  // Intel intrinsics
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -3329,15 +3329,15 @@ int main() {
     benchmark_simd_operations();
     return 0;
 }`,
-    explanation: 'SIMD (Single Instruction, Multiple Data) vectorization allows processing multiple data elements simultaneously using specialized CPU instructions. AVX instructions can process 8 floats or 4 doubles in parallel, providing significant speedups for mathematical operations, financial calculations, and data processing tasks.',
-    useCase: 'Essential for high-frequency trading algorithms, real-time signal processing, scientific computing, and any application requiring high-throughput mathematical operations. Critical for market data processing, risk calculations, and algorithmic trading strategies where microsecond performance matters.'
-  },
-  {
-    id: 'branch-prediction-optimization',
-    title: 'Branch Prediction & CPU Optimization',
-    standard: 'performance',
-    description: 'Optimize code for modern CPU architectures using branch prediction hints, instruction pipelining, and micro-optimizations.',
-    codeExample: `#include <iostream>
+        explanation: 'SIMD (Single Instruction, Multiple Data) vectorization allows processing multiple data elements simultaneously using specialized CPU instructions. AVX instructions can process 8 floats or 4 doubles in parallel, providing significant speedups for mathematical operations, financial calculations, and data processing tasks.',
+        useCase: 'Essential for high-frequency trading algorithms, real-time signal processing, scientific computing, and any application requiring high-throughput mathematical operations. Critical for market data processing, risk calculations, and algorithmic trading strategies where microsecond performance matters.'
+    },
+    {
+        id: 'branch-prediction-optimization',
+        title: 'Branch Prediction & CPU Optimization',
+        standard: 'performance',
+        description: 'Optimize code for modern CPU architectures using branch prediction hints, instruction pipelining, and micro-optimizations.',
+        codeExample: `#include <iostream>
 #include <type_traits>
 #include <vector>
 #include <chrono>
@@ -3551,16 +3551,16 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Modern CPUs use sophisticated techniques like branch prediction, instruction pipelining, and multi-level caches. By understanding these mechanisms, we can write code that works with the CPU rather than against it. Branch prediction hints help the CPU make better guesses about which branches will be taken. Cache-friendly memory access patterns reduce memory latency. Function inlining eliminates call overhead for hot paths.`,
-    useCase: `Critical for high-frequency trading, game engines, scientific computing, and any performance-critical application. Use branch hints for predictable conditional code, optimize memory access patterns for large datasets, and inline hot functions. These techniques can provide 2-10x performance improvements in CPU-bound code.`
-  },
+        explanation: `Modern CPUs use sophisticated techniques like branch prediction, instruction pipelining, and multi-level caches. By understanding these mechanisms, we can write code that works with the CPU rather than against it. Branch prediction hints help the CPU make better guesses about which branches will be taken. Cache-friendly memory access patterns reduce memory latency. Function inlining eliminates call overhead for hot paths.`,
+        useCase: `Critical for high-frequency trading, game engines, scientific computing, and any performance-critical application. Use branch hints for predictable conditional code, optimize memory access patterns for large datasets, and inline hot functions. These techniques can provide 2-10x performance improvements in CPU-bound code.`
+    },
 
-  {
-    id: 'zero-cost-abstractions',
-    title: 'Zero-Cost Abstractions & CRTP',
-    standard: 'performance',
-    description: 'Design high-level abstractions that compile down to optimal machine code with no runtime overhead.',
-    codeExample: `#include <iostream>
+    {
+        id: 'zero-cost-abstractions',
+        title: 'Zero-Cost Abstractions & CRTP',
+        standard: 'performance',
+        description: 'Design high-level abstractions that compile down to optimal machine code with no runtime overhead.',
+        codeExample: `#include <iostream>
 #include <chrono>
 #include <memory>
 #include <vector>
@@ -3923,346 +3923,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: 'Advanced template metaprogramming enables compile-time computation, type manipulation, and code generation. Modern C++20 concepts provide cleaner syntax than SFINAE, while expression templates enable lazy evaluation for mathematical operations. Compile-time string processing and type lists enable sophisticated generic programming patterns.',
-    useCase: 'Essential for high-performance libraries, domain-specific languages embedded in C++, mathematical libraries with zero-cost abstractions, and systems where compile-time optimization is crucial. Perfect for financial modeling libraries, game engines, and scientific computing frameworks.'
-  },
-  {
-    id: 'zero-cost-abstractions',
-    title: 'Zero-Cost Abstractions & Optimization',
-    standard: 'cpp20',
-    description: 'Design high-level abstractions that compile to optimal machine code',
-    codeExample: `#include <iostream>
-#include <vector>
-#include <chrono>
-#include <memory>
-#include <type_traits>
-#include <concepts>
+        explanation: 'Advanced template metaprogramming enables compile-time computation, type manipulation, and code generation. Modern C++20 concepts provide cleaner syntax than SFINAE, while expression templates enable lazy evaluation for mathematical operations. Compile-time string processing and type lists enable sophisticated generic programming patterns.',
+        useCase: 'Essential for high-performance libraries, domain-specific languages embedded in C++, mathematical libraries with zero-cost abstractions, and systems where compile-time optimization is crucial. Perfect for financial modeling libraries, game engines, and scientific computing frameworks.'
+    },
 
-// === ZERO-COST WRAPPER TYPES ===
-
-// Strong type wrapper with zero runtime cost
-template<typename T, typename Tag>
-class StrongType {
-private:
-    T value_;
-    
-public:
-    explicit constexpr StrongType(T value) : value_(value) {}
-    
-    constexpr T get() const { return value_; }
-    constexpr T& get() { return value_; }
-    
-    // Arithmetic operations (when applicable)
-    constexpr StrongType operator+(const StrongType& other) const 
-        requires std::is_arithmetic_v<T> {
-        return StrongType{value_ + other.value_};
-    }
-    
-    constexpr StrongType operator*(const StrongType& other) const 
-        requires std::is_arithmetic_v<T> {
-        return StrongType{value_ * other.value_};
-    }
-    
-    constexpr bool operator<(const StrongType& other) const {
-        return value_ < other.value_;
-    }
-    
-    constexpr bool operator==(const StrongType& other) const {
-        return value_ == other.value_;
-    }
-};
-
-// Type-safe financial types
-struct PriceTag {};
-struct QuantityTag {};
-struct TimestampTag {};
-
-using Price = StrongType<double, PriceTag>;
-using Quantity = StrongType<int64_t, QuantityTag>;
-using Timestamp = StrongType<uint64_t, TimestampTag>;
-
-// === COMPILE-TIME POLYMORPHISM ===
-
-// Strategy pattern with zero runtime cost
-template<typename Strategy>
-class TradingEngine {
-private:
-    Strategy strategy_;
-    
-public:
-    explicit TradingEngine(Strategy strategy) : strategy_(strategy) {}
-    
-    // This call will be inlined completely
-    auto execute_trade(Price price, Quantity quantity) {
-        return strategy_.calculate_order(price, quantity);
-    }
-    
-    auto calculate_risk(Price price, Quantity quantity) {
-        return strategy_.assess_risk(price, quantity);
-    }
-};
-
-// Different trading strategies
-struct AggressiveStrategy {
-    constexpr double calculate_order(Price price, Quantity qty) const {
-        return price.get() * qty.get() * 1.05;  // 5% premium for speed
-    }
-    
-    constexpr double assess_risk(Price price, Quantity qty) const {
-        return price.get() * qty.get() * 0.02;  // 2% risk
-    }
-};
-
-struct ConservativeStrategy {
-    constexpr double calculate_order(Price price, Quantity qty) const {
-        return price.get() * qty.get() * 0.98;  // 2% discount for safety
-    }
-    
-    constexpr double assess_risk(Price price, Quantity qty) const {
-        return price.get() * qty.get() * 0.005; // 0.5% risk
-    }
-};
-
-// === CRTP FOR ZERO-COST INHERITANCE ===
-
-template<typename Derived>
-class OrderBookBase {
-public:
-    void add_order(Price price, Quantity quantity) {
-        static_cast<Derived*>(this)->add_order_impl(price, quantity);
-    }
-    
-    Price get_best_bid() const {
-        return static_cast<const Derived*>(this)->get_best_bid_impl();
-    }
-    
-    Price get_best_ask() const {
-        return static_cast<const Derived*>(this)->get_best_ask_impl();
-    }
-    
-    // Template method pattern with zero virtual call overhead
-    double calculate_spread() const {
-        auto bid = get_best_bid();
-        auto ask = get_best_ask();
-        return ask.get() - bid.get();
-    }
-};
-
-class FastOrderBook : public OrderBookBase<FastOrderBook> {
-private:
-    Price best_bid_{0.0};
-    Price best_ask_{1000000.0};
-    
-public:
-    void add_order_impl(Price price, Quantity quantity) {
-        // Simplified: just update best prices
-        if (quantity.get() > 0) {  // Buy order
-            if (price > best_bid_) {
-                best_bid_ = price;
-            }
-        } else {  // Sell order
-            if (price < best_ask_) {
-                best_ask_ = price;
-            }
-        }
-    }
-    
-    Price get_best_bid_impl() const { return best_bid_; }
-    Price get_best_ask_impl() const { return best_ask_; }
-};
-
-// === CONSTEXPR ALGORITHMS ===
-
-// Compile-time sorting for lookup tables
-template<typename T, size_t N>
-constexpr void bubble_sort(std::array<T, N>& arr) {
-    for (size_t i = 0; i < N - 1; ++i) {
-        for (size_t j = 0; j < N - i - 1; ++j) {
-            if (arr[j] > arr[j + 1]) {
-                T temp = arr[j];
-                arr[j] = arr[j + 1];
-                arr[j + 1] = temp;
-            }
-        }
-    }
-}
-
-// Compile-time binary search
-template<typename T, size_t N>
-constexpr int binary_search(const std::array<T, N>& arr, T target) {
-    int left = 0, right = N - 1;
-    
-    while (left <= right) {
-        int mid = left + (right - left) / 2;
-        
-        if (arr[mid] == target) {
-            return mid;
-        } else if (arr[mid] < target) {
-            left = mid + 1;
-        } else {
-            right = mid - 1;
-        }
-    }
-    
-    return -1;  // Not found
-}
-
-// === INLINED FUNCTION OBJECTS ===
-
-// Custom allocator with zero overhead
-template<typename T>
-class StackAllocator {
-private:
-    static constexpr size_t STACK_SIZE = 1024 * 1024;  // 1MB stack
-    alignas(T) static thread_local char stack_[STACK_SIZE];
-    static thread_local size_t offset_;
-    
-public:
-    using value_type = T;
-    
-    T* allocate(size_t n) {
-        size_t bytes = n * sizeof(T);
-        if (offset_ + bytes > STACK_SIZE) {
-            throw std::bad_alloc{};
-        }
-        
-        T* result = reinterpret_cast<T*>(stack_ + offset_);
-        offset_ += bytes;
-        return result;
-    }
-    
-    void deallocate(T* ptr, size_t n) {
-        // Stack allocator: deallocation is no-op
-        // Memory is reclaimed when thread ends
-    }
-    
-    template<typename U>
-    bool operator==(const StackAllocator<U>&) const { return true; }
-};
-
-template<typename T>
-alignas(T) thread_local char StackAllocator<T>::stack_[StackAllocator<T>::STACK_SIZE];
-
-template<typename T>
-thread_local size_t StackAllocator<T>::offset_ = 0;
-
-// === PERFORMANCE BENCHMARKING ===
-
-void benchmark_zero_cost_abstractions() {
-    const int iterations = 10000000;
-    
-    std::cout << "=== Zero-Cost Abstraction Benchmarks ===\\n";
-    
-    // Benchmark 1: Strong types vs raw types
-    auto start = std::chrono::high_resolution_clock::now();
-    
-    double raw_sum = 0.0;
-    for (int i = 0; i < iterations; ++i) {
-        double price = 100.0 + (i % 100) * 0.01;
-        int64_t qty = 100 + (i % 1000);
-        raw_sum += price * qty;
-    }
-    
-    auto end = std::chrono::high_resolution_clock::now();
-    auto raw_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    
-    start = std::chrono::high_resolution_clock::now();
-    
-    double strong_sum = 0.0;
-    for (int i = 0; i < iterations; ++i) {
-        Price price{100.0 + (i % 100) * 0.01};
-        Quantity qty{100 + (i % 1000)};
-        strong_sum += price.get() * qty.get();
-    }
-    
-    end = std::chrono::high_resolution_clock::now();
-    auto strong_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    
-    std::cout << "Strong Types vs Raw Types:\\n";
-    std::cout << "  Raw types: " << raw_time.count() << " μs\\n";
-    std::cout << "  Strong types: " << strong_time.count() << " μs\\n";
-    std::cout << "  Overhead: " << (double)strong_time.count() / raw_time.count() << "x\\n\\n";
-    
-    // Benchmark 2: CRTP vs Virtual functions
-    FastOrderBook order_book;
-    
-    start = std::chrono::high_resolution_clock::now();
-    
-    for (int i = 0; i < iterations / 1000; ++i) {
-        Price price{100.0 + (i % 100) * 0.01};
-        Quantity qty{100 + (i % 1000)};
-        order_book.add_order(price, qty);
-        volatile double spread = order_book.calculate_spread();  // Prevent optimization
-        (void)spread;
-    }
-    
-    end = std::chrono::high_resolution_clock::now();
-    auto crtp_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    
-    std::cout << "CRTP Performance:\\n";
-    std::cout << "  CRTP calls: " << crtp_time.count() << " μs\\n";
-    std::cout << "  (No virtual function overhead)\\n\\n";
-    
-    // Benchmark 3: Compile-time vs runtime algorithms
-    constexpr std::array<int, 10> lookup_table = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19};
-    
-    start = std::chrono::high_resolution_clock::now();
-    
-    int found_count = 0;
-    for (int i = 0; i < iterations / 1000; ++i) {
-        int target = (i % 20) + 1;
-        if (binary_search(lookup_table, target) != -1) {
-            found_count++;
-        }
-    }
-    
-    end = std::chrono::high_resolution_clock::now();
-    auto compile_time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    
-    std::cout << "Compile-time Binary Search:\\n";
-    std::cout << "  Time: " << compile_time.count() << " μs\\n";
-    std::cout << "  Found: " << found_count << " items\\n";
-    std::cout << "  (Lookup table sorted at compile time)\\n";
-}
-
-int main() {
-    std::cout << "=== Zero-Cost Abstractions Demo ===\\n\\n";
-    
-    // Demonstrate type safety with zero cost
-    Price stock_price{150.75};
-    Quantity order_size{1000};
-    
-    std::cout << "Type-safe calculations:\\n";
-    std::cout << "Stock price: $" << stock_price.get() << "\\n";
-    std::cout << "Order size: " << order_size.get() << " shares\\n";
-    
-    // Demonstrate strategy pattern with zero cost
-    TradingEngine aggressive_engine{AggressiveStrategy{}};
-    TradingEngine conservative_engine{ConservativeStrategy{}};
-    
-    auto aggressive_cost = aggressive_engine.execute_trade(stock_price, order_size);
-    auto conservative_cost = conservative_engine.execute_trade(stock_price, order_size);
-    
-    std::cout << "\\nTrading strategies (zero virtual call overhead):\\n";
-    std::cout << "Aggressive strategy cost: $" << aggressive_cost << "\\n";
-    std::cout << "Conservative strategy cost: $" << conservative_cost << "\\n\\n";
-    
-    // Run performance benchmarks
-    benchmark_zero_cost_abstractions();
-    
-    return 0;
-}`,
-    explanation: 'Zero-cost abstractions provide high-level programming constructs that compile down to the same machine code as hand-optimized low-level code. Strong types, CRTP, compile-time polymorphism, and constexpr algorithms enable type safety and expressiveness without runtime overhead, making C++ ideal for performance-critical systems.',
-    useCase: 'Critical for high-frequency trading systems, embedded systems, game engines, and any performance-critical application where abstraction cannot come at the cost of runtime performance. Essential for building maintainable yet optimal financial trading systems, real-time systems, and system-level programming.'
-  },
-
-  // === C++20 MODULES ===
-  {
-    id: 'modules',
-    title: 'C++ Modules',
-    standard: 'cpp20',
-    description: 'Modern module system replacing traditional header files with better encapsulation, faster compilation, and cleaner imports.',
-    codeExample: `// === BASIC MODULE EXAMPLE ===
+    // === C++20 MODULES ===
+    {
+        id: 'modules',
+        title: 'C++ Modules',
+        standard: 'cpp20',
+        description: 'Modern module system replacing traditional header files with better encapsulation, faster compilation, and cleaner imports.',
+        codeExample: `// === BASIC MODULE EXAMPLE ===
 
 // File: math_utils.cppm (module interface file)
 export module math_utils;
@@ -4282,14 +3953,14 @@ export double cube(double x) {
 
 // Export a class
 export class Calculator {
-private:
-    double last_result_ = 0.0;
-    
-public:
-    double add(double a, double b) {
-        last_result_ = a + b;
-        return last_result_;
-    }
+    private:
+        double last_result_ = 0.0;
+
+    public:
+        double add(double a, double b) {
+            last_result_ = a + b;
+            return last_result_;
+        }
     
     double multiply(double a, double b) {
         last_result_ = a * b;
@@ -4297,12 +3968,12 @@ public:
     }
     
     double power(double base, double exponent) {
-        last_result_ = std::pow(base, exponent);
+        last_result_ = std:: pow(base, exponent);
         return last_result_;
     }
     
     double get_last_result() const {
-        return last_result_;
+    return last_result_;
     }
 };
 
@@ -4314,8 +3985,8 @@ double internal_helper(double x) {
 // Export with different name
 export {
     double advanced_square(double x) {
-        return internal_helper(x * x);
-    }
+    return internal_helper(x * x);
+}
 }
 
 // Export namespace
@@ -4331,73 +4002,73 @@ export namespace constants {
 export module graphics;
 
 // Partition declarations
-export import :shapes;
-export import :colors;
-export import :rendering;
+export import : shapes;
+export import : colors;
+export import : rendering;
 
 // Main graphics interface
 export class Scene {
-public:
-    void render();
+    public:
+        void render();
     void add_shape(const Shape& shape);
-    void set_background_color(Color color);
+void set_background_color(Color color);
 };
 
 // File: graphics-shapes.cppm (module partition)
-export module graphics:shapes;
+export module graphics: shapes;
 
 import <vector>;
 import <memory>;
 
 export class Point {
-public:
-    double x, y;
-    Point(double x, double y) : x(x), y(y) {}
+    public:
+        double x, y;
+    Point(double x, double y): x(x), y(y) { }
 };
 
 export class Shape {
-public:
-    virtual ~Shape() = default;
+    public:
+        virtual ~Shape() = default ;
     virtual double area() const = 0;
     virtual void draw() const = 0;
 };
 
 export class Circle : public Shape {
-private:
+    private:
     Point center_;
     double radius_;
-    
-public:
+
+    public:
     Circle(Point center, double radius) 
-        : center_(center), radius_(radius) {}
+        : center_(center), radius_(radius) { }
     
     double area() const override {
         return 3.14159 * radius_ * radius_;
-    }
-    
-    void draw() const override {
-        std::cout << "Drawing circle at (" << center_.x 
-                  << ", " << center_.y << ") with radius " << radius_ << std::endl;
+}
+
+void draw() const override {
+    std:: cout << "Drawing circle at (" << center_.x
+        << ", " << center_.y << ") with radius " << radius_ << std:: endl;
     }
 };
 
 export class Rectangle : public Shape {
-private:
+    private:
     Point top_left_;
     double width_, height_;
-    
-public:
+
+    public:
     Rectangle(Point top_left, double width, double height)
-        : top_left_(top_left), width_(width), height_(height) {}
+        : top_left_(top_left), width_(width), height_(height) { }
     
     double area() const override {
         return width_ * height_;
-    }
-    
-    void draw() const override {
-        std::cout << "Drawing rectangle at (" << top_left_.x 
-                  << ", " << top_left_.y << ") size " 
-                  << width_ << "x" << height_ << std::endl;
+}
+
+void draw() const override {
+    std:: cout << "Drawing rectangle at (" << top_left_.x
+        << ", " << top_left_.y << ") size "
+        << width_ << "x" << height_ << std:: endl;
     }
 };
 
@@ -4409,47 +4080,47 @@ import <vector>;
 import <memory>;
 
 int main() {
-    std::cout << "=== C++ Modules Demo ===\\n\\n";
-    
+    std:: cout << "=== C++ Modules Demo ===\\n\\n";
+
     // Using basic module functions
-    std::cout << "=== Math Utils Module ===\\n";
-    std::cout << "square(5) = " << square(5) << "\\n";
-    std::cout << "cube(3) = " << cube(3) << "\\n";
-    std::cout << "advanced_square(4) = " << advanced_square(4) << "\\n";
-    
+    std:: cout << "=== Math Utils Module ===\\n";
+    std:: cout << "square(5) = " << square(5) << "\\n";
+    std:: cout << "cube(3) = " << cube(3) << "\\n";
+    std:: cout << "advanced_square(4) = " << advanced_square(4) << "\\n";
+
     // Using exported constants
-    std::cout << "PI = " << constants::PI << "\\n";
-    std::cout << "E = " << constants::E << "\\n";
-    std::cout << "Golden Ratio = " << constants::GOLDEN_RATIO << "\\n\\n";
-    
+    std:: cout << "PI = " << constants:: PI << "\\n";
+    std:: cout << "E = " << constants:: E << "\\n";
+    std:: cout << "Golden Ratio = " << constants:: GOLDEN_RATIO << "\\n\\n";
+
     // Using exported class
     Calculator calc;
-    std::cout << "Calculator operations:\\n";
-    std::cout << "5 + 3 = " << calc.add(5, 3) << "\\n";
-    std::cout << "4 * 7 = " << calc.multiply(4, 7) << "\\n";
-    std::cout << "2^8 = " << calc.power(2, 8) << "\\n";
-    std::cout << "Last result: " << calc.get_last_result() << "\\n\\n";
-    
+    std:: cout << "Calculator operations:\\n";
+    std:: cout << "5 + 3 = " << calc.add(5, 3) << "\\n";
+    std:: cout << "4 * 7 = " << calc.multiply(4, 7) << "\\n";
+    std:: cout << "2^8 = " << calc.power(2, 8) << "\\n";
+    std:: cout << "Last result: " << calc.get_last_result() << "\\n\\n";
+
     // Using graphics module with partitions
-    std::cout << "=== Graphics Module (with partitions) ===\\n";
+    std:: cout << "=== Graphics Module (with partitions) ===\\n";
     
-    auto circle = std::make_unique<Circle>(Point{10, 20}, 5.0);
-    auto rectangle = std::make_unique<Rectangle>(Point{0, 0}, 15.0, 10.0);
-    
-    std::cout << "Circle area: " << circle->area() << "\\n";
-    circle->draw();
-    
-    std::cout << "Rectangle area: " << rectangle->area() << "\\n";
-    rectangle->draw();
-    
-    std::cout << "\\n=== Module Benefits ===\\n";
-    std::cout << "✓ Faster compilation (no header re-parsing)\\n";
-    std::cout << "✓ Better encapsulation (implementation details hidden)\\n";
-    std::cout << "✓ No header guards needed\\n";
-    std::cout << "✓ Order-independent imports\\n";
-    std::cout << "✓ Macro isolation (macros don't leak)\\n";
-    std::cout << "✓ Cleaner dependency management\\n";
-    
+    auto circle = std:: make_unique<Circle>(Point{ 10, 20}, 5.0);
+    auto rectangle = std:: make_unique<Rectangle>(Point{ 0, 0}, 15.0, 10.0);
+
+    std:: cout << "Circle area: " << circle -> area() << "\\n";
+    circle -> draw();
+
+    std:: cout << "Rectangle area: " << rectangle -> area() << "\\n";
+    rectangle -> draw();
+
+    std:: cout << "\\n=== Module Benefits ===\\n";
+    std:: cout << "✓ Faster compilation (no header re-parsing)\\n";
+    std:: cout << "✓ Better encapsulation (implementation details hidden)\\n";
+    std:: cout << "✓ No header guards needed\\n";
+    std:: cout << "✓ Order-independent imports\\n";
+    std:: cout << "✓ Macro isolation (macros don't leak)\\n";
+    std:: cout << "✓ Cleaner dependency management\\n";
+
     return 0;
 }
 
@@ -4473,18 +4144,18 @@ Module compilation order (simplified):
 4. Link:
    clang++ main.o math_utils.o graphics.o -o program
 */`,
-    explanation: `C++ Modules revolutionize C++ compilation by replacing the traditional header/source file model with a more robust module system. Modules provide better encapsulation by clearly separating interface from implementation, eliminate issues with macro pollution and header order dependencies, and significantly improve compilation speed by avoiding repeated header parsing. Module partitions allow organizing large modules into logical components while maintaining a single import statement for users.`,
-    useCase: `Essential for large codebases where compilation time and dependency management are critical. Perfect for libraries that need strong API boundaries, enterprise applications requiring modular architecture, and any project suffering from slow compilation due to heavy header dependencies. Modules are the future of C++ code organization and should be adopted for all new projects targeting C++20 and later.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/modules'
-  },
+        explanation: `C++ Modules revolutionize C++ compilation by replacing the traditional header / source file model with a more robust module system.Modules provide better encapsulation by clearly separating interface from implementation, eliminate issues with macro pollution and header order dependencies, and significantly improve compilation speed by avoiding repeated header parsing.Module partitions allow organizing large modules into logical components while maintaining a single import statement for users.`,
+        useCase: `Essential for large codebases where compilation time and dependency management are critical.Perfect for libraries that need strong API boundaries, enterprise applications requiring modular architecture, and any project suffering from slow compilation due to heavy header dependencies.Modules are the future of C++ code organization and should be adopted for all new projects targeting C++20 and later.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/modules'
+    },
 
-  // === C++20 COROUTINES ===
-  {
-    id: 'coroutines',
-    title: 'Coroutines',
-    standard: 'cpp20',
-    description: 'Cooperative multitasking with co_await, co_yield, and co_return for asynchronous programming and generators.',
-    codeExample: `#include <coroutine>
+    // === C++20 COROUTINES ===
+    {
+        id: 'coroutines',
+        title: 'Coroutines',
+        standard: 'cpp20',
+        description: 'Cooperative multitasking with co_await, co_yield, and co_return for asynchronous programming and generators.',
+        codeExample: `#include <coroutine>
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -4494,87 +4165,87 @@ Module compilation order (simplified):
 
 // === BASIC GENERATOR ===
 
-template<typename T>
-struct Generator {
+template < typename T >
+    struct Generator {
     struct promise_type {
         T current_value;
         
         Generator get_return_object() {
-            return Generator{std::coroutine_handle<promise_type>::from_promise(*this)};
+            return Generator{ std:: coroutine_handle<promise_type>:: from_promise(* this) };
         }
-        
+
         std::suspend_always initial_suspend() { return {}; }
         std::suspend_always final_suspend() noexcept { return {}; }
-        void unhandled_exception() { std::terminate(); }
-        
+        void unhandled_exception() { std:: terminate(); }
+
         std::suspend_always yield_value(T value) {
             current_value = value;
             return {};
         }
-        
-        void return_void() {}
+
+        void return_void() { }
     };
-    
-    std::coroutine_handle<promise_type> coro;
-    
-    Generator(std::coroutine_handle<promise_type> h) : coro(h) {}
+
+    std:: coroutine_handle < promise_type > coro;
+
+    Generator(std:: coroutine_handle < promise_type > h) : coro(h) { }
     ~Generator() {
         if (coro) coro.destroy();
     }
-    
+
     // Move-only type
     Generator(const Generator&) = delete;
-    Generator& operator=(const Generator&) = delete;
-    Generator(Generator&& other) noexcept : coro(other.coro) {
+    Generator & operator=(const Generator&) = delete;
+    Generator(Generator && other) noexcept: coro(other.coro) {
         other.coro = {};
     }
-    Generator& operator=(Generator&& other) noexcept {
-        if (this != &other) {
+    Generator & operator=(Generator && other) noexcept {
+        if (this != & other) {
             if (coro) coro.destroy();
             coro = other.coro;
             other.coro = {};
         }
-        return *this;
+        return * this;
     }
     
     struct iterator {
-        std::coroutine_handle<promise_type> coro;
+        std:: coroutine_handle < promise_type > coro;
         bool done;
+
+        iterator(std:: coroutine_handle < promise_type > h, bool d) : coro(h), done(d) { }
         
-        iterator(std::coroutine_handle<promise_type> h, bool d) : coro(h), done(d) {}
-        
-        T operator*() const {
+        T operator * () const {
             return coro.promise().current_value;
-        }
+    }
+
+    iterator & operator++() {
+        coro.resume();
+        done = coro.done();
+        return * this;
+    }
         
-        iterator& operator++() {
-            coro.resume();
-            done = coro.done();
-            return *this;
-        }
-        
-        bool operator!=(const iterator& other) const {
-            return done != other.done;
-        }
+        bool operator != (const iterator& other) const {
+        return done != other.done;
+}
     };
     
     iterator begin() {
-        if (coro) {
-            coro.resume();
-            return {coro, coro.done()};
-        }
-        return {coro, true};
+    if (coro) {
+        coro.resume();
+        return { coro, coro.done() };
     }
+    return { coro, true};
+}
     
     iterator end() {
-        return {coro, true};
-    }
+    return { coro, true};
+}
 };
 
 // Fibonacci generator
-Generator<long long> fibonacci() {
+Generator < long long > fibonacci() {
     long long a = 0, b = 1;
-    
+
     while (true) {
         co_yield a;
         auto next = a + b;
@@ -4584,7 +4255,7 @@ Generator<long long> fibonacci() {
 }
 
 // Range generator
-Generator<int> range(int start, int end, int step = 1) {
+Generator < int > range(int start, int end, int step = 1) {
     for (int i = start; i < end; i += step) {
         co_yield i;
     }
@@ -4592,105 +4263,106 @@ Generator<int> range(int start, int end, int step = 1) {
 
 // === ASYNC TASK SYSTEM ===
 
-template<typename T>
-struct Task {
+template < typename T >
+    struct Task {
     struct promise_type {
         T result;
         std::exception_ptr exception;
         
         Task get_return_object() {
-            return Task{std::coroutine_handle<promise_type>::from_promise(*this)};
+            return Task{ std:: coroutine_handle<promise_type>:: from_promise(* this) };
         }
-        
+
         std::suspend_never initial_suspend() { return {}; }
         std::suspend_never final_suspend() noexcept { return {}; }
-        
+
         void unhandled_exception() {
-            exception = std::current_exception();
+            exception = std:: current_exception();
         }
-        
+
         void return_value(T value) {
             result = value;
         }
     };
-    
-    std::coroutine_handle<promise_type> coro;
-    
-    Task(std::coroutine_handle<promise_type> h) : coro(h) {}
+
+    std:: coroutine_handle < promise_type > coro;
+
+    Task(std:: coroutine_handle < promise_type > h) : coro(h) { }
     ~Task() {
         if (coro) coro.destroy();
     }
-    
+
     // Move-only
     Task(const Task&) = delete;
-    Task& operator=(const Task&) = delete;
-    Task(Task&& other) noexcept : coro(other.coro) {
+    Task & operator=(const Task&) = delete;
+    Task(Task && other) noexcept: coro(other.coro) {
         other.coro = {};
     }
-    Task& operator=(Task&& other) noexcept {
-        if (this != &other) {
+    Task & operator=(Task && other) noexcept {
+        if (this != & other) {
             if (coro) coro.destroy();
             coro = other.coro;
             other.coro = {};
         }
-        return *this;
+        return * this;
     }
     
     T get() {
         if (!coro.done()) {
             // In a real implementation, this would block or schedule
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std:: this_thread:: sleep_for(std:: chrono:: milliseconds(1));
         }
-        
+
         if (coro.promise().exception) {
-            std::rethrow_exception(coro.promise().exception);
+            std:: rethrow_exception(coro.promise().exception);
         }
-        
+
         return coro.promise().result;
     }
     
     bool is_ready() const {
         return coro.done();
-    }
+}
 };
 
 // Simple awaitable type
 struct SimpleAwaitable {
     int value;
     
-    bool await_ready() const { return false; }
-    void await_suspend(std::coroutine_handle<> handle) const {
-        // Simulate async work
-        std::thread([handle]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            handle.resume();
-        }).detach();
+    bool await_ready() const { return false;
+}
+void await_suspend(std:: coroutine_handle <> handle) const {
+    // Simulate async work
+    std:: thread([handle]() {
+    std:: this_thread:: sleep_for(std:: chrono:: milliseconds(100));
+    handle.resume();
+}).detach();
     }
     int await_resume() const { return value; }
 };
 
 // Async computation
-Task<int> compute_async(int x) {
-    std::cout << "Starting async computation for " << x << "\\n";
-    
+Task < int > compute_async(int x) {
+    std:: cout << "Starting async computation for " << x << "\\n";
+
     // Simulate async work
-    auto result1 = co_await SimpleAwaitable{x * 2};
-    std::cout << "First stage complete: " << result1 << "\\n";
+    auto result1 = co_await SimpleAwaitable{ x * 2 };
+    std:: cout << "First stage complete: " << result1 << "\\n";
     
-    auto result2 = co_await SimpleAwaitable{result1 + 10};
-    std::cout << "Second stage complete: " << result2 << "\\n";
+    auto result2 = co_await SimpleAwaitable{ result1 + 10 };
+    std:: cout << "Second stage complete: " << result2 << "\\n";
     
     co_return result2;
 }
 
 // Async aggregation
-Task<int> process_multiple(std::vector<int> values) {
+Task < int > process_multiple(std:: vector < int > values) {
     int total = 0;
-    
+
     for (auto value : values) {
-        auto result = co_await SimpleAwaitable{value * value};
+        auto result = co_await SimpleAwaitable{ value * value };
         total += result;
-        std::cout << "Processed " << value << " -> " << result << " (total: " << total << ")\\n";
+        std:: cout << "Processed " << value << " -> " << result << " (total: " << total << ")\\n";
     }
     
     co_return total;
@@ -4702,122 +4374,122 @@ struct StateMachine {
     enum class State { Init, Processing, Waiting, Done };
     
     struct promise_type {
-        State current_state = State::Init;
+        State current_state = State:: Init;
         
         StateMachine get_return_object() {
-            return StateMachine{std::coroutine_handle<promise_type>::from_promise(*this)};
+            return StateMachine{ std:: coroutine_handle<promise_type>:: from_promise(* this) };
         }
-        
+
         std::suspend_never initial_suspend() { return {}; }
         std::suspend_always final_suspend() noexcept { return {}; }
-        void unhandled_exception() { std::terminate(); }
-        void return_void() {}
-        
+        void unhandled_exception() { std:: terminate(); }
+        void return_void() { }
+
         std::suspend_always await_transform(State new_state) {
             current_state = new_state;
             return {};
         }
     };
-    
-    std::coroutine_handle<promise_type> coro;
-    
-    StateMachine(std::coroutine_handle<promise_type> h) : coro(h) {}
+
+    std:: coroutine_handle < promise_type > coro;
+
+    StateMachine(std:: coroutine_handle < promise_type > h) : coro(h) { }
     ~StateMachine() {
         if (coro) coro.destroy();
     }
     
     State get_state() const {
         return coro.promise().current_state;
+}
+
+void step() {
+    if (!coro.done()) {
+        coro.resume();
     }
-    
-    void step() {
-        if (!coro.done()) {
-            coro.resume();
-        }
-    }
+}
     
     bool is_done() const {
-        return coro.done();
+    return coro.done();
     }
 };
 
 StateMachine create_state_machine() {
-    std::cout << "State machine starting\\n";
+    std:: cout << "State machine starting\\n";
     
-    co_await StateMachine::State::Init;
-    std::cout << "State: Init\\n";
+    co_await StateMachine:: State:: Init;
+    std:: cout << "State: Init\\n";
     
-    co_await StateMachine::State::Processing;
-    std::cout << "State: Processing\\n";
+    co_await StateMachine:: State:: Processing;
+    std:: cout << "State: Processing\\n";
     
-    co_await StateMachine::State::Waiting;
-    std::cout << "State: Waiting\\n";
+    co_await StateMachine:: State:: Waiting;
+    std:: cout << "State: Waiting\\n";
     
-    co_await StateMachine::State::Done;
-    std::cout << "State: Done\\n";
+    co_await StateMachine:: State:: Done;
+    std:: cout << "State: Done\\n";
 }
 
 int main() {
-    std::cout << "=== C++ Coroutines Demo ===\\n\\n";
-    
+    std:: cout << "=== C++ Coroutines Demo ===\\n\\n";
+
     // Generator example
-    std::cout << "=== Fibonacci Generator ===\\n";
+    std:: cout << "=== Fibonacci Generator ===\\n";
     auto fib = fibonacci();
     int count = 0;
     for (auto value : fib) {
-        std::cout << value << " ";
+        std:: cout << value << " ";
         if (++count >= 15) break;  // First 15 numbers
     }
-    std::cout << "\\n\\n";
-    
-    // Range generator
-    std::cout << "=== Range Generator ===\\n";
-    std::cout << "range(5, 20, 3): ";
-    for (auto value : range(5, 20, 3)) {
-        std::cout << value << " ";
-    }
-    std::cout << "\\n\\n";
-    
-    // Async task example
-    std::cout << "=== Async Tasks ===\\n";
-    auto task1 = compute_async(5);
-    auto task2 = process_multiple({1, 2, 3, 4});
-    
-    std::cout << "Task 1 result: " << task1.get() << "\\n";
-    std::cout << "Task 2 result: " << task2.get() << "\\n\\n";
-    
-    // State machine example
-    std::cout << "=== State Machine ===\\n";
-    auto machine = create_state_machine();
-    
-    while (!machine.is_done()) {
-        std::cout << "Current state: " << static_cast<int>(machine.get_state()) << "\\n";
-        machine.step();
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    
-    std::cout << "\\n=== Coroutine Benefits ===\\n";
-    std::cout << "✓ Cooperative multitasking without threads\\n";
-    std::cout << "✓ Lazy evaluation and infinite sequences\\n";
-    std::cout << "✓ Clean async code without callback hell\\n";
-    std::cout << "✓ State machines with natural syntax\\n";
-    std::cout << "✓ Memory efficient (stackless)\\n";
-    std::cout << "✓ Composable and reusable async operations\\n";
-    
-    return 0;
-}`,
-    explanation: `Coroutines enable cooperative multitasking where functions can suspend and resume execution at specific points. The co_await operator suspends the coroutine until the awaited operation completes, co_yield produces values for generators, and co_return returns the final result. This enables writing asynchronous code that reads like synchronous code, creating efficient generators, and implementing complex state machines naturally.`,
-    useCase: `Perfect for asynchronous I/O operations, parsing large files incrementally, implementing state machines, creating infinite sequences, and building responsive applications without the complexity of traditional threading. Essential for networking code, data processing pipelines, game AI systems, and any scenario requiring cooperative multitasking.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/coroutines'
-  },
+    std:: cout << "\\n\\n";
 
-  // === EXECUTION POLICIES ===
-  {
-    id: 'execution-policies',
-    title: 'Execution Policies in Standard Algorithms',
-    standard: 'cpp17',
-    description: 'Parallel execution of STL algorithms using execution policies for performance optimization.',
-    codeExample: `#include <execution>
+    // Range generator
+    std:: cout << "=== Range Generator ===\\n";
+    std:: cout << "range(5, 20, 3): ";
+    for (auto value : range(5, 20, 3)) {
+        std:: cout << value << " ";
+    }
+    std:: cout << "\\n\\n";
+
+    // Async task example
+    std:: cout << "=== Async Tasks ===\\n";
+    auto task1 = compute_async(5);
+    auto task2 = process_multiple({ 1, 2, 3, 4});
+
+    std:: cout << "Task 1 result: " << task1.get() << "\\n";
+    std:: cout << "Task 2 result: " << task2.get() << "\\n\\n";
+
+    // State machine example
+    std:: cout << "=== State Machine ===\\n";
+    auto machine = create_state_machine();
+
+    while (!machine.is_done()) {
+        std:: cout << "Current state: " << static_cast<int>(machine.get_state()) << "\\n";
+        machine.step();
+        std:: this_thread:: sleep_for(std:: chrono:: milliseconds(100));
+    }
+
+    std:: cout << "\\n=== Coroutine Benefits ===\\n";
+    std:: cout << "✓ Cooperative multitasking without threads\\n";
+    std:: cout << "✓ Lazy evaluation and infinite sequences\\n";
+    std:: cout << "✓ Clean async code without callback hell\\n";
+    std:: cout << "✓ State machines with natural syntax\\n";
+    std:: cout << "✓ Memory efficient (stackless)\\n";
+    std:: cout << "✓ Composable and reusable async operations\\n";
+
+    return 0;
+} `,
+        explanation: `Coroutines enable cooperative multitasking where functions can suspend and resume execution at specific points.The co_await operator suspends the coroutine until the awaited operation completes, co_yield produces values for generators, and co_return returns the final result.This enables writing asynchronous code that reads like synchronous code, creating efficient generators, and implementing complex state machines naturally.`,
+        useCase: `Perfect for asynchronous I / O operations, parsing large files incrementally, implementing state machines, creating infinite sequences, and building responsive applications without the complexity of traditional threading.Essential for networking code, data processing pipelines, game AI systems, and any scenario requiring cooperative multitasking.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/coroutines'
+    },
+
+    // === EXECUTION POLICIES ===
+    {
+        id: 'execution-policies',
+        title: 'Execution Policies in Standard Algorithms',
+        standard: 'cpp17',
+        description: 'Parallel execution of STL algorithms using execution policies for performance optimization.',
+        codeExample: `#include <execution>
 #include <algorithm>
 #include <numeric>
 #include <vector>
@@ -4828,221 +4500,221 @@ int main() {
 #include <thread>
 
 class PerformanceBenchmark {
-private:
-    std::vector<int> large_dataset_;
-    std::vector<double> financial_data_;
-    
-public:
-    PerformanceBenchmark(size_t size = 10000000) {
-        // Create large dataset for benchmarking
-        large_dataset_.reserve(size);
-        financial_data_.reserve(size);
-        
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<int> int_dist(1, 1000);
-        std::uniform_real_distribution<double> price_dist(50.0, 500.0);
-        
-        for (size_t i = 0; i < size; ++i) {
-            large_dataset_.push_back(int_dist(gen));
-            financial_data_.push_back(price_dist(gen));
-        }
+    private:
+        std:: vector<int> large_dataset_;
+    std:: vector<double> financial_data_;
+
+    public:
+        PerformanceBenchmark(size_t size = 10000000) {
+    // Create large dataset for benchmarking
+    large_dataset_.reserve(size);
+    financial_data_.reserve(size);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std:: uniform_int_distribution < int > int_dist(1, 1000);
+    std:: uniform_real_distribution < double > price_dist(50.0, 500.0);
+
+    for (size_t i = 0; i < size; ++i) {
+        large_dataset_.push_back(int_dist(gen));
+        financial_data_.push_back(price_dist(gen));
     }
-    
-    // Benchmark different execution policies
-    void benchmark_sort() {
-        std::cout << "=== Sorting Benchmark ===\\n";
-        
+}
+
+// Benchmark different execution policies
+void benchmark_sort() {
+    std:: cout << "=== Sorting Benchmark ===\\n";
+
         // Sequential execution
         auto data_copy = large_dataset_;
-        auto start = std::chrono::high_resolution_clock::now();
-        std::sort(std::execution::seq, data_copy.begin(), data_copy.end());
-        auto end = std::chrono::high_resolution_clock::now();
-        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        
-        // Parallel execution
-        data_copy = large_dataset_;
-        start = std::chrono::high_resolution_clock::now();
-        std::sort(std::execution::par, data_copy.begin(), data_copy.end());
-        end = std::chrono::high_resolution_clock::now();
-        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        
-        // Parallel unsequenced execution
-        data_copy = large_dataset_;
-        start = std::chrono::high_resolution_clock::now();
-        std::sort(std::execution::par_unseq, data_copy.begin(), data_copy.end());
-        end = std::chrono::high_resolution_clock::now();
-        auto par_unseq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        
-        std::cout << "Sequential sort: " << seq_time.count() << "ms\\n";
-        std::cout << "Parallel sort: " << par_time.count() << "ms\\n";
-        std::cout << "Par+unseq sort: " << par_unseq_time.count() << "ms\\n";
-        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
-    }
-    
-    void benchmark_transform() {
-        std::cout << "=== Transform Benchmark ===\\n";
-        std::vector<double> results(financial_data_.size());
-        
+        auto start = std:: chrono:: high_resolution_clock:: now();
+    std:: sort(std:: execution:: seq, data_copy.begin(), data_copy.end());
+        auto end = std:: chrono:: high_resolution_clock:: now();
+        auto seq_time = std:: chrono:: duration_cast < std:: chrono:: milliseconds > (end - start);
+
+    // Parallel execution
+    data_copy = large_dataset_;
+    start = std:: chrono:: high_resolution_clock:: now();
+    std:: sort(std:: execution:: par, data_copy.begin(), data_copy.end());
+    end = std:: chrono:: high_resolution_clock:: now();
+        auto par_time = std:: chrono:: duration_cast < std:: chrono:: milliseconds > (end - start);
+
+    // Parallel unsequenced execution
+    data_copy = large_dataset_;
+    start = std:: chrono:: high_resolution_clock:: now();
+    std:: sort(std:: execution:: par_unseq, data_copy.begin(), data_copy.end());
+    end = std:: chrono:: high_resolution_clock:: now();
+        auto par_unseq_time = std:: chrono:: duration_cast < std:: chrono:: milliseconds > (end - start);
+
+    std:: cout << "Sequential sort: " << seq_time.count() << "ms\\n";
+    std:: cout << "Parallel sort: " << par_time.count() << "ms\\n";
+    std:: cout << "Par+unseq sort: " << par_unseq_time.count() << "ms\\n";
+    std:: cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+}
+
+void benchmark_transform() {
+    std:: cout << "=== Transform Benchmark ===\\n";
+    std:: vector < double > results(financial_data_.size());
+
         // Complex calculation: compound interest
         auto compound_interest = [](double principal) {
-            const double rate = 0.05;  // 5% annual rate
-            const int years = 10;
+        const double rate = 0.05;  // 5% annual rate
+        const int years = 10;
             double result = principal;
-            for (int i = 0; i < years; ++i) {
-                result *= (1.0 + rate);
-            }
-            return result;
-        };
-        
+        for (int i = 0; i < years; ++i) {
+            result *= (1.0 + rate);
+        }
+        return result;
+    };
+
         // Sequential transform
-        auto start = std::chrono::high_resolution_clock::now();
-        std::transform(std::execution::seq, 
-                      financial_data_.begin(), financial_data_.end(),
-                      results.begin(), compound_interest);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        
-        // Parallel transform
-        start = std::chrono::high_resolution_clock::now();
-        std::transform(std::execution::par, 
-                      financial_data_.begin(), financial_data_.end(),
-                      results.begin(), compound_interest);
-        end = std::chrono::high_resolution_clock::now();
-        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        
-        std::cout << "Sequential transform: " << seq_time.count() << "ms\\n";
-        std::cout << "Parallel transform: " << par_time.count() << "ms\\n";
-        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
-    }
-    
-    void benchmark_reduce() {
-        std::cout << "=== Reduce Benchmark ===\\n";
-        
+        auto start = std:: chrono:: high_resolution_clock:: now();
+    std:: transform(std:: execution:: seq,
+        financial_data_.begin(), financial_data_.end(),
+        results.begin(), compound_interest);
+        auto end = std:: chrono:: high_resolution_clock:: now();
+        auto seq_time = std:: chrono:: duration_cast < std:: chrono:: milliseconds > (end - start);
+
+    // Parallel transform
+    start = std:: chrono:: high_resolution_clock:: now();
+    std:: transform(std:: execution:: par,
+        financial_data_.begin(), financial_data_.end(),
+        results.begin(), compound_interest);
+    end = std:: chrono:: high_resolution_clock:: now();
+        auto par_time = std:: chrono:: duration_cast < std:: chrono:: milliseconds > (end - start);
+
+    std:: cout << "Sequential transform: " << seq_time.count() << "ms\\n";
+    std:: cout << "Parallel transform: " << par_time.count() << "ms\\n";
+    std:: cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+}
+
+void benchmark_reduce() {
+    std:: cout << "=== Reduce Benchmark ===\\n";
+
         // Sequential reduce
-        auto start = std::chrono::high_resolution_clock::now();
-        auto seq_sum = std::reduce(std::execution::seq,
-                                  large_dataset_.begin(), large_dataset_.end(),
-                                  0LL);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto seq_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        
-        // Parallel reduce
-        start = std::chrono::high_resolution_clock::now();
-        auto par_sum = std::reduce(std::execution::par,
-                                  large_dataset_.begin(), large_dataset_.end(),
-                                  0LL);
-        end = std::chrono::high_resolution_clock::now();
-        auto par_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        
-        std::cout << "Sequential sum: " << seq_sum << " (time: " << seq_time.count() << "ms)\\n";
-        std::cout << "Parallel sum: " << par_sum << " (time: " << par_time.count() << "ms)\\n";
-        std::cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
-    }
+        auto start = std:: chrono:: high_resolution_clock:: now();
+        auto seq_sum = std:: reduce(std:: execution:: seq,
+        large_dataset_.begin(), large_dataset_.end(),
+        0LL);
+        auto end = std:: chrono:: high_resolution_clock:: now();
+        auto seq_time = std:: chrono:: duration_cast < std:: chrono:: milliseconds > (end - start);
+
+    // Parallel reduce
+    start = std:: chrono:: high_resolution_clock:: now();
+        auto par_sum = std:: reduce(std:: execution:: par,
+        large_dataset_.begin(), large_dataset_.end(),
+        0LL);
+    end = std:: chrono:: high_resolution_clock:: now();
+        auto par_time = std:: chrono:: duration_cast < std:: chrono:: milliseconds > (end - start);
+
+    std:: cout << "Sequential sum: " << seq_sum << " (time: " << seq_time.count() << "ms)\\n";
+    std:: cout << "Parallel sum: " << par_sum << " (time: " << par_time.count() << "ms)\\n";
+    std:: cout << "Parallel speedup: " << (double)seq_time.count() / par_time.count() << "x\\n\\n";
+}
 };
 
 // Financial calculation examples
 class FinancialAlgorithms {
-public:
-    // Parallel portfolio risk calculation
-    static double calculate_portfolio_var(const std::vector<double>& returns, double confidence = 0.95) {
-        std::vector<double> sorted_returns = returns;
-        
-        // Parallel sort for large datasets
-        std::sort(std::execution::par, sorted_returns.begin(), sorted_returns.end());
-        
+    public:
+        // Parallel portfolio risk calculation
+        static double calculate_portfolio_var(const std:: vector<double>& returns, double confidence = 0.95) {
+    std:: vector < double > sorted_returns = returns;
+
+    // Parallel sort for large datasets
+    std:: sort(std:: execution:: par, sorted_returns.begin(), sorted_returns.end());
+
         // Calculate Value at Risk at given confidence level
         size_t var_index = static_cast<size_t>((1.0 - confidence) * sorted_returns.size());
-        return sorted_returns[var_index];
-    }
-    
+    return sorted_returns[var_index];
+}
+
     // Parallel Monte Carlo simulation
-    static double monte_carlo_option_price(double S0, double K, double r, double sigma, 
-                                         double T, size_t num_simulations = 1000000) {
-        std::vector<double> payoffs(num_simulations);
-        std::vector<size_t> indices(num_simulations);
-        std::iota(indices.begin(), indices.end(), 0);
-        
-        std::random_device rd;
+    static double monte_carlo_option_price(double S0, double K, double r, double sigma,
+    double T, size_t num_simulations = 1000000) {
+    std:: vector < double > payoffs(num_simulations);
+    std:: vector < size_t > indices(num_simulations);
+    std:: iota(indices.begin(), indices.end(), 0);
+
+    std::random_device rd;
         thread_local std::mt19937 gen(rd());
-        std::normal_distribution<double> norm(0.0, 1.0);
-        
-        // Parallel transform to calculate payoffs
-        std::transform(std::execution::par, 
-                      indices.begin(), indices.end(),
-                      payoffs.begin(),
-                      [&](size_t i) {
-                          thread_local std::mt19937 local_gen(rd() + i);
-                          std::normal_distribution<double> local_norm(0.0, 1.0);
-                          
+    std:: normal_distribution < double > norm(0.0, 1.0);
+
+    // Parallel transform to calculate payoffs
+    std:: transform(std:: execution:: par,
+        indices.begin(), indices.end(),
+        payoffs.begin(),
+        [&](size_t i) {
+            thread_local std:: mt19937 local_gen(rd() + i);
+    std:: normal_distribution < double > local_norm(0.0, 1.0);
+
                           // Geometric Brownian Motion
                           double Z = local_norm(local_gen);
-                          double ST = S0 * std::exp((r - 0.5 * sigma * sigma) * T + sigma * std::sqrt(T) * Z);
-                          
-                          // European call option payoff
-                          return std::max(ST - K, 0.0);
-                      });
-        
+                          double ST = S0 * std:: exp((r - 0.5 * sigma * sigma) * T + sigma * std:: sqrt(T) * Z);
+
+    // European call option payoff
+    return std:: max(ST - K, 0.0);
+});
+
         // Parallel reduce to calculate average payoff
-        double average_payoff = std::reduce(std::execution::par, 
-                                          payoffs.begin(), payoffs.end(), 0.0) / num_simulations;
-        
-        // Discount to present value
-        return average_payoff * std::exp(-r * T);
+        double average_payoff = std:: reduce(std:: execution:: par,
+    payoffs.begin(), payoffs.end(), 0.0) / num_simulations;
+
+// Discount to present value
+return average_payoff * std:: exp(-r * T);
     }
-    
+
     // Parallel technical indicator calculation
-    static std::vector<double> calculate_moving_average(const std::vector<double>& prices, int period) {
-        if (prices.size() < period) return {};
-        
-        std::vector<double> ma_values(prices.size() - period + 1);
-        std::vector<size_t> indices(ma_values.size());
-        std::iota(indices.begin(), indices.end(), 0);
-        
-        // Parallel calculation of moving averages
-        std::transform(std::execution::par,
-                      indices.begin(), indices.end(),
-                      ma_values.begin(),
-                      [&](size_t i) {
-                          double sum = std::reduce(std::execution::seq,  // Inner sum can be sequential
-                                                 prices.begin() + i,
-                                                 prices.begin() + i + period,
-                                                 0.0);
-                          return sum / period;
-                      });
-        
-        return ma_values;
+    static std:: vector < double > calculate_moving_average(const std:: vector<double>& prices, int period) {
+    if (prices.size() < period) return {};
+
+    std:: vector < double > ma_values(prices.size() - period + 1);
+    std:: vector < size_t > indices(ma_values.size());
+    std:: iota(indices.begin(), indices.end(), 0);
+
+    // Parallel calculation of moving averages
+    std:: transform(std:: execution:: par,
+        indices.begin(), indices.end(),
+        ma_values.begin(),
+        [&](size_t i) {
+        double sum = std:: reduce(std:: execution:: seq,  // Inner sum can be sequential
+            prices.begin() + i,
+        prices.begin() + i + period,
+        0.0);
+    return sum / period;
+});
+
+return ma_values;
     }
 };
 
 int main() {
-    std::cout << "=== Execution Policies Demo ===\\n\\n";
-    std::cout << "Hardware concurrency: " << std::thread::hardware_concurrency() << " threads\\n\\n";
-    
+    std:: cout << "=== Execution Policies Demo ===\\n\\n";
+    std:: cout << "Hardware concurrency: " << std:: thread:: hardware_concurrency() << " threads\\n\\n";
+
     // Basic algorithm benchmarks
     PerformanceBenchmark benchmark(5000000);  // 5M elements
     benchmark.benchmark_sort();
     benchmark.benchmark_transform();
     benchmark.benchmark_reduce();
-    
+
     // Financial algorithms
-    std::cout << "=== Financial Parallel Algorithms ===\\n";
-    
+    std:: cout << "=== Financial Parallel Algorithms ===\\n";
+
     // Generate sample stock returns
-    std::vector<double> returns(100000);
+    std:: vector < double > returns(100000);
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<double> return_dist(0.001, 0.02);  // Daily returns
-    
-    std::generate(std::execution::par, returns.begin(), returns.end(),
-                 [&]() { return return_dist(gen); });
-    
+    std:: normal_distribution < double > return_dist(0.001, 0.02);  // Daily returns
+
+    std:: generate(std:: execution:: par, returns.begin(), returns.end(),
+        [&]() { return return_dist(gen); });
+
     // Calculate VaR
-    double var_95 = FinancialAlgorithms::calculate_portfolio_var(returns, 0.95);
-    std::cout << "Portfolio VaR (95% confidence): " << var_95 * 100 << "%\\n";
-    
+    double var_95 = FinancialAlgorithms:: calculate_portfolio_var(returns, 0.95);
+    std:: cout << "Portfolio VaR (95% confidence): " << var_95 * 100 << "%\\n";
+
     // Monte Carlo option pricing
-    double option_price = FinancialAlgorithms::monte_carlo_option_price(
+    double option_price = FinancialAlgorithms:: monte_carlo_option_price(
         100.0,  // Current price
         110.0,  // Strike price
         0.05,   // Risk-free rate
@@ -5050,41 +4722,41 @@ int main() {
         1.0,    // Time to expiration (1 year)
         500000  // Number of simulations
     );
-    std::cout << "European call option price (Monte Carlo): $" << option_price << "\\n";
-    
-    // Generate price series and calculate moving average
-    std::vector<double> prices(1000);
-    double price = 100.0;
-    std::generate(prices.begin(), prices.end(), [&]() {
-        price *= (1.0 + return_dist(gen));
-        return price;
-    });
-    
-    auto ma = FinancialAlgorithms::calculate_moving_average(prices, 20);
-    std::cout << "20-period moving average calculated for " << ma.size() << " points\\n";
-    
-    std::cout << "\\n=== Execution Policy Benefits ===\\n";
-    std::cout << "✓ Easy parallelization of STL algorithms\\n";
-    std::cout << "✓ Significant speedup for CPU-intensive operations\\n";
-    std::cout << "✓ Scales automatically with available CPU cores\\n";
-    std::cout << "✓ No manual thread management required\\n";
-    std::cout << "✓ Exception-safe parallel execution\\n";
-    std::cout << "✓ Perfect for financial calculations and data processing\\n";
-    
-    return 0;
-}`,
-    explanation: `Execution policies in C++17 enable parallel execution of STL algorithms by simply specifying the execution policy as the first parameter. std::execution::seq runs sequentially, std::execution::par runs in parallel with synchronized access, and std::execution::par_unseq allows both parallelization and vectorization. This provides massive performance improvements for CPU-intensive operations without complex thread management.`,
-    useCase: `Critical for high-performance computing, financial modeling, data analytics, and any application processing large datasets. Perfect for Monte Carlo simulations, risk calculations, sorting large financial datasets, parallel transformations of market data, and scientific computing where algorithm parallelization can provide significant speedup.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t'
-  },
+    std:: cout << "European call option price (Monte Carlo): $" << option_price << "\\n";
 
-  // === CLASS TEMPLATE ARGUMENT DEDUCTION (CTAD) ===
-  {
-    id: 'ctad',
-    title: 'Class Template Argument Deduction (CTAD)',
-    standard: 'cpp17',
-    description: 'Automatic template argument deduction for class templates, making template usage more concise and intuitive.',
-    codeExample: `#include <iostream>
+    // Generate price series and calculate moving average
+    std:: vector < double > prices(1000);
+    double price = 100.0;
+    std:: generate(prices.begin(), prices.end(), [&]() {
+        price *= (1.0 + return_dist(gen));
+    return price;
+});
+    
+    auto ma = FinancialAlgorithms:: calculate_moving_average(prices, 20);
+std:: cout << "20-period moving average calculated for " << ma.size() << " points\\n";
+
+std:: cout << "\\n=== Execution Policy Benefits ===\\n";
+std:: cout << "✓ Easy parallelization of STL algorithms\\n";
+std:: cout << "✓ Significant speedup for CPU-intensive operations\\n";
+std:: cout << "✓ Scales automatically with available CPU cores\\n";
+std:: cout << "✓ No manual thread management required\\n";
+std:: cout << "✓ Exception-safe parallel execution\\n";
+std:: cout << "✓ Perfect for financial calculations and data processing\\n";
+
+return 0;
+}`,
+        explanation: `Execution policies in C++17 enable parallel execution of STL algorithms by simply specifying the execution policy as the first parameter.std:: execution::seq runs sequentially, std:: execution::par runs in parallel with synchronized access, and std:: execution::par_unseq allows both parallelization and vectorization.This provides massive performance improvements for CPU - intensive operations without complex thread management.`,
+        useCase: `Critical for high - performance computing, financial modeling, data analytics, and any application processing large datasets.Perfect for Monte Carlo simulations, risk calculations, sorting large financial datasets, parallel transformations of market data, and scientific computing where algorithm parallelization can provide significant speedup.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/algorithm/execution_policy_tag_t'
+    },
+
+    // === CLASS TEMPLATE ARGUMENT DEDUCTION (CTAD) ===
+    {
+        id: 'ctad',
+        title: 'Class Template Argument Deduction (CTAD)',
+        standard: 'cpp17',
+        description: 'Automatic template argument deduction for class templates, making template usage more concise and intuitive.',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <map>
 #include <pair>
@@ -5099,20 +4771,20 @@ int main() {
 // === BASIC CTAD EXAMPLES ===
 
 // Custom class template that benefits from CTAD
-template<typename T, typename U = T>
-class Pair {
-private:
-    T first_;
+template < typename T, typename U = T >
+    class Pair {
+        private:
+            T first_;
     U second_;
-    
-public:
-    Pair(const T& first, const U& second) : first_(first), second_(second) {}
-    
-    const T& first() const { return first_; }
-    const U& second() const { return second_; }
-    
-    void print() const {
-        std::cout << "(" << first_ << ", " << second_ << ")";
+
+        public:
+            Pair(const T& first, const U& second) : first_(first), second_(second) { }
+
+const T& first() const { return first_; }
+const U& second() const { return second_; }
+
+void print() const {
+    std:: cout << "(" << first_ << ", " << second_ << ")";
     }
 };
 
@@ -5121,257 +4793,257 @@ public:
 // Pair(T, U) -> Pair<T, U>;
 
 // Advanced template with multiple parameters
-template<typename Key, typename Value, typename Hash = std::hash<Key>>
-class SimpleMap {
-private:
-    std::map<Key, Value> data_;
+template < typename Key, typename Value, typename Hash = std:: hash < Key >>
+    class SimpleMap {
+        private:
+            std:: map<Key, Value> data_;
     Hash hasher_;
-    
-public:
-    SimpleMap() = default;
-    SimpleMap(std::initializer_list<std::pair<Key, Value>> init) {
-        for (auto& p : init) {
-            data_[p.first] = p.second;
-        }
+
+        public:
+            SimpleMap() = default;
+        SimpleMap(std:: initializer_list<std:: pair<Key, Value>> init) {
+    for (auto & p : init) {
+        data_[p.first] = p.second;
     }
-    
-    void insert(const Key& key, const Value& value) {
-        data_[key] = value;
-    }
-    
-    Value* find(const Key& key) {
+}
+
+void insert(const Key& key, const Value& value) {
+    data_[key] = value;
+}
+
+Value * find(const Key& key) {
         auto it = data_.find(key);
-        return (it != data_.end()) ? &it->second : nullptr;
-    }
+    return (it != data_.end()) ? & it -> second : nullptr;
+}
     
     size_t size() const { return data_.size(); }
-    
-    void print() const {
-        std::cout << "{";
-        for (auto it = data_.begin(); it != data_.end(); ++it) {
-            if (it != data_.begin()) std::cout << ", ";
-            std::cout << it->first << ": " << it->second;
-        }
-        std::cout << "}";
+
+void print() const {
+    std:: cout << "{";
+for (auto it = data_.begin(); it != data_.end(); ++it) {
+    if (it != data_.begin()) std:: cout << ", ";
+    std:: cout << it -> first << ": " << it -> second;
+}
+std:: cout << "}";
     }
 };
 
 // Deduction guide for initializer list constructor
-template<typename Key, typename Value>
-SimpleMap(std::initializer_list<std::pair<Key, Value>>) -> SimpleMap<Key, Value>;
+template < typename Key, typename Value >
+    SimpleMap(std:: initializer_list < std:: pair < Key, Value >>) -> SimpleMap<Key, Value>;
 
 // === COMPLEX CTAD SCENARIOS ===
 
 // Template class for financial instruments
-template<typename PriceType, typename QuantityType = int64_t>
-class Order {
-private:
-    std::string symbol_;
+template < typename PriceType, typename QuantityType = int64_t >
+    class Order {
+        private:
+            std::string symbol_;
     PriceType price_;
     QuantityType quantity_;
     bool is_buy_;
-    
+
 public:
-    Order(const std::string& symbol, PriceType price, QuantityType quantity, bool is_buy)
-        : symbol_(symbol), price_(price), quantity_(quantity), is_buy_(is_buy) {}
+Order(const std:: string& symbol, PriceType price, QuantityType quantity, bool is_buy)
+        : symbol_(symbol), price_(price), quantity_(quantity), is_buy_(is_buy) { }
     
     double get_notional() const {
-        return static_cast<double>(price_) * static_cast<double>(quantity_);
+    return static_cast<double>(price_) * static_cast<double>(quantity_);
     }
-    
-    void print() const {
-        std::cout << (is_buy_ ? "BUY " : "SELL ") << quantity_ << " " << symbol_ 
-                  << " @ " << price_ << " (notional: $" << get_notional() << ")";
+
+void print() const {
+    std:: cout << (is_buy_ ? "BUY " : "SELL ") << quantity_ << " " << symbol_
+        << " @ " << price_ << " (notional: $" << get_notional() << ")";
     }
 };
 
 // Container template with custom allocator
-template<typename T, typename Allocator = std::allocator<T>>
-class CustomVector {
-private:
-    std::vector<T, Allocator> data_;
-    
-public:
-    CustomVector() = default;
-    
-    template<typename Iterator>
-    CustomVector(Iterator begin, Iterator end) : data_(begin, end) {}
-    
-    CustomVector(std::initializer_list<T> init) : data_(init) {}
-    
-    void push_back(const T& value) { data_.push_back(value); }
+template < typename T, typename Allocator = std:: allocator < T >>
+    class CustomVector {
+        private:
+            std:: vector<T, Allocator> data_;
+
+        public:
+            CustomVector() = default;
+
+        template<typename Iterator>
+    CustomVector(Iterator begin, Iterator end): data_(begin, end) { }
+
+CustomVector(std:: initializer_list < T > init) : data_(init) { }
+
+void push_back(const T& value) { data_.push_back(value); }
     size_t size() const { return data_.size(); }
-    const T& operator[](size_t index) const { return data_[index]; }
-    
-    void print() const {
-        std::cout << "[";
-        for (size_t i = 0; i < data_.size(); ++i) {
-            if (i > 0) std::cout << ", ";
-            std::cout << data_[i];
-        }
-        std::cout << "]";
+const T& operator[](size_t index) const { return data_[index]; }
+
+void print() const {
+    std:: cout << "[";
+for (size_t i = 0; i < data_.size(); ++i) {
+    if (i > 0) std:: cout << ", ";
+    std:: cout << data_[i];
+}
+std:: cout << "]";
     }
 };
 
 // Deduction guides for different constructors
-template<typename Iterator>
-CustomVector(Iterator, Iterator) -> CustomVector<typename std::iterator_traits<Iterator>::value_type>;
+template < typename Iterator >
+    CustomVector(Iterator, Iterator) -> CustomVector < typename std:: iterator_traits<Iterator>:: value_type >;
 
-template<typename T>
-CustomVector(std::initializer_list<T>) -> CustomVector<T>;
+template < typename T >
+    CustomVector(std:: initializer_list<T>) -> CustomVector<T>;
 
 // === THREAD-SAFE WRAPPER WITH CTAD ===
 
-template<typename T, typename Mutex = std::mutex>
-class ThreadSafe {
-private:
-    mutable Mutex mutex_;
+template < typename T, typename Mutex = std:: mutex >
+    class ThreadSafe {
+        private:
+            mutable Mutex mutex_;
     T data_;
-    
-public:
-    ThreadSafe() = default;
-    ThreadSafe(const T& data) : data_(data) {}
-    ThreadSafe(T&& data) : data_(std::move(data)) {}
-    
-    template<typename... Args>
-    ThreadSafe(Args&&... args) : data_(std::forward<Args>(args)...) {}
-    
-    template<typename Func>
-    auto with_lock(Func&& func) const -> decltype(func(data_)) {
-        std::lock_guard<Mutex> lock(mutex_);
-        return func(data_);
-    }
-    
-    template<typename Func>
-    auto with_lock(Func&& func) -> decltype(func(data_)) {
-        std::lock_guard<Mutex> lock(mutex_);
-        return func(data_);
-    }
+
+        public:
+            ThreadSafe() = default;
+        ThreadSafe(const T& data): data_(data) { }
+ThreadSafe(T && data) : data_(std:: move(data)) { }
+
+template < typename...Args >
+    ThreadSafe(Args &&...args) : data_(std:: forward<Args>(args)...) { }
+
+template < typename Func >
+    auto with_lock(Func && func) const -> decltype(func(data_)) {
+    std:: lock_guard < Mutex > lock(mutex_);
+    return func(data_);
+}
+
+template < typename Func >
+    auto with_lock(Func && func) -> decltype(func(data_)) {
+    std:: lock_guard < Mutex > lock(mutex_);
+    return func(data_);
+}
     
     T get() const {
-        std::lock_guard<Mutex> lock(mutex_);
-        return data_;
+    std:: lock_guard<Mutex>lock(mutex_);
+return data_;
     }
-    
-    void set(const T& new_data) {
-        std::lock_guard<Mutex> lock(mutex_);
-        data_ = new_data;
-    }
+
+void set(const T& new_data) {
+    std:: lock_guard < Mutex > lock(mutex_);
+    data_ = new_data;
+}
 };
 
 // Deduction guides
-template<typename T>
-ThreadSafe(T) -> ThreadSafe<T>;
+template < typename T >
+    ThreadSafe(T) -> ThreadSafe<T>;
 
 int main() {
-    std::cout << "=== Class Template Argument Deduction (CTAD) Demo ===\\n\\n";
-    
+    std:: cout << "=== Class Template Argument Deduction (CTAD) Demo ===\\n\\n";
+
     // === Standard Library CTAD ===
-    std::cout << "=== Standard Library CTAD ===\\n";
-    
+    std:: cout << "=== Standard Library CTAD ===\\n";
+
     // Before C++17: Required explicit template arguments
     // std::vector<int> numbers{1, 2, 3, 4, 5};
     // std::pair<int, std::string> p{42, "hello"};
-    
+
     // C++17 CTAD: Template arguments deduced automatically
-    std::vector numbers{1, 2, 3, 4, 5};  // Deduced as vector<int>
-    std::pair p{42, std::string("hello")}; // Deduced as pair<int, string>
-    std::optional opt{3.14}; // Deduced as optional<double>
-    std::array arr{1, 2, 3, 4}; // Deduced as array<int, 4>
-    std::tuple t{1, 2.5, "hello"}; // Deduced as tuple<int, double, const char*>
-    
-    std::cout << "Vector size: " << numbers.size() << "\\n";
-    std::cout << "Pair: (" << p.first << ", " << p.second << ")\\n";
-    std::cout << "Optional value: " << opt.value() << "\\n";
-    std::cout << "Array size: " << arr.size() << "\\n\\n";
-    
+    std::vector numbers{ 1, 2, 3, 4, 5 };  // Deduced as vector<int>
+    std::pair p{ 42, std:: string("hello") }; // Deduced as pair<int, string>
+    std::optional opt{ 3.14 }; // Deduced as optional<double>
+    std::array arr{ 1, 2, 3, 4 }; // Deduced as array<int, 4>
+    std::tuple t{ 1, 2.5, "hello" }; // Deduced as tuple<int, double, const char*>
+
+    std:: cout << "Vector size: " << numbers.size() << "\\n";
+    std:: cout << "Pair: (" << p.first << ", " << p.second << ")\\n";
+    std:: cout << "Optional value: " << opt.value() << "\\n";
+    std:: cout << "Array size: " << arr.size() << "\\n\\n";
+
     // === Custom Class CTAD ===
-    std::cout << "=== Custom Class CTAD ===\\n";
-    
+    std:: cout << "=== Custom Class CTAD ===\\n";
+
     // Our custom Pair class with CTAD
-    Pair pair1{10, 20};        // Deduced as Pair<int>
-    Pair pair2{3.14, "pi"};    // Deduced as Pair<double, const char*>
-    Pair pair3{std::string("key"), 42}; // Deduced as Pair<string, int>
-    
-    std::cout << "pair1: "; pair1.print(); std::cout << "\\n";
-    std::cout << "pair2: "; pair2.print(); std::cout << "\\n";
-    std::cout << "pair3: "; pair3.print(); std::cout << "\\n\\n";
-    
+    Pair pair1{ 10, 20 };        // Deduced as Pair<int>
+    Pair pair2{ 3.14, "pi" };    // Deduced as Pair<double, const char*>
+    Pair pair3{ std:: string("key"), 42 }; // Deduced as Pair<string, int>
+
+    std:: cout << "pair1: "; pair1.print(); std:: cout << "\\n";
+    std:: cout << "pair2: "; pair2.print(); std:: cout << "\\n";
+    std:: cout << "pair3: "; pair3.print(); std:: cout << "\\n\\n";
+
     // Custom map with initializer list
     SimpleMap map1{
-        {"apple", 1.50},
-        {"banana", 0.75},
-        {"orange", 2.00}
+        { "apple", 1.50 },
+        { "banana", 0.75 },
+        { "orange", 2.00 }
     }; // Deduced as SimpleMap<const char*, double>
     
     SimpleMap map2{
-        {std::string("AAPL"), 150.0},
-        {std::string("GOOGL"), 2500.0},
-        {std::string("MSFT"), 300.0}
+        { std:: string("AAPL"), 150.0 },
+        { std:: string("GOOGL"), 2500.0 },
+        { std:: string("MSFT"), 300.0 }
     }; // Deduced as SimpleMap<string, double>
-    
-    std::cout << "Fruit prices: "; map1.print(); std::cout << "\\n";
-    std::cout << "Stock prices: "; map2.print(); std::cout << "\\n\\n";
-    
+
+    std:: cout << "Fruit prices: "; map1.print(); std:: cout << "\\n";
+    std:: cout << "Stock prices: "; map2.print(); std:: cout << "\\n\\n";
+
     // === Financial Order Example ===
-    std::cout << "=== Financial Orders with CTAD ===\\n";
+    std:: cout << "=== Financial Orders with CTAD ===\\n";
     
-    Order buy_order{"AAPL", 150.50, 100, true};    // Deduced as Order<double, int>
-    Order sell_order{"GOOGL", 2500.75, 50L, false}; // Deduced as Order<double, long>
-    
-    std::cout << "Buy order: "; buy_order.print(); std::cout << "\\n";
-    std::cout << "Sell order: "; sell_order.print(); std::cout << "\\n\\n";
-    
+    Order buy_order{ "AAPL", 150.50, 100, true };    // Deduced as Order<double, int>
+    Order sell_order{ "GOOGL", 2500.75, 50L, false }; // Deduced as Order<double, long>
+
+    std:: cout << "Buy order: "; buy_order.print(); std:: cout << "\\n";
+    std:: cout << "Sell order: "; sell_order.print(); std:: cout << "\\n\\n";
+
     // === Container with CTAD ===
-    std::cout << "=== Custom Container with CTAD ===\\n";
+    std:: cout << "=== Custom Container with CTAD ===\\n";
     
-    CustomVector vec1{1, 2, 3, 4, 5}; // Deduced as CustomVector<int>
-    CustomVector vec2{1.1, 2.2, 3.3}; // Deduced as CustomVector<double>
-    
+    CustomVector vec1{ 1, 2, 3, 4, 5 }; // Deduced as CustomVector<int>
+    CustomVector vec2{ 1.1, 2.2, 3.3 }; // Deduced as CustomVector<double>
+
     // Using iterator constructor
-    std::vector<std::string> source{"hello", "world", "ctad"};
-    CustomVector vec3{source.begin(), source.end()}; // Deduced as CustomVector<string>
-    
-    std::cout << "int vector: "; vec1.print(); std::cout << "\\n";
-    std::cout << "double vector: "; vec2.print(); std::cout << "\\n";
-    std::cout << "string vector: "; vec3.print(); std::cout << "\\n\\n";
-    
+    std:: vector < std:: string > source{ "hello", "world", "ctad" };
+    CustomVector vec3{ source.begin(), source.end() }; // Deduced as CustomVector<string>
+
+    std:: cout << "int vector: "; vec1.print(); std:: cout << "\\n";
+    std:: cout << "double vector: "; vec2.print(); std:: cout << "\\n";
+    std:: cout << "string vector: "; vec3.print(); std:: cout << "\\n\\n";
+
     // === Thread-Safe Wrapper ===
-    std::cout << "=== Thread-Safe Wrapper with CTAD ===\\n";
+    std:: cout << "=== Thread-Safe Wrapper with CTAD ===\\n";
     
-    ThreadSafe counter{0}; // Deduced as ThreadSafe<int>
-    ThreadSafe message{std::string("Hello CTAD")}; // Deduced as ThreadSafe<string>
-    
+    ThreadSafe counter{ 0 }; // Deduced as ThreadSafe<int>
+    ThreadSafe message{ std:: string("Hello CTAD") }; // Deduced as ThreadSafe<string>
+
     // Use the thread-safe wrappers
-    counter.with_lock([](int& c) { c += 10; });
+    counter.with_lock([](int & c) { c += 10; });
     auto current_count = counter.get();
     auto current_message = message.get();
-    
-    std::cout << "Thread-safe counter: " << current_count << "\\n";
-    std::cout << "Thread-safe message: " << current_message << "\\n\\n";
-    
-    std::cout << "=== CTAD Benefits ===\\n";
-    std::cout << "✓ Less verbose template instantiation\\n";
-    std::cout << "✓ Improved code readability and maintainability\\n";
-    std::cout << "✓ Automatic type deduction reduces errors\\n";
-    std::cout << "✓ Works seamlessly with auto and generic code\\n";
-    std::cout << "✓ Custom deduction guides for complex scenarios\\n";
-    std::cout << "✓ Better integration with modern C++ idioms\\n";
-    
-    return 0;
-}`,
-    explanation: `Class Template Argument Deduction (CTAD) allows the compiler to automatically deduce template arguments for class templates from their constructor arguments, eliminating the need for explicit template parameter specification. This makes code more concise and readable while maintaining type safety. Custom deduction guides can be provided for complex scenarios where the default deduction isn't sufficient or desired.`,
-    useCase: `Essential for writing modern, clean C++ code with heavy template usage. Perfect for container classes, factory functions, wrapper classes, and any template code where explicit template arguments make code verbose. Particularly useful in financial applications with complex templated types like orders, instruments, and mathematical objects.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/class_template_argument_deduction'
-  },
 
-  // === FOLD EXPRESSIONS (EXPANDED) ===
-  {
-    id: 'fold-expressions',
-    title: 'Fold Expressions',
-    standard: 'cpp17',
-    description: 'Concise syntax for applying binary operators to parameter packs, enabling powerful variadic template patterns.',
-    codeExample: `#include <iostream>
+    std:: cout << "Thread-safe counter: " << current_count << "\\n";
+    std:: cout << "Thread-safe message: " << current_message << "\\n\\n";
+
+    std:: cout << "=== CTAD Benefits ===\\n";
+    std:: cout << "✓ Less verbose template instantiation\\n";
+    std:: cout << "✓ Improved code readability and maintainability\\n";
+    std:: cout << "✓ Automatic type deduction reduces errors\\n";
+    std:: cout << "✓ Works seamlessly with auto and generic code\\n";
+    std:: cout << "✓ Custom deduction guides for complex scenarios\\n";
+    std:: cout << "✓ Better integration with modern C++ idioms\\n";
+
+    return 0;
+} `,
+        explanation: `Class Template Argument Deduction(CTAD) allows the compiler to automatically deduce template arguments for class templates from their constructor arguments, eliminating the need for explicit template parameter specification.This makes code more concise and readable while maintaining type safety.Custom deduction guides can be provided for complex scenarios where the default deduction isn't sufficient or desired.`,
+        useCase: `Essential for writing modern, clean C++ code with heavy template usage. Perfect for container classes, factory functions, wrapper classes, and any template code where explicit template arguments make code verbose. Particularly useful in financial applications with complex templated types like orders, instruments, and mathematical objects.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/class_template_argument_deduction'
+    },
+
+    // === FOLD EXPRESSIONS (EXPANDED) ===
+    {
+        id: 'fold-expressions',
+        title: 'Fold Expressions',
+        standard: 'cpp17',
+        description: 'Concise syntax for applying binary operators to parameter packs, enabling powerful variadic template patterns.',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <string>
 #include <type_traits>
@@ -5672,18 +5344,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Fold expressions provide a concise way to apply binary operators to parameter packs without writing recursive templates. The four forms are: unary right fold (pack op ...), unary left fold (... op pack), binary right fold (pack op ... op init), and binary left fold (init op ... op pack). This enables powerful variadic template patterns for mathematical operations, logical tests, container manipulations, and type operations with clean, readable syntax.`,
-    useCase: `Perfect for variadic template functions that need to apply operations across all parameters, such as mathematical libraries, logging systems with multiple arguments, container operations, type trait checking, and any functional programming patterns. Essential for modern C++ template metaprogramming and generic algorithm design.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/fold'
-  },
+        explanation: `Fold expressions provide a concise way to apply binary operators to parameter packs without writing recursive templates. The four forms are: unary right fold (pack op ...), unary left fold (... op pack), binary right fold (pack op ... op init), and binary left fold (init op ... op pack). This enables powerful variadic template patterns for mathematical operations, logical tests, container manipulations, and type operations with clean, readable syntax.`,
+        useCase: `Perfect for variadic template functions that need to apply operations across all parameters, such as mathematical libraries, logging systems with multiple arguments, container operations, type trait checking, and any functional programming patterns. Essential for modern C++ template metaprogramming and generic algorithm design.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/fold'
+    },
 
-  // === TEMPLATE SPECIALIZATION (EXPANDED) ===
-  {
-    id: 'template-specialization',
-    title: 'Template Specialization',
-    standard: 'templates',
-    description: 'Full and partial template specialization for customizing template behavior for specific types and type patterns.',
-    codeExample: `#include <iostream>
+    // === TEMPLATE SPECIALIZATION (EXPANDED) ===
+    {
+        id: 'template-specialization',
+        title: 'Template Specialization',
+        standard: 'templates',
+        description: 'Full and partial template specialization for customizing template behavior for specific types and type patterns.',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <string>
 #include <memory>
@@ -6101,18 +5773,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Template specialization allows customizing template behavior for specific types or type patterns. Full specialization provides completely custom implementations for specific type combinations, while partial specialization enables patterns like "all pointers" or "all const types". This is fundamental to the STL's design and enables optimizations like std::vector<bool>'s bit-packing. Specialization is essential for type traits, SFINAE techniques, and creating generic libraries that handle edge cases elegantly.`,
-    useCase: `Critical for generic library design, type traits implementation, performance optimizations for specific types, and handling special cases in template code. Essential for creating robust generic containers, algorithms that adapt to type properties, and any situation where one-size-fits-all generic code isn't optimal. Used extensively in STL implementations and advanced template metaprogramming.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/template_specialization'
-  },
+        explanation: `Template specialization allows customizing template behavior for specific types or type patterns. Full specialization provides completely custom implementations for specific type combinations, while partial specialization enables patterns like "all pointers" or "all const types". This is fundamental to the STL's design and enables optimizations like std::vector<bool>'s bit-packing. Specialization is essential for type traits, SFINAE techniques, and creating generic libraries that handle edge cases elegantly.`,
+        useCase: `Critical for generic library design, type traits implementation, performance optimizations for specific types, and handling special cases in template code. Essential for creating robust generic containers, algorithms that adapt to type properties, and any situation where one-size-fits-all generic code isn't optimal. Used extensively in STL implementations and advanced template metaprogramming.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/template_specialization'
+    },
 
-  // === DEDUCING THIS (C++23) ===
-  {
-    id: 'deducing-this',
-    title: 'Deducing this',
-    standard: 'cpp23',
-    description: 'Explicit object parameters that deduce the type and value category of the calling object, enabling unified function definitions.',
-    codeExample: `#include <iostream>
+    // === DEDUCING THIS (C++23) ===
+    {
+        id: 'deducing-this',
+        title: 'Deducing this',
+        standard: 'cpp23',
+        description: 'Explicit object parameters that deduce the type and value category of the calling object, enabling unified function definitions.',
+        codeExample: `#include <iostream>
 #include <string>
 #include <vector>
 #include <memory>
@@ -6489,18 +6161,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Deducing this in C++23 allows member functions to explicitly take the object they're called on as a template parameter, deducing both its type and value category. This eliminates the need for separate const/non-const overloads, simplifies CRTP patterns, and enables perfect forwarding within member functions. The 'this Self&&' parameter allows a single function to handle lvalue, const lvalue, and rvalue calls with optimal efficiency.`,
-    useCase: `Perfect for eliminating code duplication in member function overloads, creating more efficient builder patterns, simplifying generic programming patterns that previously required CRTP, and implementing fluent interfaces with optimal performance. Essential for modern C++ library design where perfect forwarding and minimal code duplication are priorities.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/member_functions#Deducing_this'
-  },
+        explanation: `Deducing this in C++23 allows member functions to explicitly take the object they're called on as a template parameter, deducing both its type and value category. This eliminates the need for separate const/non-const overloads, simplifies CRTP patterns, and enables perfect forwarding within member functions. The 'this Self&&' parameter allows a single function to handle lvalue, const lvalue, and rvalue calls with optimal efficiency.`,
+        useCase: `Perfect for eliminating code duplication in member function overloads, creating more efficient builder patterns, simplifying generic programming patterns that previously required CRTP, and implementing fluent interfaces with optimal performance. Essential for modern C++ library design where perfect forwarding and minimal code duplication are priorities.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/member_functions#Deducing_this'
+    },
 
-  // === std::filesystem ===
-  {
-    id: 'filesystem',
-    title: 'std::filesystem',
-    standard: 'cpp17',
-    description: 'Comprehensive file system operations including path manipulation, directory iteration, file queries, and cross-platform file handling.',
-    codeExample: `#include <filesystem>
+    // === std::filesystem ===
+    {
+        id: 'filesystem',
+        title: 'std::filesystem',
+        standard: 'cpp17',
+        description: 'Comprehensive file system operations including path manipulation, directory iteration, file queries, and cross-platform file handling.',
+        codeExample: `#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -6893,18 +6565,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `std::filesystem provides a modern, cross-platform interface for file system operations. It includes comprehensive path manipulation with automatic platform-specific separators, directory iteration with both regular and recursive iterators, detailed file queries including size and timestamps, atomic file operations with error handling, and space information queries. The library uses RAII principles and provides strong exception safety guarantees.`,
-    useCase: `Essential for applications that need robust file handling: build systems, file managers, backup utilities, data processing pipelines, log rotation systems, and any application working with files and directories. Perfect for cross-platform development where file system operations must work consistently across Windows, Linux, and macOS.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/filesystem'
-  },
+        explanation: `std::filesystem provides a modern, cross-platform interface for file system operations. It includes comprehensive path manipulation with automatic platform-specific separators, directory iteration with both regular and recursive iterators, detailed file queries including size and timestamps, atomic file operations with error handling, and space information queries. The library uses RAII principles and provides strong exception safety guarantees.`,
+        useCase: `Essential for applications that need robust file handling: build systems, file managers, backup utilities, data processing pipelines, log rotation systems, and any application working with files and directories. Perfect for cross-platform development where file system operations must work consistently across Windows, Linux, and macOS.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/filesystem'
+    },
 
-  // === constinit (C++20) ===
-  {
-    id: 'constinit',
-    title: 'constinit',
-    standard: 'cpp20',
-    description: 'Ensures static and thread-local variables are initialized at compile time, preventing static initialization order fiasco.',
-    codeExample: `#include <iostream>
+    // === constinit (C++20) ===
+    {
+        id: 'constinit',
+        title: 'constinit',
+        standard: 'cpp20',
+        description: 'Ensures static and thread-local variables are initialized at compile time, preventing static initialization order fiasco.',
+        codeExample: `#include <iostream>
 #include <string>
 #include <vector>
 #include <chrono>
@@ -7230,18 +6902,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `constinit ensures that static and thread-local variables are initialized at compile time, not runtime. This eliminates the static initialization order fiasco and provides zero-overhead initialization for global state. Unlike constexpr, constinit variables can be modified at runtime, but their initial value must be computable at compile time. This is particularly valuable for atomic variables, configuration constants, and lookup tables.`,
-    useCase: `Essential for high-performance applications requiring predictable initialization, library code that must initialize before main(), embedded systems with limited startup time, financial trading systems needing guaranteed initialization order, and any application where static initialization order could cause bugs. Perfect for global configuration, lookup tables, and atomic counters.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/constinit'
-  },
+        explanation: `constinit ensures that static and thread-local variables are initialized at compile time, not runtime. This eliminates the static initialization order fiasco and provides zero-overhead initialization for global state. Unlike constexpr, constinit variables can be modified at runtime, but their initial value must be computable at compile time. This is particularly valuable for atomic variables, configuration constants, and lookup tables.`,
+        useCase: `Essential for high-performance applications requiring predictable initialization, library code that must initialize before main(), embedded systems with limited startup time, financial trading systems needing guaranteed initialization order, and any application where static initialization order could cause bugs. Perfect for global configuration, lookup tables, and atomic counters.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/constinit'
+    },
 
-  // === THREE-WAY COMPARISON / SPACESHIP OPERATOR ===
-  {
-    id: 'spaceship-operator',
-    title: 'Three-way Comparison / Spaceship Operator',
-    standard: 'cpp20',
-    description: 'The <=> operator provides unified comparison semantics, automatically generating all six comparison operators from a single definition.',
-    codeExample: `#include <compare>
+    // === THREE-WAY COMPARISON / SPACESHIP OPERATOR ===
+    {
+        id: 'spaceship-operator',
+        title: 'Three-way Comparison / Spaceship Operator',
+        standard: 'cpp20',
+        description: 'The <=> operator provides unified comparison semantics, automatically generating all six comparison operators from a single definition.',
+        codeExample: `#include <compare>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -7589,18 +7261,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `The three-way comparison operator <=> (spaceship operator) returns a comparison category indicating the relationship between two objects. It automatically generates all six comparison operators (==, !=, <, <=, >, >=) from a single definition. The operator returns one of three ordering types: strong_ordering (total order), weak_ordering (equivalent but not equal elements allowed), or partial_ordering (some elements may be incomparable). This provides consistent, efficient, and expressive comparison semantics.`,
-    useCase: `Essential for creating comparable types in modern C++, financial instruments with complex ordering criteria, version numbers, container classes, and any type that needs comprehensive comparison support. Perfect for use with standard algorithms, container sorting, and generic programming where consistent comparison semantics are crucial.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/operator_comparison'
-  },
+        explanation: `The three-way comparison operator <=> (spaceship operator) returns a comparison category indicating the relationship between two objects. It automatically generates all six comparison operators (==, !=, <, <=, >, >=) from a single definition. The operator returns one of three ordering types: strong_ordering (total order), weak_ordering (equivalent but not equal elements allowed), or partial_ordering (some elements may be incomparable). This provides consistent, efficient, and expressive comparison semantics.`,
+        useCase: `Essential for creating comparable types in modern C++, financial instruments with complex ordering criteria, version numbers, container classes, and any type that needs comprehensive comparison support. Perfect for use with standard algorithms, container sorting, and generic programming where consistent comparison semantics are crucial.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/operator_comparison'
+    },
 
-  // === DIGIT SEPARATORS & BINARY LITERALS ===
-  {
-    id: 'digit-separators-binary-literals',
-    title: 'Digit Separators & Binary Literals',
-    standard: 'cpp14',
-    description: 'Improve numeric literal readability with digit separators and support binary literals for bit manipulation and embedded programming.',
-    codeExample: `#include <iostream>
+    // === DIGIT SEPARATORS & BINARY LITERALS ===
+    {
+        id: 'digit-separators-binary-literals',
+        title: 'Digit Separators & Binary Literals',
+        standard: 'cpp14',
+        description: 'Improve numeric literal readability with digit separators and support binary literals for bit manipulation and embedded programming.',
+        codeExample: `#include <iostream>
 #include <bitset>
 #include <iomanip>
 #include <string>
@@ -7925,18 +7597,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Digit separators (apostrophes) in numeric literals improve readability by allowing visual grouping of digits, especially useful for large financial amounts, memory sizes, and bit patterns. Binary literals (0b prefix) enable direct specification of bit patterns, making embedded programming, protocol definitions, and bit manipulation more intuitive. These features make code more maintainable and reduce errors in numeric constants.`,
-    useCase: `Essential for financial applications with large monetary values, embedded systems programming with register configurations, network protocol implementations, bit manipulation libraries, and any code dealing with large numeric constants. Perfect for hardware abstraction layers, cryptographic implementations, and systems where bit-level operations are common.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/integer_literal'
-  },
+        explanation: `Digit separators (apostrophes) in numeric literals improve readability by allowing visual grouping of digits, especially useful for large financial amounts, memory sizes, and bit patterns. Binary literals (0b prefix) enable direct specification of bit patterns, making embedded programming, protocol definitions, and bit manipulation more intuitive. These features make code more maintainable and reduce errors in numeric constants.`,
+        useCase: `Essential for financial applications with large monetary values, embedded systems programming with register configurations, network protocol implementations, bit manipulation libraries, and any code dealing with large numeric constants. Perfect for hardware abstraction layers, cryptographic implementations, and systems where bit-level operations are common.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/integer_literal'
+    },
 
-  // === INLINE VARIABLES (C++17) ===
-  {
-    id: 'inline-variables',
-    title: 'Inline Variables',
-    standard: 'cpp17',
-    description: 'Define variables in header files without ODR violations, enabling header-only libraries with static data members and global constants.',
-    codeExample: `#include <iostream>
+    // === INLINE VARIABLES (C++17) ===
+    {
+        id: 'inline-variables',
+        title: 'Inline Variables',
+        standard: 'cpp17',
+        description: 'Define variables in header files without ODR violations, enabling header-only libraries with static data members and global constants.',
+        codeExample: `#include <iostream>
 #include <string>
 #include <vector>
 #include <atomic>
@@ -8320,18 +7992,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Inline variables in C++17 allow defining variables directly in header files without ODR (One Definition Rule) violations. This enables header-only libraries with global constants, simplifies static data member initialization in templates, and eliminates the need for .cpp files for simple constant definitions. The compiler ensures only one definition exists across all translation units while allowing the variable to be defined in headers.`,
-    useCase: `Perfect for header-only libraries, configuration systems with global constants, template static members, mathematical constants, application-wide settings, and any scenario where you need global variables accessible from headers without linker errors. Essential for modern C++ library design and reducing compilation dependencies.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/inline'
-  },
+        explanation: `Inline variables in C++17 allow defining variables directly in header files without ODR (One Definition Rule) violations. This enables header-only libraries with global constants, simplifies static data member initialization in templates, and eliminates the need for .cpp files for simple constant definitions. The compiler ensures only one definition exists across all translation units while allowing the variable to be defined in headers.`,
+        useCase: `Perfect for header-only libraries, configuration systems with global constants, template static members, mathematical constants, application-wide settings, and any scenario where you need global variables accessible from headers without linker errors. Essential for modern C++ library design and reducing compilation dependencies.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/inline'
+    },
 
-  // Static Polymorphism and Compile-Time Alternatives to Virtual Functions
-  {
-    id: 'crtp-static-polymorphism',
-    title: 'CRTP: Static Polymorphism Pattern',
-    standard: 'templates',
-    description: 'Curiously Recurring Template Pattern (CRTP) for compile-time polymorphism without virtual function overhead',
-    codeExample: `#include <iostream>
+    // Static Polymorphism and Compile-Time Alternatives to Virtual Functions
+    {
+        id: 'crtp-static-polymorphism',
+        title: 'CRTP: Static Polymorphism Pattern',
+        standard: 'templates',
+        description: 'Curiously Recurring Template Pattern (CRTP) for compile-time polymorphism without virtual function overhead',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <chrono>
 #include <memory>
@@ -8486,17 +8158,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `CRTP (Curiously Recurring Template Pattern) is a C++ idiom where a class derives from a template instantiation of itself. This enables static polymorphism - compile-time resolution of function calls without virtual functions. The base class uses static_cast to call the derived class's methods, which the compiler can inline and optimize aggressively. Unlike runtime polymorphism with virtual functions, CRTP has zero runtime overhead and better performance, especially in tight loops.`,
-    useCase: `Use CRTP when you need polymorphic behavior but can't afford virtual function overhead: game engines (entity component systems), high-performance libraries, template metaprogramming, mixin classes, and interface implementations where types are known at compile time. Perfect for performance-critical code paths and library design patterns.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/language/crtp'
-  },
+        explanation: `CRTP (Curiously Recurring Template Pattern) is a C++ idiom where a class derives from a template instantiation of itself. This enables static polymorphism - compile-time resolution of function calls without virtual functions. The base class uses static_cast to call the derived class's methods, which the compiler can inline and optimize aggressively. Unlike runtime polymorphism with virtual functions, CRTP has zero runtime overhead and better performance, especially in tight loops.`,
+        useCase: `Use CRTP when you need polymorphic behavior but can't afford virtual function overhead: game engines (entity component systems), high-performance libraries, template metaprogramming, mixin classes, and interface implementations where types are known at compile time. Perfect for performance-critical code paths and library design patterns.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/language/crtp'
+    },
 
-  {
-    id: 'variant-polymorphism',
-    title: 'std::variant for Compile-Time Polymorphism',
-    standard: 'cpp17',
-    description: 'Using std::variant as a type-safe, performant alternative to runtime polymorphism with virtual functions',
-    codeExample: `#include <iostream>
+    {
+        id: 'variant-polymorphism',
+        title: 'std::variant for Compile-Time Polymorphism',
+        standard: 'cpp17',
+        description: 'Using std::variant as a type-safe, performant alternative to runtime polymorphism with virtual functions',
+        codeExample: `#include <iostream>
 #include <variant>
 #include <vector>
 #include <string>
@@ -8668,17 +8340,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `std::variant provides a type-safe union that can hold one of several alternative types. When combined with std::visit, it enables compile-time polymorphism without inheritance or virtual functions. The visitor pattern resolves which function to call at compile time, allowing aggressive inlining and optimization. Unlike virtual functions, variant uses stack storage, has better cache locality, and eliminates vtable overhead. The compiler can optimize variant dispatch very efficiently, often resulting in performance comparable to or better than virtual functions.`,
-    useCase: `Ideal for closed sets of types where you know all alternatives at compile time: state machines, AST nodes, message types, event systems, command patterns, and data serialization. Perfect when you want value semantics without heap allocation. Use when you need polymorphic behavior but want better performance than virtual functions, or when working with non-polymorphic types that can't use inheritance.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/utility/variant'
-  },
+        explanation: `std::variant provides a type-safe union that can hold one of several alternative types. When combined with std::visit, it enables compile-time polymorphism without inheritance or virtual functions. The visitor pattern resolves which function to call at compile time, allowing aggressive inlining and optimization. Unlike virtual functions, variant uses stack storage, has better cache locality, and eliminates vtable overhead. The compiler can optimize variant dispatch very efficiently, often resulting in performance comparable to or better than virtual functions.`,
+        useCase: `Ideal for closed sets of types where you know all alternatives at compile time: state machines, AST nodes, message types, event systems, command patterns, and data serialization. Perfect when you want value semantics without heap allocation. Use when you need polymorphic behavior but want better performance than virtual functions, or when working with non-polymorphic types that can't use inheritance.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/utility/variant'
+    },
 
-  {
-    id: 'policy-based-design',
-    title: 'Policy-Based Design for Static Polymorphism',
-    standard: 'templates',
-    description: 'Use policy classes as template parameters to achieve flexible, compile-time configuration without virtual functions',
-    codeExample: `#include <iostream>
+    {
+        id: 'policy-based-design',
+        title: 'Policy-Based Design for Static Polymorphism',
+        standard: 'templates',
+        description: 'Use policy classes as template parameters to achieve flexible, compile-time configuration without virtual functions',
+        codeExample: `#include <iostream>
 #include <vector>
 #include <memory>
 #include <fstream>
@@ -8875,17 +8547,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Policy-based design uses template parameters to inject different implementations (policies) into a class at compile time. Each policy is a class with static methods or type definitions that defines a specific aspect of behavior (logging, error handling, storage strategy, etc.). The compiler resolves all policy calls at compile time, enabling aggressive optimization and complete dead code elimination for unused policies. This achieves the flexibility of runtime polymorphism without any runtime overhead.`,
-    useCase: `Ideal for configurable library components where different behavior is needed in different contexts: logging frameworks with different backends, memory allocators with different strategies, threading policies, serialization formats, and any system requiring flexible configuration at compile time. Perfect for creating both debug and release builds with different behavior from the same codebase, or for libraries that need to adapt to different environments without runtime cost.`,
-    referenceUrl: 'https://en.wikipedia.org/wiki/Modern_C%2B%2B_Design'
-  },
+        explanation: `Policy-based design uses template parameters to inject different implementations (policies) into a class at compile time. Each policy is a class with static methods or type definitions that defines a specific aspect of behavior (logging, error handling, storage strategy, etc.). The compiler resolves all policy calls at compile time, enabling aggressive optimization and complete dead code elimination for unused policies. This achieves the flexibility of runtime polymorphism without any runtime overhead.`,
+        useCase: `Ideal for configurable library components where different behavior is needed in different contexts: logging frameworks with different backends, memory allocators with different strategies, threading policies, serialization formats, and any system requiring flexible configuration at compile time. Perfect for creating both debug and release builds with different behavior from the same codebase, or for libraries that need to adapt to different environments without runtime cost.`,
+        referenceUrl: 'https://en.wikipedia.org/wiki/Modern_C%2B%2B_Design'
+    },
 
-  {
-    id: 'type-erasure-pattern',
-    title: 'Type Erasure: Bridging Static and Dynamic Polymorphism',
-    standard: 'templates',
-    description: 'Advanced pattern combining templates and virtual functions for flexible value-based polymorphism',
-    codeExample: `#include <iostream>
+    {
+        id: 'type-erasure-pattern',
+        title: 'Type Erasure: Bridging Static and Dynamic Polymorphism',
+        standard: 'templates',
+        description: 'Advanced pattern combining templates and virtual functions for flexible value-based polymorphism',
+        codeExample: `#include <iostream>
 #include <memory>
 #include <vector>
 #include <functional>
@@ -9110,18 +8782,18 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Type erasure is a technique that combines templates and virtual functions to provide runtime polymorphism with value semantics. It wraps any type matching an interface in a type-erasing container, hiding the actual type behind a uniform interface. Unlike traditional inheritance, wrapped types don't need a common base class. The pattern uses a small internal class hierarchy (concept/model) that's invisible to users, while the public interface works with values, not pointers. This enables storing heterogeneous objects in containers with natural copy/move semantics. Advanced implementations use Small Buffer Optimization (SBO) to avoid heap allocation for small objects.`,
-    useCase: `Ideal when you need runtime polymorphism but want value semantics: plugin systems where plugins are loaded dynamically, callbacks and event systems, generic containers for diverse types, API boundaries where implementation details should be hidden, and any situation where you want std::function-like behavior for custom types. Perfect for libraries that need to accept user-defined types without requiring inheritance. Use when you need the flexibility of virtual functions but want to work with values instead of pointers.`,
-    referenceUrl: 'https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Type_Erasure'
-  },
+        explanation: `Type erasure is a technique that combines templates and virtual functions to provide runtime polymorphism with value semantics. It wraps any type matching an interface in a type-erasing container, hiding the actual type behind a uniform interface. Unlike traditional inheritance, wrapped types don't need a common base class. The pattern uses a small internal class hierarchy (concept/model) that's invisible to users, while the public interface works with values, not pointers. This enables storing heterogeneous objects in containers with natural copy/move semantics. Advanced implementations use Small Buffer Optimization (SBO) to avoid heap allocation for small objects.`,
+        useCase: `Ideal when you need runtime polymorphism but want value semantics: plugin systems where plugins are loaded dynamically, callbacks and event systems, generic containers for diverse types, API boundaries where implementation details should be hidden, and any situation where you want std::function-like behavior for custom types. Perfect for libraries that need to accept user-defined types without requiring inheritance. Use when you need the flexibility of virtual functions but want to work with values instead of pointers.`,
+        referenceUrl: 'https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Type_Erasure'
+    },
 
-  // === MULTITHREADING FEATURES ===
-  {
-    id: 'thread-basics',
-    title: 'Thread Fundamentals',
-    standard: 'multithreading',
-    description: 'Introduction to C++11 threading: creating, joining, and managing threads with std::thread',
-    codeExample: `#include <iostream>
+    // === MULTITHREADING FEATURES ===
+    {
+        id: 'thread-basics',
+        title: 'Thread Fundamentals',
+        standard: 'multithreading',
+        description: 'Introduction to C++11 threading: creating, joining, and managing threads with std::thread',
+        codeExample: `#include <iostream>
 #include <thread>
 #include <chrono>
 #include <vector>
@@ -9162,17 +8834,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `std::thread is C++11's fundamental threading primitive enabling concurrent execution. Threads execute functions, lambdas, or callable objects concurrently. Every thread must be either joined (wait for completion) or detached before destruction, otherwise the program terminates.`,
-    useCase: `Essential for parallel tasks, background operations, responsive UIs, and server request handling. Use for utilizing multi-core processors effectively. Foundation for all multithreaded C++ programs.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/thread/thread'
-  },
+        explanation: `std::thread is C++11's fundamental threading primitive enabling concurrent execution. Threads execute functions, lambdas, or callable objects concurrently. Every thread must be either joined (wait for completion) or detached before destruction, otherwise the program terminates.`,
+        useCase: `Essential for parallel tasks, background operations, responsive UIs, and server request handling. Use for utilizing multi-core processors effectively. Foundation for all multithreaded C++ programs.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/thread/thread'
+    },
 
-  {
-    id: 'mutex-basics',
-    title: 'Mutexes and Synchronization',
-    standard: 'multithreading',
-    description: 'Thread-safe data access using std::mutex, std::lock_guard, and RAII lock management',
-    codeExample: `#include <iostream>
+    {
+        id: 'mutex-basics',
+        title: 'Mutexes and Synchronization',
+        standard: 'multithreading',
+        description: 'Thread-safe data access using std::mutex, std::lock_guard, and RAII lock management',
+        codeExample: `#include <iostream>
 #include <thread>
 #include <mutex>
 #include <vector>
@@ -9214,17 +8886,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Mutexes (mutual exclusion locks) protect shared data from simultaneous access. std::lock_guard provides RAII-based automatic locking/unlocking, ensuring exception safety. Always use RAII locks instead of manual lock/unlock.`,
-    useCase: `Essential for protecting any shared mutable state: counters, containers, caches, and configuration data. Use lock_guard for simple critical sections. Critical for preventing data races.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/thread/mutex'
-  },
+        explanation: `Mutexes (mutual exclusion locks) protect shared data from simultaneous access. std::lock_guard provides RAII-based automatic locking/unlocking, ensuring exception safety. Always use RAII locks instead of manual lock/unlock.`,
+        useCase: `Essential for protecting any shared mutable state: counters, containers, caches, and configuration data. Use lock_guard for simple critical sections. Critical for preventing data races.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/thread/mutex'
+    },
 
-  {
-    id: 'atomic-operations',
-    title: 'Atomic Operations',
-    standard: 'multithreading',
-    description: 'Lock-free synchronization using std::atomic for high-performance concurrent access',
-    codeExample: `#include <iostream>
+    {
+        id: 'atomic-operations',
+        title: 'Atomic Operations',
+        standard: 'multithreading',
+        description: 'Lock-free synchronization using std::atomic for high-performance concurrent access',
+        codeExample: `#include <iostream>
 #include <atomic>
 #include <thread>
 #include <vector>
@@ -9270,17 +8942,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Atomic operations provide lock-free synchronization by guaranteeing operations complete without interruption. std::atomic supports load, store, fetch_add, and compare-and-swap (CAS) operations. Lock-free programming avoids mutex overhead but is more complex.`,
-    useCase: `Use for high-performance counters, flags, and simple shared state where mutex overhead is unacceptable. Essential in lock-free data structures and low-latency systems. Profile before choosing over mutexes.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic'
-  },
+        explanation: `Atomic operations provide lock-free synchronization by guaranteeing operations complete without interruption. std::atomic supports load, store, fetch_add, and compare-and-swap (CAS) operations. Lock-free programming avoids mutex overhead but is more complex.`,
+        useCase: `Use for high-performance counters, flags, and simple shared state where mutex overhead is unacceptable. Essential in lock-free data structures and low-latency systems. Profile before choosing over mutexes.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic'
+    },
 
-  {
-    id: 'condition-variables',
-    title: 'Condition Variables',
-    standard: 'multithreading',
-    description: 'Thread coordination using std::condition_variable for producer-consumer patterns',
-    codeExample: `#include <iostream>
+    {
+        id: 'condition-variables',
+        title: 'Condition Variables',
+        standard: 'multithreading',
+        description: 'Thread coordination using std::condition_variable for producer-consumer patterns',
+        codeExample: `#include <iostream>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -9349,17 +9021,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Condition variables enable threads to wait for specific conditions without busy-waiting. They work with mutexes to atomically release locks while waiting. Use predicates with wait() to handle spurious wakeups. Essential for producer-consumer patterns.`,
-    useCase: `Perfect for producer-consumer queues, thread pools, task schedulers, and event-driven systems. Use when threads must coordinate based on data availability. More efficient than polling.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/thread/condition_variable'
-  },
+        explanation: `Condition variables enable threads to wait for specific conditions without busy-waiting. They work with mutexes to atomically release locks while waiting. Use predicates with wait() to handle spurious wakeups. Essential for producer-consumer patterns.`,
+        useCase: `Perfect for producer-consumer queues, thread pools, task schedulers, and event-driven systems. Use when threads must coordinate based on data availability. More efficient than polling.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/thread/condition_variable'
+    },
 
-  {
-    id: 'async-futures',
-    title: 'Async and Futures',
-    standard: 'multithreading',
-    description: 'High-level asynchronous programming with std::async and std::future',
-    codeExample: `#include <iostream>
+    {
+        id: 'async-futures',
+        title: 'Async and Futures',
+        standard: 'multithreading',
+        description: 'High-level asynchronous programming with std::async and std::future',
+        codeExample: `#include <iostream>
 #include <future>
 #include <vector>
 #include <numeric>
@@ -9405,17 +9077,17 @@ int main() {
     
     return 0;
 }`,
-    explanation: `std::async provides high-level task-based parallelism, automatically managing threads. std::future represents a value available in the future. Exceptions are automatically propagated through futures. Cleaner and safer than manual thread management.`,
-    useCase: `Ideal for parallel algorithms, background computations, and asynchronous operations. Use for task-based parallelism without managing threads explicitly. Perfect for dividing work across cores cleanly.`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/thread/async'
-  },
+        explanation: `std::async provides high-level task-based parallelism, automatically managing threads. std::future represents a value available in the future. Exceptions are automatically propagated through futures. Cleaner and safer than manual thread management.`,
+        useCase: `Ideal for parallel algorithms, background computations, and asynchronous operations. Use for task-based parallelism without managing threads explicitly. Perfect for dividing work across cores cleanly.`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/thread/async'
+    },
 
-  {
-    id: 'lock-free-stack',
-    title: 'Lock-Free Data Structures',
-    standard: 'multithreading',
-    description: 'Building lock-free concurrent data structures using atomic operations and CAS',
-    codeExample: `#include <iostream>
+    {
+        id: 'lock-free-stack',
+        title: 'Lock-Free Data Structures',
+        standard: 'multithreading',
+        description: 'Building lock-free concurrent data structures using atomic operations and CAS',
+        codeExample: `#include <iostream>
 #include <atomic>
 #include <thread>
 #include <vector>
@@ -9501,8 +9173,8 @@ int main() {
     
     return 0;
 }`,
-    explanation: `Lock-free data structures use atomic operations and compare-and-swap (CAS) to coordinate without locks. CAS retries until successful, avoiding mutex overhead. Challenging to implement correctly but offers excellent performance under high contention. Beware of the ABA problem.`,
-    useCase: `Use in high-performance systems where lock contention is a bottleneck: real-time systems, high-frequency trading, game engines. Essential when predictable latency matters. Requires deep understanding of memory models. Test thoroughly!`,
-    referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic'
-  }
+        explanation: `Lock-free data structures use atomic operations and compare-and-swap (CAS) to coordinate without locks. CAS retries until successful, avoiding mutex overhead. Challenging to implement correctly but offers excellent performance under high contention. Beware of the ABA problem.`,
+        useCase: `Use in high-performance systems where lock contention is a bottleneck: real-time systems, high-frequency trading, game engines. Essential when predictable latency matters. Requires deep understanding of memory models. Test thoroughly!`,
+        referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic'
+    }
 ];

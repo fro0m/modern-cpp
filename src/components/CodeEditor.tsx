@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import { Play, Copy, RotateCcw } from 'lucide-react';
 
@@ -21,7 +21,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
-    
+
     // Configure C++ language
     monaco.languages.setMonarchTokensProvider('cpp', {
       keywords: [
@@ -90,7 +90,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
           <span className="text-sm text-gray-600 font-medium">C++ Editor</span>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <button
             onClick={copyToClipboard}
@@ -119,7 +119,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           )}
         </div>
       </div>
-      
+
       <Editor
         height={height}
         language="cpp"
@@ -151,4 +151,4 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   );
 };
 
-export default CodeEditor;
+export default React.memo(CodeEditor);

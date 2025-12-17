@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CppFeature, Exercise, CodeReview } from '../types';
 import { exercises } from '../data/exercises';
@@ -31,9 +31,11 @@ export const useTopicController = () => {
         }
     }, [topicId, navigate]);
 
-    const relatedExercises = topic ? exercises.filter(ex => ex.relatedTheory === topic.id) : [];
+    const relatedExercises = useMemo(() => {
+        return topic ? exercises.filter(ex => ex.relatedTheory === topic.id) : [];
+    }, [topic]);
 
-    const selectExercise = (exercise: Exercise) => {
+    const selectExercise = useCallback((exercise: Exercise) => {
         setSelectedExercise(exercise);
         if (exercise) {
             setUserCode(exercise.starterCode);
@@ -41,9 +43,9 @@ export const useTopicController = () => {
         setOutput('');
         setShowHints(false);
         setAiReview(null);
-    };
+    }, []);
 
-    const runCode = async () => {
+    const runCode = useCallback(async () => {
         if (!userCode.trim()) return;
 
         setIsRunning(true);
@@ -78,7 +80,7 @@ export const useTopicController = () => {
             if (success) {
                 setIsAnalyzing(true);
 
-                // Simulate AI analysis
+                // Simulate code analysis
                 await new Promise(resolve => setTimeout(resolve, 2500));
 
                 // Generate AI review based on the exercise and code
@@ -92,7 +94,7 @@ export const useTopicController = () => {
         } finally {
             setIsRunning(false);
         }
-    };
+    }, [userCode, selectedExercise]);
 
     return {
         topic,
