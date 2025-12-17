@@ -7,13 +7,15 @@ interface HeaderProps {
   onSectionChange: (section: Section) => void;
   selectedTopic?: CppFeature | null;
   onBack?: () => void;
+  showBack?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  currentSection, 
-  onSectionChange, 
-  selectedTopic, 
-  onBack 
+const Header: React.FC<HeaderProps> = ({
+  currentSection,
+  onSectionChange,
+  selectedTopic,
+  onBack,
+  showBack
 }) => {
   const sections = [
     { id: 'learn' as Section, name: 'Learn & Practice', icon: BookOpen },
@@ -36,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-2">
-            {selectedTopic && onBack && (
+            {showBack && onBack && (
               <button
                 onClick={onBack}
                 className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors mr-4"
@@ -60,18 +62,17 @@ const Header: React.FC<HeaderProps> = ({
               )}
             </div>
           </div>
-          
+
           {!selectedTopic && (
             <nav className="flex space-x-1">
               {sections.map(({ id, name, icon: Icon }) => (
                 <button
                   key={id}
                   onClick={() => onSectionChange(id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    currentSection === id
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${currentSection === id
                       ? 'bg-blue-100 text-blue-700 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{name}</span>

@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { Lightbulb, ExternalLink, Target, Play, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Lightbulb, ExternalLink, Target, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { CppFeature, Exercise, CodeReview } from '../types';
 import { exercises } from '../data/exercises';
+import { cppFeatures } from '../data/features';
 import CodeEditor from './CodeEditor';
 
-interface TopicViewProps {
-  topic: CppFeature;
-  onBack: () => void;
-}
+const TopicView: React.FC = () => {
+  const { topicId } = useParams<{ topicId: string }>();
+  const navigate = useNavigate();
+  const [topic, setTopic] = useState<CppFeature | null>(null);
 
-const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [userCode, setUserCode] = useState<string>('');
   const [isRunning, setIsRunning] = useState(false);
@@ -17,6 +18,23 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
   const [showHints, setShowHints] = useState(false);
   const [aiReview, setAiReview] = useState<CodeReview | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  useEffect(() => {
+    if (topicId) {
+      const foundTopic = cppFeatures.find(f => f.id === topicId);
+      if (foundTopic) {
+        setTopic(foundTopic);
+      } else {
+        // Handle topic not found
+        console.error('Topic not found');
+        navigate('/');
+      }
+    }
+  }, [topicId, navigate]);
+
+  if (!topic) {
+    return <div className="p-8 text-center">Loading topic...</div>;
+  }
 
   const relatedExercises = exercises.filter(ex => ex.relatedTheory === topic.id);
 
@@ -30,7 +48,7 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
 
   const runCode = async () => {
     if (!userCode.trim()) return;
-    
+
     setIsRunning(true);
     setOutput('');
     setAiReview(null);
@@ -38,10 +56,10 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
     try {
       // Simulate code execution
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       let executionOutput = '';
       let success = false;
-      
+
       if (selectedExercise) {
         if (userCode.includes('TODO')) {
           executionOutput = 'Error: Please complete the TODO sections before running.\n\nCompilation failed.';
@@ -56,22 +74,22 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
           }
         }
       }
-      
+
       setOutput(executionOutput);
-      
+
       // If compilation was successful, automatically trigger AI review
       if (success) {
         setIsAnalyzing(true);
-        
+
         // Simulate AI analysis
         await new Promise(resolve => setTimeout(resolve, 2500));
-        
+
         // Generate AI review based on the exercise and code
         const review = generateAIReview(userCode, selectedExercise);
         setAiReview(review);
         setIsAnalyzing(false);
       }
-      
+
     } catch (error) {
       setOutput('Error: Failed to execute code. Please check your implementation.\n\nRuntime error.');
     } finally {
@@ -117,16 +135,16 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
     const bestPractices: string[] = [];
     const modernCppUsage: string[] = [];
     const topicSpecificFeedback: string[] = [];
-    
+
     // Generic feedback
     if (code.includes('std::endl')) {
       suggestions.push("Consider using '\\n' instead of std::endl for better performance");
     }
-    
+
     if (code.includes('for (int i = 0; i <') && !code.includes('auto')) {
       suggestions.push("Consider using range-based for loops or auto keyword for type deduction");
     }
-    
+
     // Topic-specific feedback based on exercise
     if (exercise) {
       switch (exercise.feature) {
@@ -137,7 +155,7 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
           }
           modernCppUsage.push("Generic lambdas (C++14) eliminate the need for separate function templates in many cases");
           break;
-          
+
         case 'structured-bindings':
           if (code.includes('auto [')) {
             topicSpecificFeedback.push("Perfect use of structured bindings! This makes tuple/pair decomposition much more readable.");
@@ -146,7 +164,7 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
             issues.push("Consider using structured bindings to decompose tuples/pairs more elegantly");
           }
           break;
-          
+
         case 'std-optional':
           if (code.includes('std::nullopt')) {
             topicSpecificFeedback.push("Good use of std::nullopt for representing absent values safely.");
@@ -156,7 +174,7 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
           }
           modernCppUsage.push("std::optional (C++17) provides type-safe nullable values without pointer risks");
           break;
-          
+
         case 'concepts':
           if (code.includes('concept')) {
             topicSpecificFeedback.push("Excellent concept definition! This makes template constraints self-documenting.");
@@ -166,7 +184,7 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
             topicSpecificFeedback.push("Good use of requires clause for specifying template requirements.");
           }
           break;
-          
+
         case 'ranges':
           if (code.includes('std::views::')) {
             topicSpecificFeedback.push("Great use of range views! They provide lazy evaluation and composability.");
@@ -176,7 +194,7 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
             topicSpecificFeedback.push("Excellent use of pipe operator for chaining range operations!");
           }
           break;
-          
+
         case 'std-expected':
           if (code.includes('std::unexpected')) {
             topicSpecificFeedback.push("Perfect use of std::unexpected for explicit error handling!");
@@ -218,14 +236,14 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
           break;
       }
     }
-    
+
     // Best practices
     bestPractices.push("Use const correctness where possible");
     bestPractices.push("Prefer range-based for loops over traditional index-based loops");
     bestPractices.push("Use auto for type deduction when the type is obvious");
-    
+
     const rating = Math.max(6, 10 - issues.length);
-    
+
     return {
       suggestions,
       issues,
@@ -259,9 +277,9 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      <div className="flex flex-col space-y-8">
         {/* Theory Section */}
-        <div className="xl:col-span-2 space-y-6">
+        <div className="space-y-6">
           {/* Topic Header */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center space-x-3 mb-4">
@@ -287,7 +305,7 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Code Example</h2>
             <CodeEditor
               code={topic.codeExample}
-              onChange={() => {}} // Read-only for theory
+              onChange={() => { }} // Read-only for theory
               readOnly={true}
               height="400px"
             />
@@ -312,9 +330,9 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
               <p className="text-purple-800 mb-3">
                 Learn more about this feature from the official C++ reference:
               </p>
-              <a 
-                href={topic.referenceUrl} 
-                target="_blank" 
+              <a
+                href={topic.referenceUrl}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors"
               >
@@ -325,206 +343,179 @@ const TopicView: React.FC<TopicViewProps> = ({ topic, onBack }) => {
           )}
         </div>
 
-        {/* Exercise Section */}
-        <div className="xl:col-span-1">
-          <div className="sticky top-8 space-y-6">
-            {/* Exercise List */}
-            {relatedExercises.length > 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Practice Exercises</h3>
-                <div className="space-y-3">
-                  {relatedExercises.map((exercise) => (
-                    <button
-                      key={exercise.id}
-                      onClick={() => selectExercise(exercise)}
-                      className={`w-full text-left p-4 rounded-lg border transition-all ${
-                        selectedExercise?.id === exercise.id
-                          ? 'bg-blue-50 border-blue-200 shadow-sm'
-                          : 'bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-900">{exercise.title}</h4>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getDifficultyColor(exercise.difficulty)}`}>
-                          {exercise.difficulty}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600">{exercise.description}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Selected Exercise */}
-            {selectedExercise ? (
-              <div className="space-y-6">
-                {/* Exercise Details */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Target className="h-6 w-6 text-blue-600" />
-                    <h3 className="text-xl font-semibold text-gray-900">Current Exercise</h3>
-                  </div>
-                  
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                    <h4 className="font-semibold text-amber-900 mb-2">Expected Output:</h4>
-                    <pre className="text-sm text-amber-800 font-mono whitespace-pre-wrap">{selectedExercise.expectedOutput}</pre>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-semibold text-gray-900">Your Solution</h4>
-                    <button
-                      onClick={() => setShowHints(!showHints)}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
-                    >
-                      {showHints ? 'Hide Hints' : 'Show Hints'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Code Editor */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                  <CodeEditor
-                    code={userCode}
-                    onChange={setUserCode}
-                    onRun={runCode}
-                    height="350px"
-                  />
-                </div>
-
-                {/* Hints */}
-                {showHints && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <AlertCircle className="h-5 w-5 text-blue-600" />
-                      <h4 className="font-semibold text-blue-900">Hints</h4>
+        {/* Exercise Section - Accordion Style */}
+        <div className="mt-8 border-t border-gray-200 pt-8">
+          <div className="space-y-4">
+            {relatedExercises.map((exercise) => (
+              <div key={exercise.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => selectExercise(selectedExercise?.id === exercise.id ? null! : exercise)}
+                  className={`w-full text-left p-6 flex items-center justify-between transition-colors ${selectedExercise?.id === exercise.id ? 'bg-gray-50' : 'hover:bg-gray-50'
+                    }`}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-1">
+                      <h3 className="text-xl font-semibold text-gray-900">{exercise.title}</h3>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getDifficultyColor(exercise.difficulty)}`}>
+                        {exercise.difficulty}
+                      </span>
                     </div>
-                    <ul className="space-y-2">
-                      {selectedExercise.hints.map((hint, index) => (
-                        <li key={index} className="flex items-start space-x-2 text-blue-800">
-                          <span className="text-blue-600 font-bold">•</span>
-                          <span className="text-sm">{hint}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="text-gray-600">{exercise.description}</p>
                   </div>
-                )}
+                  <Target className={`h-6 w-6 text-gray-400 transition-transform ${selectedExercise?.id === exercise.id ? 'rotate-180 text-blue-600' : ''
+                    }`} />
+                </button>
 
-                {/* Output */}
-                {(output || isRunning) && (
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Clock className="h-5 w-5 text-gray-600" />
-                      <h4 className="font-semibold text-gray-900">Execution Result</h4>
-                    </div>
-                    
-                    {isRunning ? (
-                      <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                        <span className="text-blue-800">Running your code...</span>
+                {selectedExercise?.id === exercise.id && (
+                  <div className="p-6 border-t border-gray-200 bg-gray-50/50">
+                    <div className="space-y-6">
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <h4 className="font-semibold text-amber-900 mb-2">Expected Output:</h4>
+                        <pre className="text-sm text-amber-800 font-mono whitespace-pre-wrap">{exercise.expectedOutput}</pre>
                       </div>
-                    ) : (
-                      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono whitespace-pre-wrap overflow-x-auto">
-                        {output}
-                      </pre>
-                    )}
-                  </div>
-                )}
 
-                {/* AI Review */}
-                {(aiReview || isAnalyzing) && (
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <CheckCircle2 className="h-5 w-5 text-purple-600" />
-                      <h4 className="font-semibold text-gray-900">AI Code Review</h4>
-                      {aiReview && (
-                        <div className="flex items-center space-x-1 ml-auto">
-                          <span className="text-sm text-gray-600">Score:</span>
-                          <span className="font-semibold text-purple-600">{aiReview.rating}/10</span>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-semibold text-gray-900">Your Solution</h4>
+                        <button
+                          onClick={() => setShowHints(!showHints)}
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+                        >
+                          {showHints ? 'Hide Hints' : 'Show Hints'}
+                        </button>
+                      </div>
+
+                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-1">
+                        <CodeEditor
+                          code={userCode}
+                          onChange={setUserCode}
+                          onRun={runCode}
+                          height="400px"
+                        />
+                      </div>
+
+                      {showHints && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                          <div className="flex items-center space-x-2 mb-3">
+                            <AlertCircle className="h-5 w-5 text-blue-600" />
+                            <h4 className="font-semibold text-blue-900">Hints</h4>
+                          </div>
+                          <ul className="space-y-2">
+                            {exercise.hints.map((hint, index) => (
+                              <li key={index} className="flex items-start space-x-2 text-blue-800">
+                                <span className="text-blue-600 font-bold">•</span>
+                                <span className="text-sm">{hint}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {(output || isRunning) && (
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                          <div className="flex items-center space-x-2 mb-4">
+                            <Clock className="h-5 w-5 text-gray-600" />
+                            <h4 className="font-semibold text-gray-900">Execution Result</h4>
+                          </div>
+
+                          {isRunning ? (
+                            <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                              <span className="text-blue-800">Running your code...</span>
+                            </div>
+                          ) : (
+                            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm font-mono whitespace-pre-wrap overflow-x-auto">
+                              {output}
+                            </pre>
+                          )}
+                        </div>
+                      )}
+
+                      {(aiReview || isAnalyzing) && (
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                          <div className="flex items-center space-x-2 mb-4">
+                            <CheckCircle2 className="h-5 w-5 text-purple-600" />
+                            <h4 className="font-semibold text-gray-900">AI Code Review</h4>
+                            {aiReview && (
+                              <div className="flex items-center space-x-1 ml-auto">
+                                <span className="text-sm text-gray-600">Score:</span>
+                                <span className="font-semibold text-purple-600">{aiReview.rating}/10</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {isAnalyzing ? (
+                            <div className="flex items-center justify-center py-8">
+                              <div className="text-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-3"></div>
+                                <p className="text-gray-600">Analyzing your code...</p>
+                              </div>
+                            </div>
+                          ) : aiReview && (
+                            <div className="space-y-4">
+                              {aiReview.topicSpecificFeedback.length > 0 && (
+                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                  <h5 className="font-semibold text-purple-900 mb-2">Topic-Specific Feedback</h5>
+                                  <ul className="space-y-1">
+                                    {aiReview.topicSpecificFeedback.map((feedback, index) => (
+                                      <li key={index} className="flex items-start space-x-2 text-purple-800">
+                                        <span className="text-purple-600 font-bold">✓</span>
+                                        <span className="text-sm">{feedback}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {aiReview.issues.length > 0 && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                  <h5 className="font-semibold text-red-900 mb-2">Issues Found</h5>
+                                  <ul className="space-y-1">
+                                    {aiReview.issues.map((issue, index) => (
+                                      <li key={index} className="flex items-start space-x-2 text-red-800">
+                                        <span className="text-red-600 font-bold">!</span>
+                                        <span className="text-sm">{issue}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {aiReview.suggestions.length > 0 && (
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                  <h5 className="font-semibold text-yellow-900 mb-2">Suggestions</h5>
+                                  <ul className="space-y-1">
+                                    {aiReview.suggestions.map((suggestion, index) => (
+                                      <li key={index} className="flex items-start space-x-2 text-yellow-800">
+                                        <span className="text-yellow-600 font-bold">💡</span>
+                                        <span className="text-sm">{suggestion}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {aiReview.modernCppUsage.length > 0 && (
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                  <h5 className="font-semibold text-green-900 mb-2">Modern C++ Insights</h5>
+                                  <ul className="space-y-1">
+                                    {aiReview.modernCppUsage.map((usage, index) => (
+                                      <li key={index} className="flex items-start space-x-2 text-green-800">
+                                        <span className="text-green-600 font-bold">🚀</span>
+                                        <span className="text-sm">{usage}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-
-                    {isAnalyzing ? (
-                      <div className="flex items-center justify-center py-8">
-                        <div className="text-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-3"></div>
-                          <p className="text-gray-600">Analyzing your code...</p>
-                        </div>
-                      </div>
-                    ) : aiReview && (
-                      <div className="space-y-4">
-                        {/* Topic-Specific Feedback */}
-                        {aiReview.topicSpecificFeedback.length > 0 && (
-                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                            <h5 className="font-semibold text-purple-900 mb-2">Topic-Specific Feedback</h5>
-                            <ul className="space-y-1">
-                              {aiReview.topicSpecificFeedback.map((feedback, index) => (
-                                <li key={index} className="flex items-start space-x-2 text-purple-800">
-                                  <span className="text-purple-600 font-bold">✓</span>
-                                  <span className="text-sm">{feedback}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* Issues */}
-                        {aiReview.issues.length > 0 && (
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <h5 className="font-semibold text-red-900 mb-2">Issues Found</h5>
-                            <ul className="space-y-1">
-                              {aiReview.issues.map((issue, index) => (
-                                <li key={index} className="flex items-start space-x-2 text-red-800">
-                                  <span className="text-red-600 font-bold">!</span>
-                                  <span className="text-sm">{issue}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* Suggestions */}
-                        {aiReview.suggestions.length > 0 && (
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <h5 className="font-semibold text-yellow-900 mb-2">Suggestions</h5>
-                            <ul className="space-y-1">
-                              {aiReview.suggestions.map((suggestion, index) => (
-                                <li key={index} className="flex items-start space-x-2 text-yellow-800">
-                                  <span className="text-yellow-600 font-bold">💡</span>
-                                  <span className="text-sm">{suggestion}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {/* Modern C++ Usage */}
-                        {aiReview.modernCppUsage.length > 0 && (
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <h5 className="font-semibold text-green-900 mb-2">Modern C++ Insights</h5>
-                            <ul className="space-y-1">
-                              {aiReview.modernCppUsage.map((usage, index) => (
-                                <li key={index} className="flex items-start space-x-2 text-green-800">
-                                  <span className="text-green-600 font-bold">🚀</span>
-                                  <span className="text-sm">{usage}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
-                <Target className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Select an Exercise</h3>
-                <p className="text-gray-600">Choose a practice exercise to start coding and get AI feedback.</p>
-              </div>
-            )}
+            ))}
           </div>
         </div>
       </div>
