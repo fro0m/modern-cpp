@@ -622,99 +622,845 @@ int main() {
     feature: 'memory-layout-optimization',
     relatedTheory: 'memory-layout-optimization'
   },
+  // ── Atomic Types & Basic Operations exercises ──────────────────────────────
+  {
+    id: 'atomic-counter-exercise',
+    title: 'Thread-Safe Statistics Tracker',
+    standard: 'performance',
+    difficulty: 'beginner',
+    description: 'Build a statistics tracker (min, max, sum, count) that can be updated safely from multiple threads using only std::atomic — no mutexes allowed.',
+    starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <limits>
+
+// TODO: Implement a lock-free statistics accumulator.
+// All fields must be std::atomic. No std::mutex allowed.
+struct Stats {
+    // TODO: declare atomic fields for sum, count, min, max
+    // Hint: min starts as max int, max starts as min int
+
+    void update(int value) {
+        // TODO: atomically update sum (fetch_add)
+        // TODO: atomically increment count
+        // TODO: atomically update min using a CAS loop
+        // TODO: atomically update max using a CAS loop
+    }
+
+    void print() const {
+        // TODO: print count, sum, average, min, max
+    }
+};
+
+int main() {
+    Stats stats;
+    const int num_threads = 8;
+    const int per_thread  = 1000;
+
+    std::vector<std::thread> threads;
+    for (int t = 0; t < num_threads; ++t) {
+        threads.emplace_back([&, t] {
+            for (int i = 0; i < per_thread; ++i)
+                stats.update(t * per_thread + i);
+        });
+    }
+    for (auto& th : threads) th.join();
+
+    stats.print();
+    return 0;
+}`,
+    expectedOutput: 'Count: 8000\nSum: 31996000\nAverage: 3999.5\nMin: 0\nMax: 7999',
+    hints: [
+      'Use std::atomic<long long> for sum and std::atomic<int> for count/min/max',
+      'fetch_add handles sum and count naturally',
+      'For min/max, use a CAS loop: load current, compare, CAS only if new value is better',
+      'compare_exchange_weak is correct inside a retry loop',
+      'Initialize min to std::numeric_limits<int>::max() and max to std::numeric_limits<int>::min()'
+    ],
+    feature: 'atomic-types-basics',
+    relatedTheory: 'atomic-types-basics'
+  },
+  {
+    id: 'spinlock-exercise',
+    title: 'Spinlock with atomic_flag',
+    standard: 'performance',
+    difficulty: 'beginner',
+    description: 'Implement a reusable Spinlock class using std::atomic_flag and use it to protect a shared counter from data races.',
+    starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// TODO: Implement the Spinlock class using std::atomic_flag.
+// - lock()   spins until the flag can be set (test_and_set returns false)
+// - unlock() clears the flag
+// Use memory_order_acquire on lock and memory_order_release on unlock.
+class Spinlock {
+    // TODO: declare std::atomic_flag member
+public:
+    void lock() {
+        // TODO: spin until test_and_set returns false
+    }
+    void unlock() {
+        // TODO: clear the flag
+    }
+};
+
+// TODO: Implement a RAII guard (like std::lock_guard) for Spinlock.
+class SpinlockGuard {
+public:
+    explicit SpinlockGuard(Spinlock& sl) { /* TODO */ }
+    ~SpinlockGuard()                     { /* TODO */ }
+    // non-copyable
+    SpinlockGuard(const SpinlockGuard&)            = delete;
+    SpinlockGuard& operator=(const SpinlockGuard&) = delete;
+private:
+    // TODO: store reference to Spinlock
+};
+
+int main() {
+    Spinlock sl;
+    int counter = 0;
+    const int num_threads = 8;
+    const int iterations  = 10000;
+
+    std::vector<std::thread> workers;
+    for (int i = 0; i < num_threads; ++i) {
+        workers.emplace_back([&] {
+            for (int j = 0; j < iterations; ++j) {
+                SpinlockGuard guard(sl);
+                ++counter;
+            }
+        });
+    }
+    for (auto& t : workers) t.join();
+
+    std::cout << "Counter: " << counter
+              << " (expected " << num_threads * iterations << ")\\n";
+    std::cout << "Test " << (counter == num_threads * iterations ? "PASSED" : "FAILED") << "\\n";
+    return 0;
+}`,
+    expectedOutput: 'Counter: 80000 (expected 80000)\nTest PASSED',
+    hints: [
+      'Declare flag_ as: std::atomic_flag flag_{ATOMIC_FLAG_INIT};',
+      'lock(): while (flag_.test_and_set(std::memory_order_acquire)) {}',
+      'unlock(): flag_.clear(std::memory_order_release);',
+      'SpinlockGuard stores a reference and calls lock() in constructor, unlock() in destructor',
+      'std::atomic_flag is the only type guaranteed lock-free on every platform'
+    ],
+    feature: 'atomic-types-basics',
+    relatedTheory: 'atomic-types-basics'
+  },
+
+  // ── Memory Ordering exercises ────────────────────────────────────────────
+  {
+    id: 'memory-ordering-producer-consumer',
+    title: 'Fix the Broken Producer-Consumer',
+    standard: 'performance',
+    difficulty: 'intermediate',
+    description: 'A producer-consumer pair has a data race because it uses relaxed ordering everywhere. Fix it by applying the correct acquire/release ordering so the consumer always sees the data written by the producer.',
+    starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <cassert>
+
+// This code has a data race: the consumer may read stale data.
+// Your task: fix ONLY the memory_order arguments — do not change the logic.
+
+std::atomic<bool> ready{false};
+int               payload = 0;  // non-atomic, protected by ready flag
+
+void producer() {
+    payload = 42;
+    // BUG: relaxed store does not synchronise with the consumer's load
+    ready.store(true, std::memory_order_relaxed);  // TODO: fix this ordering
+}
+
+void consumer() {
+    // BUG: relaxed load does not see the producer's writes
+    while (!ready.load(std::memory_order_relaxed)) {}  // TODO: fix this ordering
+    // After the fix, payload is guaranteed to be 42 here
+    std::cout << "payload = " << payload << "\\n";
+    assert(payload == 42 && "Memory ordering bug!");
+}
+
+// BONUS: fix the message-passing pattern below using acquire/release.
+std::atomic<int> message{0};
+int data_a = 0, data_b = 0;
+
+void sender() {
+    data_a = 10;
+    data_b = 20;
+    // TODO: publish the message with the correct ordering
+    message.store(1, std::memory_order_relaxed);  // TODO: fix
+}
+
+void receiver() {
+    // TODO: wait with the correct ordering
+    while (message.load(std::memory_order_relaxed) == 0) {}  // TODO: fix
+    std::cout << "data_a=" << data_a << " data_b=" << data_b << "\\n";
+    assert(data_a == 10 && data_b == 20);
+}
+
+int main() {
+    std::thread p(producer), c(consumer);
+    p.join(); c.join();
+
+    std::thread s(sender), r(receiver);
+    s.join(); r.join();
+
+    std::cout << "All assertions passed\\n";
+    return 0;
+}`,
+    expectedOutput: 'payload = 42\ndata_a=10 data_b=20\nAll assertions passed',
+    hints: [
+      'A store that "publishes" data should use memory_order_release',
+      'A load that "observes" published data should use memory_order_acquire',
+      'acquire-load synchronizes with the matching release-store — all writes before the release are visible after the acquire',
+      'The spin-loop load must also use acquire; otherwise the compiler may hoist the load out of the loop'
+    ],
+    feature: 'memory-ordering',
+    relatedTheory: 'memory-ordering'
+  },
+  {
+    id: 'memory-ordering-seqcst-vs-acqrel',
+    title: 'Measure seq_cst vs acquire-release Cost',
+    standard: 'performance',
+    difficulty: 'intermediate',
+    description: 'Implement three versions of a shared counter (relaxed, acquire-release, seq_cst) and benchmark them to observe the performance difference.',
+    starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <chrono>
+
+// TODO: implement three counter variants using different memory orderings.
+
+// Version 1: relaxed (no synchronisation guarantees, only atomicity)
+void increment_relaxed(std::atomic<long long>& c, int n) {
+    for (int i = 0; i < n; ++i)
+        c.fetch_add(1, /* TODO: use relaxed */ std::memory_order_seq_cst);
+}
+
+// Version 2: acquire-release (synchronises paired stores/loads)
+void increment_acqrel(std::atomic<long long>& c, int n) {
+    for (int i = 0; i < n; ++i)
+        c.fetch_add(1, /* TODO: use acq_rel */ std::memory_order_seq_cst);
+}
+
+// Version 3: seq_cst (total global order, default)
+void increment_seqcst(std::atomic<long long>& c, int n) {
+    for (int i = 0; i < n; ++i)
+        c.fetch_add(1, std::memory_order_seq_cst);
+}
+
+template<typename Fn>
+long long benchmark(Fn fn, const char* name, int threads, int per_thread) {
+    std::atomic<long long> counter{0};
+    auto start = std::chrono::high_resolution_clock::now();
+
+    std::vector<std::thread> workers;
+    for (int i = 0; i < threads; ++i)
+        workers.emplace_back([&] { fn(counter, per_thread); });
+    for (auto& t : workers) t.join();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << name << ": " << ms << " ms, count=" << counter.load() << "\\n";
+    return ms;
+}
+
+int main() {
+    const int THREADS     = 4;
+    const int PER_THREAD  = 5'000'000;
+
+    auto r  = benchmark(increment_relaxed, "relaxed  ", THREADS, PER_THREAD);
+    auto ar = benchmark(increment_acqrel,  "acq_rel  ", THREADS, PER_THREAD);
+    auto sc = benchmark(increment_seqcst,  "seq_cst  ", THREADS, PER_THREAD);
+
+    std::cout << "\\nRelaxed was " << (sc > 0 ? sc / std::max(r, 1LL) : 0)
+              << "x faster than seq_cst\\n";
+    return 0;
+}`,
+    expectedOutput: 'relaxed  : ~120 ms, count=20000000\nacq_rel  : ~180 ms, count=20000000\nseq_cst  : ~350 ms, count=20000000\n\nRelaxed was ~2x faster than seq_cst',
+    hints: [
+      'memory_order_relaxed: no ordering constraints, just atomicity',
+      'memory_order_acq_rel: for read-modify-write ops (fetch_add) — both acquire and release',
+      'memory_order_seq_cst: total order, most expensive on ARM/PowerPC',
+      'The performance gap is most visible on ARM; on x86 relaxed and seq_cst have similar cost',
+      'All three versions produce the correct final count — the difference is in inter-thread visibility guarantees'
+    ],
+    feature: 'memory-ordering',
+    relatedTheory: 'memory-ordering'
+  },
+
+  // ── Compare-And-Swap exercises ───────────────────────────────────────────
+  {
+    id: 'cas-bounded-counter',
+    title: 'Bounded Counter with CAS',
+    standard: 'performance',
+    difficulty: 'intermediate',
+    description: 'Implement a thread-safe counter that never exceeds a maximum value, using compare_exchange_weak in a retry loop — no mutex.',
+    starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// TODO: implement BoundedCounter using a single std::atomic<int>.
+// increment() must atomically add 1 only if the counter is below max_.
+// decrement() must atomically subtract 1 only if the counter is above 0.
+// Both operations must use a CAS retry loop (compare_exchange_weak).
+class BoundedCounter {
+    std::atomic<int> value_{0};
+    const int max_;
+public:
+    explicit BoundedCounter(int max) : max_(max) {}
+
+    // Returns true if incremented, false if already at max.
+    bool increment() {
+        int cur = value_.load(std::memory_order_acquire);
+        while (true) {
+            if (cur >= max_) return false;
+            // TODO: use compare_exchange_weak to atomically set cur+1
+            // Remember: on failure cur is updated automatically
+        }
+    }
+
+    // Returns true if decremented, false if already at 0.
+    bool decrement() {
+        int cur = value_.load(std::memory_order_acquire);
+        while (true) {
+            if (cur <= 0) return false;
+            // TODO: use compare_exchange_weak to atomically set cur-1
+        }
+    }
+
+    int get() const { return value_.load(std::memory_order_acquire); }
+};
+
+int main() {
+    const int MAX     = 100;
+    const int THREADS = 8;
+    BoundedCounter counter(MAX);
+
+    // Saturate the counter
+    std::vector<std::thread> inc_workers;
+    for (int i = 0; i < THREADS; ++i)
+        inc_workers.emplace_back([&] {
+            for (int j = 0; j < 1000; ++j)
+                counter.increment();
+        });
+    for (auto& t : inc_workers) t.join();
+    std::cout << "After increments: " << counter.get()
+              << " (expected " << MAX << ")\\n";
+
+    // Drain the counter
+    std::vector<std::thread> dec_workers;
+    for (int i = 0; i < THREADS; ++i)
+        dec_workers.emplace_back([&] {
+            for (int j = 0; j < 1000; ++j)
+                counter.decrement();
+        });
+    for (auto& t : dec_workers) t.join();
+    std::cout << "After decrements: " << counter.get()
+              << " (expected 0)\\n";
+    return 0;
+}`,
+    expectedOutput: 'After increments: 100 (expected 100)\nAfter decrements: 0 (expected 0)',
+    hints: [
+      'Load the current value with memory_order_acquire before the loop',
+      'compare_exchange_weak(cur, cur+1, memory_order_release, memory_order_acquire)',
+      'On failure, cur is automatically updated to the current value — no manual reload needed',
+      'Use compare_exchange_WEAK (not strong) inside loops for better performance on LL/SC architectures',
+      'Return true immediately after a successful CAS, return false when the guard condition fails'
+    ],
+    feature: 'compare-and-swap',
+    relatedTheory: 'compare-and-swap'
+  },
+  {
+    id: 'cas-treiber-stack',
+    title: 'Treiber Lock-Free Stack',
+    standard: 'performance',
+    difficulty: 'advanced',
+    description: 'Implement the classic Treiber stack — a lock-free LIFO using a CAS retry loop on the head pointer.',
+    starterCode: `#include <atomic>
+#include <optional>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+template<typename T>
+class TreiberStack {
+    struct Node {
+        T     data;
+        Node* next{nullptr};
+        explicit Node(T v) : data(std::move(v)) {}
+    };
+
+    // TODO: declare std::atomic<Node*> head_ initialised to nullptr
+
+public:
+    // TODO: implement push(T val)
+    // Pattern:
+    //   1. allocate a new Node
+    //   2. set n->next = head_.load(relaxed)
+    //   3. CAS head_ from n->next to n (retry with compare_exchange_weak)
+    void push(T val) {
+        // TODO
+    }
+
+    // TODO: implement pop() returning std::optional<T>
+    // Pattern:
+    //   1. load head_ with acquire
+    //   2. if null return nullopt
+    //   3. CAS head_ from old to old->next
+    //   4. on success extract data, delete old node, return value
+    std::optional<T> pop() {
+        // TODO
+        return std::nullopt;
+    }
+};
+
+int main() {
+    TreiberStack<int> stack;
+    const int THREADS = 4;
+    const int PER_THREAD = 2500;
+    std::atomic<int> total{0};
+
+    // Producers push PER_THREAD copies of 1
+    std::vector<std::thread> producers(THREADS);
+    for (int i = 0; i < THREADS; ++i)
+        producers[i] = std::thread([&] {
+            for (int j = 0; j < PER_THREAD; ++j) stack.push(1);
+        });
+    for (auto& t : producers) t.join();
+
+    // Consumers pop everything
+    std::vector<std::thread> consumers(THREADS);
+    for (int i = 0; i < THREADS; ++i)
+        consumers[i] = std::thread([&] {
+            while (auto v = stack.pop())
+                total.fetch_add(*v, std::memory_order_relaxed);
+        });
+    for (auto& t : consumers) t.join();
+
+    std::cout << "Total (expected " << THREADS * PER_THREAD << "): "
+              << total.load() << "\\n";
+    std::cout << "Test "
+              << (total.load() == THREADS * PER_THREAD ? "PASSED" : "FAILED")
+              << "\\n";
+    return 0;
+}`,
+    expectedOutput: 'Total (expected 10000): 10000\nTest PASSED',
+    hints: [
+      'push: n->next = head_.load(relaxed); while (!head_.compare_exchange_weak(n->next, n, release, relaxed)) {}',
+      'pop: load head with acquire; CAS to head->next with release/acquire; extract data, delete old, return',
+      'On CAS failure in pop(), the old variable is updated automatically — the loop retries with the fresh head',
+      'Use compare_exchange_WEAK in both loops — the spurious failure is handled by the loop',
+      'This implementation is susceptible to the ABA problem — see the safe-memory-reclamation topic'
+    ],
+    feature: 'compare-and-swap',
+    relatedTheory: 'compare-and-swap'
+  },
+
+  // ── Lock-Free Data Structures exercises ──────────────────────────────────
   {
     id: 'lock-free-queue-exercise',
     title: 'Implement Lock-Free SPSC Queue',
     standard: 'performance',
     difficulty: 'advanced',
-    description: 'Create a high-performance Single Producer Single Consumer (SPSC) lock-free queue using atomic operations.',
+    description: 'Build a wait-free Single-Producer Single-Consumer circular-buffer queue using only acquire/release atomics — no CAS needed.',
     starterCode: `#include <atomic>
-#include <memory>
+#include <array>
 #include <iostream>
 #include <thread>
 #include <chrono>
 
-template<typename T, size_t Size>
+// SPSC Queue: only ONE thread calls enqueue, only ONE thread calls dequeue.
+// Because writes to head/tail are exclusive to one thread each,
+// compare-and-swap is NOT needed — only acquire/release pairs.
+template<typename T, size_t N>
 class SPSCQueue {
-private:
-    // TODO: Create a circular buffer using std::array
-    // TODO: Use atomic head and tail pointers
-    // std::array<T, Size> buffer_;
-    // std::atomic<size_t> head_{0};
-    // std::atomic<size_t> tail_{0};
-    
-    static constexpr size_t buffer_mask = Size - 1;
-    static_assert((Size & buffer_mask) == 0, "Size must be power of 2");
-    
+    static_assert((N & (N - 1)) == 0, "N must be a power of 2");
+
+    // TODO: declare std::array<T, N> buf_
+    // TODO: declare alignas(64) std::atomic<size_t> head_{0}  (consumer writes)
+    // TODO: declare alignas(64) std::atomic<size_t> tail_{0}  (producer writes)
+
 public:
-    // TODO: Implement enqueue (producer side)
+    // Called only by the PRODUCER thread.
     bool enqueue(const T& item) {
-        // TODO: Check if queue is full
-        // TODO: Store item and update tail atomically
-        // Use memory_order_release for tail update
-        return false;
+        // TODO: load tail with relaxed (we own it)
+        // TODO: load head with acquire (check for full: tail - head == N)
+        // TODO: store item into buf_[tail & (N-1)]
+        // TODO: store tail+1 with release
+        return false; // placeholder
     }
-    
-    // TODO: Implement dequeue (consumer side)
+
+    // Called only by the CONSUMER thread.
     bool dequeue(T& item) {
-        // TODO: Check if queue is empty
-        // TODO: Load item and update head atomically
-        // Use memory_order_acquire for head load
-        return false;
+        // TODO: load head with relaxed (we own it)
+        // TODO: load tail with acquire (check for empty: head == tail)
+        // TODO: read item from buf_[head & (N-1)]
+        // TODO: store head+1 with release
+        return false; // placeholder
     }
-    
-    // TODO: Implement size calculation
-    size_t size() const {
-        // TODO: Calculate current queue size
-        // Be careful with wrap-around
-        return 0;
-    }
-    
+
     bool empty() const {
-        // TODO: Check if queue is empty
-        return true;
+        return head_.load(std::memory_order_acquire) ==
+               tail_.load(std::memory_order_acquire);
     }
-    
-    bool full() const {
-        // TODO: Check if queue is full
+};
+
+int main() {
+    SPSCQueue<int, 1024> q;
+    const int NUM = 1000000;
+    std::atomic<int> consumed{0};
+
+    auto t_start = std::chrono::high_resolution_clock::now();
+
+    std::thread producer([&] {
+        for (int i = 0; i < NUM; ++i)
+            while (!q.enqueue(i)) {}
+    });
+    std::thread consumer([&] {
+        int v, cnt = 0;
+        while (cnt < NUM) if (q.dequeue(v)) ++cnt;
+        consumed.store(cnt);
+    });
+    producer.join();
+    consumer.join();
+
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::high_resolution_clock::now() - t_start).count();
+
+    std::cout << "Items transferred: " << consumed.load()
+              << " (expected " << NUM << ")\\n";
+    std::cout << "Time: " << ms << " ms\\n";
+    std::cout << "Test "
+              << (consumed.load() == NUM ? "PASSED" : "FAILED") << "\\n";
+    return 0;
+}`,
+    expectedOutput: 'Items transferred: 1000000 (expected 1000000)\nTime: ~45 ms\nTest PASSED',
+    hints: [
+      'tail_.load(relaxed) in enqueue — the producer owns tail, no one else writes it',
+      'head_.load(acquire) in enqueue — acquire pairs with the consumer\'s release-store of head',
+      'Full condition: tail - head == N (unsigned arithmetic handles wrap-around)',
+      'Empty condition: head == tail',
+      'alignas(64) on head_ and tail_ prevents false sharing between producer and consumer threads',
+      'N must be a power of 2 so buf_[index & (N-1)] replaces the expensive modulo'
+    ],
+    feature: 'lock-free-data-structures',
+    relatedTheory: 'lock-free-data-structures'
+  },
+  {
+    id: 'lock-free-stack-mp-exercise',
+    title: 'Multi-Producer Multi-Consumer Treiber Stack',
+    standard: 'performance',
+    difficulty: 'advanced',
+    description: 'Extend the basic Treiber stack to measure contention and compare it against a mutex-based stack under high thread counts.',
+    starterCode: `#include <atomic>
+#include <mutex>
+#include <optional>
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <chrono>
+
+// ── Lock-free Treiber stack ─────────────────────────────────────────────
+template<typename T>
+class LockFreeStack {
+    struct Node { T data; Node* next; explicit Node(T v): data(std::move(v)), next(nullptr){} };
+    std::atomic<Node*> head_{nullptr};
+public:
+    // TODO: implement push using CAS retry loop
+    void push(T v) { /* TODO */ }
+    // TODO: implement pop using CAS retry loop
+    std::optional<T> pop() { return std::nullopt; /* TODO */ }
+};
+
+// ── Mutex-based stack (for comparison) ─────────────────────────────────
+template<typename T>
+class MutexStack {
+    std::vector<T> data_;
+    std::mutex     mtx_;
+public:
+    void push(T v) { std::lock_guard<std::mutex> lg(mtx_); data_.push_back(std::move(v)); }
+    std::optional<T> pop() {
+        std::lock_guard<std::mutex> lg(mtx_);
+        if (data_.empty()) return std::nullopt;
+        T v = std::move(data_.back());
+        data_.pop_back();
+        return v;
+    }
+};
+
+template<typename Stack>
+long long benchmark(const char* name, int threads, int per_thread) {
+    Stack stack;
+    auto start = std::chrono::high_resolution_clock::now();
+
+    std::vector<std::thread> workers;
+    for (int t = 0; t < threads; ++t) {
+        workers.emplace_back([&] {
+            for (int i = 0; i < per_thread; ++i) stack.push(i);
+            for (int i = 0; i < per_thread; ++i) stack.pop();
+        });
+    }
+    for (auto& w : workers) w.join();
+
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                  std::chrono::high_resolution_clock::now() - start).count();
+    std::cout << name << " [" << threads << " threads]: " << ms << " ms\\n";
+    return ms;
+}
+
+int main() {
+    const int PER_THREAD = 100000;
+    for (int t : {1, 2, 4, 8}) {
+        benchmark<LockFreeStack<int>>("Lock-free", t, PER_THREAD);
+        benchmark<MutexStack<int>>  ("Mutex    ", t, PER_THREAD);
+        std::cout << "\\n";
+    }
+    return 0;
+}`,
+    expectedOutput: 'Lock-free [1 threads]: ~35 ms\nMutex     [1 threads]: ~40 ms\n\nLock-free [8 threads]: ~180 ms\nMutex     [8 threads]: ~420 ms',
+    hints: [
+      'push: allocate Node, set n->next = head_.load(relaxed), CAS loop with compare_exchange_weak(n->next, n, release, relaxed)',
+      'pop: load head with acquire, CAS from old to old->next with release/acquire, extract and delete',
+      'The lock-free stack should outperform the mutex stack more as thread count grows',
+      'At thread 1, both perform similarly — contention makes the difference at higher counts',
+      'Memory leaks are expected in this benchmark — in production use hazard pointers or epoch reclamation'
+    ],
+    feature: 'lock-free-data-structures',
+    relatedTheory: 'lock-free-data-structures'
+  },
+
+  // ── Safe Memory Reclamation exercises ────────────────────────────────────
+  {
+    id: 'aba-detection-exercise',
+    title: 'Detect and Fix the ABA Problem',
+    standard: 'performance',
+    difficulty: 'advanced',
+    description: 'The provided lock-free stack has an ABA bug. Reproduce the issue with a tagged pointer, then verify the fix keeps correctness under concurrent push/pop.',
+    starterCode: `#include <atomic>
+#include <optional>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// ── Buggy stack (ABA-vulnerable) ─────────────────────────────────────────
+template<typename T>
+class BuggyStack {
+    struct Node { T data; Node* next; explicit Node(T v): data(std::move(v)), next(nullptr){} };
+    std::atomic<Node*> head_{nullptr};
+public:
+    void push(T v) {
+        Node* n = new Node(std::move(v));
+        n->next = head_.load(std::memory_order_relaxed);
+        while (!head_.compare_exchange_weak(n->next, n,
+                std::memory_order_release, std::memory_order_relaxed)) {}
+    }
+    std::optional<T> pop() {
+        Node* old = head_.load(std::memory_order_acquire);
+        while (old) {
+            if (head_.compare_exchange_weak(old, old->next,
+                    std::memory_order_release, std::memory_order_acquire)) {
+                T v = std::move(old->data);
+                delete old;  // <-- ABA: another thread may reuse this address!
+                return v;
+            }
+        }
+        return std::nullopt;
+    }
+};
+
+// ── Fixed stack using tagged pointers ────────────────────────────────────
+template<typename T>
+struct Tagged {
+    // TODO: declare T* ptr and uint64_t tag
+    bool operator==(const Tagged& o) const noexcept {
+        // TODO: compare both ptr AND tag
         return false;
     }
 };
 
-// Test the queue with producer/consumer threads
-void test_spsc_queue() {
-    SPSCQueue<int, 1024> queue;
-    const int num_items = 1000000;
-    std::atomic<int> items_consumed{0};
-    
-    // TODO: Create producer thread that enqueues numbers 0 to num_items-1
-    
-    // TODO: Create consumer thread that dequeues and counts items
-    
-    // TODO: Measure throughput and verify correctness
-    
-    std::cout << "SPSC Queue Test Results:\\n";
-    std::cout << "Items produced: " << num_items << "\\n";
-    std::cout << "Items consumed: " << items_consumed.load() << "\\n";
-    std::cout << "Test " << (items_consumed.load() == num_items ? "PASSED" : "FAILED") << "\\n";
-}
+template<typename T>
+class FixedStack {
+    struct Node { T data; Node* next{nullptr}; explicit Node(T v): data(std::move(v)){} };
+    // TODO: declare std::atomic<Tagged<Node>> head_ initialised to {nullptr, 0}
+public:
+    void push(T v) {
+        // TODO: allocate Node, CAS head_ with bumped tag on every attempt
+    }
+    std::optional<T> pop() {
+        // TODO: CAS head_ to {old.ptr->next, old.tag+1}
+        return std::nullopt;
+    }
+};
 
 int main() {
-    test_spsc_queue();
+    FixedStack<int> stack;
+    std::atomic<int> total{0};
+    const int THREADS     = 4;
+    const int PER_THREAD  = 2500;
+
+    std::vector<std::thread> workers(THREADS * 2);
+    for (int i = 0; i < THREADS; ++i)
+        workers[i] = std::thread([&] {
+            for (int j = 0; j < PER_THREAD; ++j) stack.push(1);
+        });
+    for (int i = 0; i < THREADS; ++i) workers[i].join();
+    for (int i = 0; i < THREADS; ++i)
+        workers[THREADS + i] = std::thread([&] {
+            while (auto v = stack.pop())
+                total.fetch_add(*v, std::memory_order_relaxed);
+        });
+    for (int i = 0; i < THREADS; ++i) workers[THREADS + i].join();
+
+    int expected = THREADS * PER_THREAD;
+    std::cout << "Total (expected " << expected << "): " << total.load() << "\\n";
+    std::cout << "Test " << (total.load() == expected ? "PASSED" : "FAILED") << "\\n";
     return 0;
 }`,
-    expectedOutput: 'SPSC Queue Test Results:\nItems produced: 1000000\nItems consumed: 1000000\nTest PASSED\nThroughput: 125.5 million ops/sec',
+    expectedOutput: 'Total (expected 10000): 10000\nTest PASSED',
     hints: [
-      'Use std::array<T, Size> for the circular buffer',
-      'Head and tail should be std::atomic<size_t>',
-      'For enqueue: check (tail + 1) & buffer_mask != head for full condition',
-      'For dequeue: check head != tail for empty condition',
-      'Use memory_order_acquire/release for proper synchronization',
-      'Size must be power of 2 for efficient modulo using bitwise AND'
+      'Tagged<T> should hold T* ptr and uint64_t tag; operator== checks both fields',
+      'Use std::atomic<Tagged<Node>> — requires Tagged to be trivially copyable',
+      'On every push or pop, increment the tag by 1 to make each CAS unique',
+      'Even if the pointer goes A→B→A, the tag sequence is 0→1→2, so the CAS at tag=0 will fail',
+      'std::atomic<Tagged<T>> may use a 128-bit lock-free CAS (cmpxchg16b on x86) if the struct is 16 bytes'
     ],
-    feature: 'lock-free-programming',
-    relatedTheory: 'lock-free-programming'
+    feature: 'safe-memory-reclamation',
+    relatedTheory: 'safe-memory-reclamation'
   },
+  {
+    id: 'hazard-pointer-exercise',
+    title: 'Hazard Pointer Safe Deletion',
+    standard: 'performance',
+    difficulty: 'advanced',
+    description: 'Implement a minimal hazard-pointer mechanism that prevents use-after-free in a lock-free stack. Before dereferencing a node, protect it; before deleting, check all hazard slots.',
+    starterCode: `#include <atomic>
+#include <optional>
+#include <array>
+#include <vector>
+#include <iostream>
+#include <thread>
+
+// ── Hazard pointer registry ──────────────────────────────────────────────
+// MAX_THREADS hazard slots — one per thread.
+// Before reading a pointer, protect() it.
+// After releasing, call retire() which defers deletion until safe.
+
+constexpr int MAX_THREADS = 8;
+
+// TODO: declare std::atomic<void*> g_hazards[MAX_THREADS] initialised to nullptr
+
+thread_local int t_id = -1;
+std::atomic<int> g_id_counter{0};
+
+int my_id() {
+    if (t_id < 0)
+        // TODO: assign t_id from g_id_counter (modulo MAX_THREADS)
+        t_id = 0;
+    return t_id;
+}
+
+void hp_protect(void* p) {
+    // TODO: store p into g_hazards[my_id()] with seq_cst ordering
+}
+
+void hp_release() {
+    // TODO: store nullptr into g_hazards[my_id()] with seq_cst ordering
+}
+
+bool hp_is_hazardous(void* p) {
+    // TODO: scan all g_hazards slots; return true if any holds p
+    return false;
+}
+
+// TODO: implement retire(T* p):
+// Adds p to the thread-local retire list; scans and deletes any entry
+// that is no longer hazardous.
+template<typename T>
+void retire(T* p) {
+    // TODO: add p to a thread_local std::vector<T*>
+    // TODO: for each pointer in the list, if !hp_is_hazardous(ptr) delete it
+}
+
+// ── Lock-free stack using hazard pointers ───────────────────────────────
+template<typename T>
+class HazardStack {
+    struct Node { T data; Node* next{nullptr}; explicit Node(T v): data(std::move(v)){} };
+    std::atomic<Node*> head_{nullptr};
+public:
+    void push(T v) {
+        auto* n = new Node(std::move(v));
+        n->next = head_.load(std::memory_order_relaxed);
+        while (!head_.compare_exchange_weak(n->next, n,
+                std::memory_order_release, std::memory_order_relaxed)) {}
+    }
+
+    std::optional<T> pop() {
+        Node* old = nullptr;
+        while (true) {
+            old = head_.load(std::memory_order_acquire);
+            if (!old) return std::nullopt;
+
+            // TODO: protect old with hp_protect before dereferencing old->next
+            // TODO: re-validate that head_ still equals old after protecting
+            //       (another thread may have deleted it between load and protect)
+
+            Node* next = old->next;
+            if (head_.compare_exchange_weak(old, next,
+                    std::memory_order_release, std::memory_order_acquire)) {
+                T val = std::move(old->data);
+                hp_release();
+                retire(old);  // safe deferred deletion
+                return val;
+            }
+            hp_release();
+        }
+    }
+};
+
+int main() {
+    HazardStack<int> stack;
+    std::atomic<int> total{0};
+    const int THREADS    = 4;
+    const int PER_THREAD = 2500;
+
+    std::vector<std::thread> prod(THREADS), cons(THREADS);
+    for (int i = 0; i < THREADS; ++i)
+        prod[i] = std::thread([&] {
+            for (int j = 0; j < PER_THREAD; ++j) stack.push(1);
+        });
+    for (auto& t : prod) t.join();
+    for (int i = 0; i < THREADS; ++i)
+        cons[i] = std::thread([&] {
+            while (auto v = stack.pop())
+                total.fetch_add(*v, std::memory_order_relaxed);
+        });
+    for (auto& t : cons) t.join();
+
+    int expected = THREADS * PER_THREAD;
+    std::cout << "Total (expected " << expected << "): " << total.load() << "\\n";
+    std::cout << "Test " << (total.load() == expected ? "PASSED" : "FAILED") << "\\n";
+    return 0;
+}`,
+    expectedOutput: 'Total (expected 10000): 10000\nTest PASSED',
+    hints: [
+      'g_hazards should be std::atomic<void*> g_hazards[MAX_THREADS]{}; — zero-initialised',
+      'hp_protect: g_hazards[my_id()].store(p, std::memory_order_seq_cst); — seq_cst ensures visibility',
+      'hp_is_hazardous: loop over all slots, load with acquire, compare to p',
+      'In pop(): after protect(old), reload head_ and check it still equals old — if not, hp_release() and retry',
+      'retire() adds the pointer to a thread_local vector; on each retirement, scan the list and delete non-hazardous entries'
+    ],
+    feature: 'safe-memory-reclamation',
+    relatedTheory: 'safe-memory-reclamation'
+  },
+
   {
     id: 'simd-vectorization-exercise',
     title: 'SIMD-Optimized Financial Calculations',

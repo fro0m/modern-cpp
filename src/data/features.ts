@@ -2851,245 +2851,502 @@ int main() {
         useCase: 'Essential for high-frequency trading systems, game engines, scientific computing, and any performance-critical application where memory access patterns significantly impact performance. Critical for SIMD vectorization and multi-threaded applications.'
     },
     {
-        id: 'lock-free-programming',
-        title: 'Lock-Free Programming & Atomics',
+        id: 'atomic-types-basics',
+        title: 'Atomic Types & Basic Operations',
         standard: 'performance',
-        description: 'Implement high-performance concurrent data structures without locks',
+        description: 'Introduction to std::atomic — thread-safe operations without mutexes',
         codeExample: `#include <atomic>
-#include <memory>
 #include <iostream>
 #include <thread>
 #include <vector>
-#include <chrono>
 
-// === LOCK-FREE QUEUE IMPLEMENTATION ===
+// === ATOMIC TYPES ===
+// std::atomic<T> wraps a value and provides indivisible (atomic) operations.
+// Supported for integral types, pointers, and trivially-copyable types.
 
-template<typename T>
-class LockFreeQueue {
-private:
-    struct Node {
-        std::atomic<T*> data{nullptr};
-        std::atomic<Node*> next{nullptr};
-    };
-    
-    std::atomic<Node*> head{new Node};
-    std::atomic<Node*> tail{head.load()};
-    
-public:
-    ~LockFreeQueue() {
-        while (Node* const old_head = head.load()) {
-            head.store(old_head->next);
-            delete old_head;
-        }
-    }
-    
-    void enqueue(T item) {
-        Node* const new_node = new Node;
-        T* const data = new T(std::move(item));
-        new_node->data.store(data);
-        
-        Node* prev_tail = tail.exchange(new_node);
-        prev_tail->next.store(new_node);
-    }
-    
-    bool dequeue(T& result) {
-        Node* head_node = head.load();
-        Node* const next = head_node->next.load();
-        
-        if (next == nullptr) {
-            return false;  // Queue is empty
-        }
-        
-        T* const data = next->data.load();
-        if (data == nullptr) {
-            return false;  // Another thread got here first
-        }
-        
-        // Try to claim the data
-        if (!next->data.compare_exchange_strong(data, nullptr)) {
-            return false;  // Another thread got here first
-        }
-        
-        result = *data;
-        delete data;
-        
-        // Move head forward
-        head.store(next);
-        delete head_node;
-        
-        return true;
-    }
-};
+void demo_atomic_operations() {
+    std::atomic<int>      counter{0};
+    std::atomic<bool>     flag{false};
+    std::atomic<uint32_t> bits{0};
 
-// === ATOMIC OPERATIONS AND MEMORY ORDERING ===
+    // is_lock_free(): true means hardware atomics are used (no hidden mutex)
+    std::cout << "int  is_lock_free: " << counter.is_lock_free() << "\\n";
+    std::cout << "bool is_lock_free: " << flag.is_lock_free() << "\\n";
 
-class HighPerformanceCounter {
-private:
-    // Different memory orderings for different use cases
-    std::atomic<int64_t> counter_{0};
-    std::atomic<bool> flag_{false};
-    
-public:
-    // Relaxed ordering: fastest, no synchronization guarantees
-    void increment_relaxed() {
-        counter_.fetch_add(1, std::memory_order_relaxed);
-    }
-    
-    // Acquire-release: synchronizes with other acquire-release operations
-    void increment_acq_rel() {
-        counter_.fetch_add(1, std::memory_order_acq_rel);
-    }
-    
-    // Sequential consistency: strongest guarantees, slowest
-    void increment_seq_cst() {
-        counter_.fetch_add(1, std::memory_order_seq_cst);
-    }
-    
-    // Compare-and-swap for lock-free algorithms
-    bool try_increment_if_less_than(int64_t threshold) {
-        int64_t current = counter_.load(std::memory_order_acquire);
-        
-        do {
-            if (current >= threshold) {
-                return false;  // Threshold reached
-            }
-        } while (!counter_.compare_exchange_weak(
-            current, current + 1,
-            std::memory_order_release,
-            std::memory_order_acquire
-        ));
-        
-        return true;
-    }
-    
-    int64_t get() const {
-        return counter_.load(std::memory_order_acquire);
-    }
-    
-    // Lock-free flag operations
-    void set_flag() {
-        flag_.store(true, std::memory_order_release);
-    }
-    
-    bool check_flag() {
-        return flag_.load(std::memory_order_acquire);
-    }
-};
+    // store / load
+    counter.store(42);
+    std::cout << "After store(42): " << counter.load() << "\\n";
 
-// === HAZARD POINTERS FOR SAFE MEMORY RECLAMATION ===
+    // exchange: atomically write new value, return old value
+    int old = counter.exchange(100);
+    std::cout << "exchange(100) returned: " << old
+              << ", now: " << counter.load() << "\\n";
 
-template<typename T>
-class HazardPointer {
-private:
-    static thread_local std::atomic<T*> hazard_ptr_;
-    
-public:
-    static void set_hazard(T* ptr) {
-        hazard_ptr_.store(ptr, std::memory_order_release);
-    }
-    
-    static void clear_hazard() {
-        hazard_ptr_.store(nullptr, std::memory_order_release);
-    }
-    
-    static T* get_hazard() {
-        return hazard_ptr_.load(std::memory_order_acquire);
-    }
-};
+    // fetch_add / fetch_sub: atomic arithmetic, returns value BEFORE the op
+    counter.store(10);
+    int prev = counter.fetch_add(5);
+    std::cout << "fetch_add(5): prev=" << prev
+              << ", now=" << counter.load() << "\\n";
 
-template<typename T>
-thread_local std::atomic<T*> HazardPointer<T>::hazard_ptr_{nullptr};
-
-// === PERFORMANCE BENCHMARKING ===
-
-void benchmark_atomic_operations() {
-    const int iterations = 10000000;
-    HighPerformanceCounter counter;
-    
-    // Benchmark different memory orderings
-    auto benchmark = [&](auto func, const std::string& name) {
-        auto start = std::chrono::high_resolution_clock::now();
-        
-        for (int i = 0; i < iterations; ++i) {
-            func();
-        }
-        
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        
-        std::cout << name << ": " << duration.count() << " μs\\n";
-    };
-    
-    std::cout << "=== Atomic Operation Performance ===\\n";
-    benchmark([&]() { counter.increment_relaxed(); }, "Relaxed ordering");
-    benchmark([&]() { counter.increment_acq_rel(); }, "Acquire-release ordering");
-    benchmark([&]() { counter.increment_seq_cst(); }, "Sequential consistency");
-    
-    std::cout << "Final counter value: " << counter.get() << "\\n";
+    // fetch_or / fetch_and / fetch_xor: bitwise ops
+    bits.fetch_or(0b1100);   // set bits 2,3
+    bits.fetch_and(0b1000);  // keep only bit 3
+    std::cout << "Bits after or/and: " << bits.load() << " (expected 8)\\n";
 }
 
-void test_lock_free_queue() {
-    LockFreeQueue<int> queue;
-    const int num_producers = 4;
-    const int num_consumers = 2;
-    const int items_per_producer = 10000;
-    
-    std::vector<std::thread> producers;
-    std::vector<std::thread> consumers;
-    std::atomic<int> total_consumed{0};
-    std::atomic<bool> done{false};
-    
-    // Start producers
-    for (int p = 0; p < num_producers; ++p) {
-        producers.emplace_back([&, p]() {
-            for (int i = 0; i < items_per_producer; ++i) {
-                queue.enqueue(p * items_per_producer + i);
+// === ATOMIC_FLAG: the only type GUARANTEED lock-free on every platform ===
+// Used to build the simplest possible spinlock.
+class Spinlock {
+    std::atomic_flag flag_{ATOMIC_FLAG_INIT};
+public:
+    void lock()   { while (flag_.test_and_set(std::memory_order_acquire)) {} }
+    void unlock() { flag_.clear(std::memory_order_release); }
+};
+
+int main() {
+    demo_atomic_operations();
+
+    Spinlock sl;
+    int shared = 0;
+    std::vector<std::thread> workers;
+    for (int i = 0; i < 4; ++i) {
+        workers.emplace_back([&] {
+            for (int j = 0; j < 10000; ++j) {
+                sl.lock();
+                ++shared;
+                sl.unlock();
             }
         });
     }
-    
-    // Start consumers
-    for (int c = 0; c < num_consumers; ++c) {
-        consumers.emplace_back([&]() {
-            int item;
-            int consumed = 0;
-            
-            while (!done.load() || queue.dequeue(item)) {
-                if (queue.dequeue(item)) {
-                    consumed++;
-                }
-                std::this_thread::yield();
-            }
-            
-            total_consumed.fetch_add(consumed);
-        });
-    }
-    
-    // Wait for producers to finish
-    for (auto& t : producers) {
-        t.join();
-    }
-    
-    // Signal consumers to finish
-    done.store(true);
-    
-    // Wait for consumers to finish
-    for (auto& t : consumers) {
-        t.join();
-    }
-    
-    std::cout << "\\n=== Lock-Free Queue Test ===\\n";
-    std::cout << "Items produced: " << num_producers * items_per_producer << "\\n";
-    std::cout << "Items consumed: " << total_consumed.load() << "\\n";
+    for (auto& t : workers) t.join();
+    std::cout << "Shared counter (spinlock): " << shared
+              << " (expected 40000)\\n";
+    return 0;
+}`,
+        explanation: 'std::atomic<T> guarantees that every operation on the value is indivisible — no thread ever sees a partial update. is_lock_free() tells you whether hardware CAS instructions are used (true) or the library falls back to a mutex (false). store/load/exchange/fetch_add are the fundamental building blocks; std::atomic_flag is unique in being lock-free everywhere by the standard.',
+        useCase: 'Lock-free reference counting (shared_ptr internals), thread-safe statistics counters, one-shot signaling flags, spinlock implementations, and as the foundation for all lock-free algorithms.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic'
+    },
+    {
+        id: 'memory-ordering',
+        title: 'Memory Ordering & Synchronization',
+        standard: 'performance',
+        description: 'Choose the right memory order to balance correctness and performance in concurrent code',
+        codeExample: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <cassert>
+
+// C++ defines six memory orderings grouped into three models:
+//
+//  relaxed  – only atomicity, no ordering relative to other variables
+//  release/acquire/acq_rel – pairs that "hand off" happens-before
+//  seq_cst  – global total order for all seq_cst operations (default)
+
+// ─── 1. RELAXED ───────────────────────────────────────────────────────────
+// Use when you only care about the count, not visibility of other writes.
+std::atomic<int> counter{0};
+
+void relaxed_increment() {
+    for (int i = 0; i < 100000; ++i)
+        counter.fetch_add(1, std::memory_order_relaxed);
+}
+
+// ─── 2. ACQUIRE / RELEASE ─────────────────────────────────────────────────
+// A release-store "publishes" all preceding writes.
+// An acquire-load "sees" all writes that happened before the matching release.
+std::atomic<bool> ready{false};
+int payload = 0;   // not atomic — protected via acquire/release
+
+void producer() {
+    payload = 42;                                   // plain write
+    ready.store(true, std::memory_order_release);   // publish
+}
+
+void consumer() {
+    while (!ready.load(std::memory_order_acquire)) {} // wait for publication
+    // Guaranteed to observe payload == 42
+    std::cout << "Payload: " << payload << " (expected 42)\\n";
+}
+
+// ─── 3. SEQUENTIAL CONSISTENCY ────────────────────────────────────────────
+// Every seq_cst operation participates in a single global total order.
+// This is the default; it is the easiest to reason about but the slowest.
+std::atomic<int> x{0}, y{0};
+int r1 = 0, r2 = 0;
+
+void thread_x() { x.store(1); r1 = y.load(); }  // seq_cst (default)
+void thread_y() { y.store(1); r2 = x.load(); }
+
+// ─── 4. ACQ_REL on RMW operations ─────────────────────────────────────────
+// fetch_add / exchange / compare_exchange use acq_rel as a common idiom:
+// the operation both "sees" (acquire) and "publishes" (release).
+std::atomic<int> shared{0};
+
+void acq_rel_example() {
+    // Read-modify-write with acquire+release in one operation
+    shared.fetch_add(1, std::memory_order_acq_rel);
 }
 
 int main() {
-    benchmark_atomic_operations();
-    test_lock_free_queue();
+    // Relaxed counter
+    std::thread t1(relaxed_increment), t2(relaxed_increment);
+    t1.join(); t2.join();
+    std::cout << "Relaxed counter: " << counter.load() << " (expected 200000)\\n";
+
+    // Acquire/release producer–consumer
+    ready.store(false);
+    payload = 0;
+    std::thread p(producer), c(consumer);
+    p.join(); c.join();
+
+    // Seq-cst: at least one of r1 or r2 must be 1
+    std::thread tx(thread_x), ty(thread_y);
+    tx.join(); ty.join();
+    std::cout << "r1=" << r1 << " r2=" << r2
+              << " — at least one is 1: "
+              << (r1 == 1 || r2 == 1 ? "YES" : "NO") << "\\n";
     return 0;
 }`,
-        explanation: 'Lock-free programming uses atomic operations and memory ordering to achieve thread safety without locks, eliminating contention and improving scalability. Compare-and-swap operations enable lock-free data structures, while different memory orderings provide trade-offs between performance and synchronization guarantees.',
-        useCase: 'Critical for high-frequency trading systems, real-time applications, and high-throughput servers where lock contention would be a bottleneck. Essential for building scalable concurrent data structures and minimizing latency in multi-threaded applications.'
+        explanation: 'Memory ordering controls how atomic operations interact with other memory accesses across threads. relaxed gives only atomicity (cheapest). release/acquire create a happens-before edge between a matching store and load pair — the canonical way to hand data from one thread to another. seq_cst (the default) provides a total global order and is the easiest to reason about but may be slower on ARM and PowerPC. acq_rel is used on read-modify-write operations (fetch_add, exchange, CAS) when both acquire and release semantics are needed simultaneously.',
+        useCase: 'Producer–consumer pipelines (release/acquire), lock-free reference counting (relaxed for the count, release/acquire for the destructor fence), sequence locks, and any pattern that needs a proven happens-before relationship without the full cost of seq_cst.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/memory_order'
+    },
+    {
+        id: 'compare-and-swap',
+        title: 'Compare-And-Swap (CAS)',
+        standard: 'performance',
+        description: 'The fundamental building block of all lock-free algorithms',
+        codeExample: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// compare_exchange_strong / compare_exchange_weak
+//
+// Atomic pseudo-code:
+//   if (*this == expected) { *this = desired; return true; }
+//   else                   { expected = *this; return false; }
+//
+// The key insight: on failure, expected is UPDATED to the current value,
+// making retry loops very natural.
+
+// ─── 1. BASIC CAS ──────────────────────────────────────────────────────────
+void basic_cas_demo() {
+    std::atomic<int> val{10};
+
+    int expected = 10;
+    bool ok = val.compare_exchange_strong(expected, 20);
+    std::cout << "CAS(10->20): " << ok
+              << ", val=" << val.load() << "\\n";   // true, 20
+
+    expected = 10; // wrong — val is now 20
+    ok = val.compare_exchange_strong(expected, 99);
+    std::cout << "CAS(10->99) wrong: " << ok
+              << ", expected updated to=" << expected << "\\n"; // false, 20
+}
+
+// ─── 2. WEAK vs STRONG ─────────────────────────────────────────────────────
+// compare_exchange_WEAK may spuriously fail even when *this == expected.
+// Always use weak inside a retry loop — it maps to a single LL/SC instruction
+// on ARM/PowerPC and avoids a redundant retry at the hardware level.
+// Use strong for single-shot operations (no loop).
+
+std::atomic<int> global_counter{0};
+
+void bounded_increment(int limit) {
+    int cur = global_counter.load(std::memory_order_acquire);
+    while (cur < limit) {
+        // weak: optimal inside a loop
+        if (global_counter.compare_exchange_weak(
+                cur, cur + 1,
+                std::memory_order_release,
+                std::memory_order_acquire)) {
+            return; // success
+        }
+        // cur was updated with the latest value — retry automatically
+    }
+}
+
+// ─── 3. CAS RETRY LOOP PATTERN (lock-free push) ────────────────────────────
+struct Node { int val; Node* next; };
+std::atomic<Node*> stack_top{nullptr};
+
+void push(int v) {
+    Node* n = new Node{v, nullptr};
+    // Load current top, set as our next, then CAS the head.
+    // On failure (another thread pushed concurrently) n->next is updated
+    // automatically and we retry.
+    n->next = stack_top.load(std::memory_order_relaxed);
+    while (!stack_top.compare_exchange_weak(
+               n->next, n,
+               std::memory_order_release,
+               std::memory_order_relaxed)) {}
+}
+
+int main() {
+    basic_cas_demo();
+
+    // Concurrent bounded increments
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 8; ++i)
+        threads.emplace_back([] { bounded_increment(100); });
+    for (auto& t : threads) t.join();
+    std::cout << "Bounded counter: " << global_counter.load()
+              << " (expected <= 100)\\n";
+
+    // Lock-free push
+    push(1); push(2); push(3);
+    std::cout << "Stack top after 3 pushes: "
+              << stack_top.load()->val << "\\n"; // 3
+    return 0;
+}`,
+        explanation: 'Compare-and-swap is the atomic primitive that makes all lock-free algorithms possible. It reads, compares, and conditionally writes in one uninterruptible step. The weak variant is preferred in retry loops because on LL/SC architectures it avoids the double-check overhead; the strong variant is for single-shot use. The pattern "load → modify → CAS, retry on failure" is the template for every lock-free update.',
+        useCase: 'Lock-free stack/queue push and pop, optimistic locking, reference counting, sequence lock implementations, and any operation that must read-modify-write a shared location without a mutex.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic/compare_exchange'
+    },
+    {
+        id: 'lock-free-data-structures',
+        title: 'Lock-Free Data Structures',
+        standard: 'performance',
+        description: 'Implement lock-free stacks and queues using CAS for high-throughput concurrent access',
+        codeExample: `#include <atomic>
+#include <optional>
+#include <array>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// ─── 1. TREIBER STACK (lock-free LIFO) ────────────────────────────────────
+// Push/pop use a CAS retry loop on the head pointer.
+// NOTE: susceptible to the ABA problem — see safe-memory-reclamation topic.
+template<typename T>
+class TreiberStack {
+    struct Node {
+        T data;
+        Node* next{nullptr};
+        explicit Node(T v) : data(std::move(v)) {}
+    };
+    std::atomic<Node*> head_{nullptr};
+public:
+    void push(T val) {
+        Node* n = new Node(std::move(val));
+        n->next = head_.load(std::memory_order_relaxed);
+        while (!head_.compare_exchange_weak(n->next, n,
+                std::memory_order_release,
+                std::memory_order_relaxed)) {}
+    }
+
+    std::optional<T> pop() {
+        Node* old = head_.load(std::memory_order_acquire);
+        while (old) {
+            if (head_.compare_exchange_weak(old, old->next,
+                    std::memory_order_release,
+                    std::memory_order_acquire)) {
+                T val = std::move(old->data);
+                delete old;
+                return val;
+            }
+        }
+        return std::nullopt;
+    }
+};
+
+// ─── 2. SPSC QUEUE (lock-free, Single-Producer Single-Consumer) ────────────
+// No CAS needed — head and tail are only written by one thread each.
+// Uses acquire/release to synchronise the producer and consumer.
+// Size must be a power of 2 for the bitmask trick.
+template<typename T, size_t N>
+class SPSCQueue {
+    static_assert((N & (N - 1)) == 0, "N must be a power of 2");
+    std::array<T, N> buf_{};
+    alignas(64) std::atomic<size_t> head_{0}; // written by consumer
+    alignas(64) std::atomic<size_t> tail_{0}; // written by producer
+public:
+    bool enqueue(const T& v) {
+        const size_t t = tail_.load(std::memory_order_relaxed);
+        if (t - head_.load(std::memory_order_acquire) == N)
+            return false; // full
+        buf_[t & (N - 1)] = v;
+        tail_.store(t + 1, std::memory_order_release);
+        return true;
+    }
+
+    bool dequeue(T& v) {
+        const size_t h = head_.load(std::memory_order_relaxed);
+        if (h == tail_.load(std::memory_order_acquire))
+            return false; // empty
+        v = buf_[h & (N - 1)];
+        head_.store(h + 1, std::memory_order_release);
+        return true;
+    }
+};
+
+int main() {
+    // ── Treiber stack test ──
+    TreiberStack<int> stack;
+    std::atomic<int> stack_total{0};
+    std::vector<std::thread> producers(4), consumers(4);
+
+    for (int i = 0; i < 4; ++i)
+        producers[i] = std::thread([&, i] {
+            for (int j = 0; j < 1000; ++j) stack.push(1);
+        });
+    for (auto& t : producers) t.join();
+
+    for (int i = 0; i < 4; ++i)
+        consumers[i] = std::thread([&] {
+            while (auto v = stack.pop())
+                stack_total.fetch_add(*v, std::memory_order_relaxed);
+        });
+    for (auto& t : consumers) t.join();
+    std::cout << "Stack items (expected 4000): " << stack_total.load() << "\\n";
+
+    // ── SPSC queue test ──
+    SPSCQueue<int, 1024> q;
+    std::atomic<int> spsc_count{0};
+    const int N = 1000000;
+
+    std::thread prod([&] {
+        for (int i = 0; i < N; ++i)
+            while (!q.enqueue(i)) {}
+    });
+    std::thread cons([&] {
+        int v, cnt = 0;
+        while (cnt < N) { if (q.dequeue(v)) ++cnt; }
+        spsc_count.store(cnt);
+    });
+    prod.join(); cons.join();
+    std::cout << "SPSC transferred (expected 1000000): "
+              << spsc_count.load() << "\\n";
+    return 0;
+}`,
+        explanation: 'The Treiber stack is the canonical lock-free LIFO structure: every push/pop is a single CAS retry loop on the head pointer. It is wait-free in the absence of contention and lock-free overall. The SPSC queue is even simpler — because only one thread writes head and only one writes tail, no CAS is needed at all; acquire/release pairs provide the synchronisation. The alignas(64) padding prevents false sharing between the two cache lines.',
+        useCase: 'Treiber stacks are used in thread pool work-stealing, free-list allocators, and undo stacks. SPSC queues are the standard transport between a dedicated producer and consumer thread, common in audio, networking, and real-time game engines.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic/compare_exchange'
+    },
+    {
+        id: 'safe-memory-reclamation',
+        title: 'Safe Memory Reclamation & ABA Problem',
+        standard: 'performance',
+        description: 'Prevent use-after-free and the ABA problem in lock-free data structures',
+        codeExample: `#include <atomic>
+#include <optional>
+#include <array>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// ─── THE ABA PROBLEM ─────────────────────────────────────────────────────
+// Thread 1 reads head = A.
+// Thread 2 pops A, pops B, pushes A back. head is now A again.
+// Thread 1's CAS succeeds (A == A) but the next pointer may be dangling.
+//
+// Two practical solutions:
+//   1. Tagged pointers: pair the pointer with a version counter
+//   2. Hazard pointers: declare which pointer you are currently reading
+
+// ─── 1. TAGGED POINTER ────────────────────────────────────────────────────
+// On 64-bit systems the top 16 bits of a virtual address are unused —
+// we can store a version counter there or use a struct with std::atomic.
+template<typename T>
+struct Tagged {
+    T*       ptr;
+    uint64_t tag;  // monotonically increasing version
+    bool operator==(const Tagged& o) const noexcept {
+        return ptr == o.ptr && tag == o.tag;
+    }
+};
+
+template<typename T>
+class ABAResistantStack {
+    struct Node { T data; Node* next{nullptr}; explicit Node(T v): data(std::move(v)){} };
+    std::atomic<Tagged<Node>> head_{{nullptr, 0}};
+public:
+    void push(T val) {
+        auto* n = new Node(std::move(val));
+        Tagged<Node> old = head_.load(std::memory_order_acquire);
+        Tagged<Node> next;
+        do {
+            n->next = old.ptr;
+            next = {n, old.tag + 1};  // bump version on every push
+        } while (!head_.compare_exchange_weak(old, next,
+                  std::memory_order_release, std::memory_order_acquire));
+    }
+
+    std::optional<T> pop() {
+        Tagged<Node> old = head_.load(std::memory_order_acquire);
+        while (old.ptr) {
+            Tagged<Node> next{old.ptr->next, old.tag + 1};
+            if (head_.compare_exchange_weak(old, next,
+                    std::memory_order_release, std::memory_order_acquire)) {
+                T val = std::move(old.ptr->data);
+                delete old.ptr;
+                return val;
+            }
+        }
+        return std::nullopt;
+    }
+};
+
+// ─── 2. MINIMAL HAZARD POINTER ────────────────────────────────────────────
+// Before dereferencing a pointer, publish it in a hazard slot.
+// Defer deletion: only free a pointer if no hazard slot holds it.
+constexpr int HP_MAX_THREADS = 8;
+std::atomic<void*> g_hazards[HP_MAX_THREADS]{};
+
+thread_local int t_hp_id = -1;
+std::atomic<int> g_next_id{0};
+int my_hp_id() {
+    if (t_hp_id < 0) t_hp_id = g_next_id.fetch_add(1) % HP_MAX_THREADS;
+    return t_hp_id;
+}
+
+void hp_protect(void* p)  { g_hazards[my_hp_id()].store(p, std::memory_order_seq_cst); }
+void hp_release()         { g_hazards[my_hp_id()].store(nullptr, std::memory_order_seq_cst); }
+bool hp_is_hazardous(void* p) {
+    for (auto& h : g_hazards)
+        if (h.load(std::memory_order_acquire) == p) return true;
+    return false;
+}
+
+int main() {
+    // ABA-resistant stack
+    ABAResistantStack<int> stack;
+    std::atomic<int> total{0};
+    std::vector<std::thread> threads;
+    const int PER_THREAD = 2500;
+
+    for (int i = 0; i < 4; ++i)
+        threads.emplace_back([&] {
+            for (int j = 0; j < PER_THREAD; ++j) stack.push(1);
+        });
+    for (auto& t : threads) t.join();
+    threads.clear();
+
+    for (int i = 0; i < 4; ++i)
+        threads.emplace_back([&] {
+            while (auto v = stack.pop())
+                total.fetch_add(*v, std::memory_order_relaxed);
+        });
+    for (auto& t : threads) t.join();
+    std::cout << "ABA-safe total: " << total.load()
+              << " (expected " << 4 * PER_THREAD << ")\\n";
+
+    // Hazard pointer demo
+    int* resource = new int(99);
+    hp_protect(resource);
+    std::cout << "Resource hazardous while protected: "
+              << hp_is_hazardous(resource) << "\\n"; // 1
+    hp_release();
+    std::cout << "Resource hazardous after release: "
+              << hp_is_hazardous(resource) << "\\n"; // 0
+    delete resource;
+    return 0;
+}`,
+        explanation: 'The ABA problem occurs when a CAS appears to succeed because a pointer was changed A→B→A, but the node at A now points somewhere different. Tagged pointers solve this by pairing the pointer with a version counter that is bumped on every update, making A-at-version-1 and A-at-version-2 distinct. Hazard pointers solve it by requiring threads to publish which pointer they are holding before dereferencing it; a thread that wants to free a pointer first checks that no hazard slot holds it. Both approaches are used in production lock-free libraries.',
+        useCase: 'Any shared lock-free data structure where nodes are deleted (Treiber stack, Michael-Scott queue, lock-free hash tables). Hazard pointers are used in Folly\'s lock-free containers; tagged pointers are common in embedded systems and real-time engines where memory overhead must be minimal.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic/compare_exchange'
     },
     {
         id: 'simd-vectorization',
