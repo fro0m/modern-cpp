@@ -6299,5 +6299,216 @@ Popped: 400 items`,
     ],
     feature: 'lock-free-stack',
     relatedTheory: 'lock-free-stack'
-  }
+  },
+    // --- granular lock-free exercises added ---
+    {
+        id: 'lock-free-01-atomic-flag',
+        title: 'Lock-Free Step 1: Spinlock',
+        standard: 'multithreading',
+        difficulty: 'beginner',
+        description: 'Implement a Spinlock using std::atomic_flag to protect a critical section. Understand the basics of lock-free primitives and spinning.',
+        starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// TODO: Implement the Spinlock class using std::atomic_flag.
+// - Remember to use ATOMIC_FLAG_INIT
+// - lock() should loop while test_and_set returns true
+// - unlock() should call clear
+class Spinlock {
+    // 1. declare atomic_flag
+public:
+    void lock() {
+        // 2. implement lock loop
+    }
+
+    void unlock() {
+        // 3. implement unlock
+    }
+};
+
+int shared_data = 0;
+Spinlock sl;
+
+void add_worker() {
+    for(int i = 0; i < 1000; i++) {
+        // 4. Use the spinlock here!
+        shared_data++;
+    }
+}
+
+int main() {
+    std::vector<std::thread> threads;
+    for(int i=0; i<10; i++) threads.emplace_back(add_worker);
+    for(auto& t : threads) t.join();
+    
+    std::cout << "Data: " << shared_data << "\n";
+    return 0;
+}
+`,
+        expectedOutput: 'Data: 10000',
+        hints: [
+            'Initialize with: std::atomic_flag flag = ATOMIC_FLAG_INIT;',
+            'Use while(flag.test_and_set(std::memory_order_acquire)) {} in lock()',
+            'Use flag.clear(std::memory_order_release) in unlock()'
+        ],
+        feature: 'lock-free-01-atomic-flag',
+        relatedTheory: 'lock-free-01-atomic-flag'
+    },
+    {
+        id: 'lock-free-03-cas',
+        title: 'Lock-Free Step 3: CAS Loop',
+        standard: 'multithreading',
+        difficulty: 'intermediate',
+        description: 'Use a Compare-and-Swap (CAS) loop with compare_exchange_weak to multiply an atomic variable lock-free.',
+        starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+std::atomic<long long> shared_val{1}; // Start at 1
+
+// We want to multiply shared_val by 2 concurrently in multiple threads.
+// fetch_add exists, but there is NO fetch_multiply! 
+// We must build it using a CAS loop.
+
+void multiply_worker() {
+    for(int i = 0; i < 5; i++) {
+        // TODO: Implement lock-free multiply by 2 using compare_exchange_weak
+        
+        // 1. Load current value
+        
+        // 2. Create CAS loop (while compare_exchange_weak fails)
+        // Inside loop (or as condition): attempt to swap expected value for expected * 2
+    }
+}
+
+// 4 threads * 5 multiplications = Multiply by 2 twenty times = 2^20 = 1048576
+int main() {
+    std::vector<std::thread> threads;
+    for(int i=0; i<4; i++) threads.emplace_back(multiply_worker);
+    for(auto& t : threads) t.join();
+    
+    std::cout << "Multiplied: " << shared_val.load() << "\n";
+    return 0;
+}
+`,
+        expectedOutput: 'Multiplied: 1048576',
+        hints: [
+            'First, read the expected value: auto expected = shared_val.load();',
+            'Then loop: while(!shared_val.compare_exchange_weak(expected, expected * 2)) {}'
+        ],
+        feature: 'lock-free-03-compare-exchange',
+        relatedTheory: 'lock-free-03-compare-exchange'
+    },
+    {
+        id: 'lock-free-06-atomic-ref-exercise',
+        title: 'Lock-Free Step 6: Atomic References',
+        standard: 'cpp20',
+        difficulty: 'beginner',
+        description: 'Use std::atomic_ref from C++20 to safely update non-atomic fields in a concurrently accessed array.',
+        starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <numeric>
+
+// An opaque struct we want to keep trivially copyable
+struct ProcessData {
+    int items_processed = 0;
+};
+
+void batch_processor(std::vector<ProcessData>& batch, int start, int end) {
+    for (int i = start; i < end; ++i) {
+        // TODO: Write to batch[i].items_processed safely!
+        // You cannot change the struct. Instead, use std::atomic_ref.
+        
+        // 1. Create an atomic_ref targeting the specific integer field
+        // 2. Atomically increment it by some value, e.g., 5.
+        
+    }
+}
+
+int main() {
+    std::vector<ProcessData> big_batch(100);
+    
+    std::vector<std::thread> threads;
+    // Overlapping writes on purpose! Both threads process everything.
+    for (int i = 0; i < 2; ++i) {
+        threads.emplace_back(batch_processor, std::ref(big_batch), 0, 100);
+    }
+    for (auto& t : threads) t.join();
+    
+    int sum = 0;
+    for(const auto& b : big_batch) sum += b.items_processed;
+    
+    std::cout << "Total processed items: " << sum << "\n";
+    return 0;
+}
+`,
+        expectedOutput: 'Total processed items: 1000',
+        hints: [
+            'Create it with: std::atomic_ref<int> ref(batch[i].items_processed);',
+            'Increment with: ref.fetch_add(5, std::memory_order_relaxed);'
+        ],
+        feature: 'lock-free-06-atomic-ref',
+        relatedTheory: 'lock-free-06-atomic-ref'
+    },
+    {
+        id: 'lock-free-04-stack-exercise',
+        title: 'Lock-Free Step 4: Lock-Free Stack Push',
+        standard: 'multithreading',
+        difficulty: 'advanced',
+        description: 'Implement the push operation of a lock-free stack using a pointer CAS.',
+        starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+template<typename T>
+class LockFreeStack {
+    struct Node {
+        T data;
+        Node* next;
+        Node(T d) : data(d), next(nullptr) {}
+    };
+    std::atomic<Node*> head{nullptr};
+
+public:
+    void push(T data) {
+        // TODO: Implement lock-free push
+        // 1. create new node
+        // 2. Load head to node->next
+        // 3. Try to CAS the head
+    }
+    
+    // Simple verification (not fully thread-safe for demo)
+    int peek() { return head.load() ? head.load()->data : -1; }
+};
+
+int main() {
+    LockFreeStack<int> stack;
+    
+    auto pusher = [&stack](int val) {
+        for(int i = 0; i < 100; i++) stack.push(val);
+    };
+    
+    std::vector<std::thread> threads;
+    for(int i=0; i<10; i++) threads.emplace_back(pusher, 42);
+    for(auto& t : threads) t.join();
+    
+    std::cout << "Stack initialized and top element: " << stack.peek() << "\n";
+    return 0;
+}
+`,
+        expectedOutput: 'Stack initialized and top element: 42',
+        hints: [
+            'Create: Node* n = new Node(data);',
+            'Initialize expected: n->next = head.load();',
+            'Loop: while(!head.compare_exchange_weak(n->next, n)) {}'
+        ],
+        feature: 'lock-free-04-stack',
+        relatedTheory: 'lock-free-04-stack'
+    }
 ];

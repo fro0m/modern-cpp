@@ -9433,5 +9433,321 @@ int main() {
         explanation: `Lock-free data structures use atomic operations and compare-and-swap (CAS) to coordinate without locks. CAS retries until successful, avoiding mutex overhead. Challenging to implement correctly but offers excellent performance under high contention. Beware of the ABA problem.`,
         useCase: `Use in high-performance systems where lock contention is a bottleneck: real-time systems, high-frequency trading, game engines. Essential when predictable latency matters. Requires deep understanding of memory models. Test thoroughly!`,
         referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/atomic'
+    },
+    // --- granular lock-free features added ---
+    {
+        id: 'lock-free-01-atomic-flag',
+        title: 'Lock-Free Step 1: std::atomic_flag',
+        standard: 'multithreading',
+        description: 'Implementing a simple spinlock using the only guaranteed lock-free primitive.',
+        codeExample: `#include <atomic>
+#include <thread>
+#include <iostream>
+#include <vector>
+
+// std::atomic_flag represents a boolean. It's the ONLY type guaranteed 
+// to be lock-free on all target hardwares!
+class Spinlock {
+    std::atomic_flag locked = ATOMIC_FLAG_INIT;
+public:
+    void lock() {
+        // Spin: keep trying to set the flag to true.
+        // memory_order_acquire prevents memory reordering across the lock.
+        while (locked.test_and_set(std::memory_order_acquire)) {
+            // yield prevents wasting too many CPU cycles
+            std::this_thread::yield(); 
+        }
+    }
+    
+    void unlock() {
+        // Clear flag. memory_order_release makes our changes visible.
+        locked.clear(std::memory_order_release);
+    }
+};
+
+int counter = 0;
+Spinlock spinlock;
+
+void worker() {
+    for(int i = 0; i < 1000; i++) {
+        spinlock.lock();
+        counter++; // Protected by lock-free spinlock
+        spinlock.unlock();
+    }
+}
+
+int main() {
+    std::vector<std::thread> threads;
+    for(int i=0; i<10; i++) threads.emplace_back(worker);
+    for(auto& t : threads) t.join();
+    
+    std::cout << "Final counter (expected 10000): " << counter << "\n";
+    return 0;
+}`,
+        explanation: 'A spinlock is the simplest lock-free concept (from an implementer point of view, though using it creates a lock). test_and_set atomically sets to true and returns the OLD value. If it was already true, we spin. The memory orders acquire and release correctly synchronize data.',
+        useCase: 'Used in extremely short critical sections where the cost of OS context-switching (from a mutex sleep) is greater than spinning the CPU for a few microseconds.'
+    },
+    {
+        id: 'lock-free-02-atomic-counter',
+        title: 'Lock-Free Step 2: Atomic Counters',
+        standard: 'multithreading',
+        description: 'Using std::atomic variables for lock-free increments with memory_order_relaxed.',
+        codeExample: `#include <atomic>
+#include <thread>
+#include <iostream>
+#include <vector>
+
+// Instead of protecting a regular int with a spinlock, 
+// we make the integer itself atomic!
+std::atomic<int> counter{0};
+
+void worker() {
+    for(int i = 0; i < 10000; i++) {
+        // fetch_add performs read->add->write as a single hardware instruction.
+        // We use memory_order_relaxed because we aren't using this counter 
+        // to synchronize OTHER variables. We just want the counter itself to be correct.
+        counter.fetch_add(1, std::memory_order_relaxed);
+    }
+}
+
+int main() {
+    std::vector<std::thread> threads;
+    for(int i=0; i<10; i++) threads.emplace_back(worker);
+    for(auto& t : threads) t.join();
+    
+    std::cout << "Final lock-free counter: " << counter.load(std::memory_order_relaxed) << "\n";
+    return 0;
+}`,
+        explanation: 'Atomic operations like fetch_add are truly lock-free; the CPU hardware ensures they are indivisible. memory_order_relaxed means we tell the compiler "You do not need to enforce global ordering around this variable, just make the add atomic", resulting in maximum performance.',
+        useCase: 'Performance-critical metrics, reference counting, event tracking, and statistics gathering across multiple threads.'
+    },
+    {
+        id: 'lock-free-03-compare-exchange',
+        title: 'Lock-Free Step 3: Compare-and-Exchange (CAS)',
+        standard: 'multithreading',
+        description: 'Using compare_exchange_weak to update variables lock-free when simple additions aren\'t enough.',
+        codeExample: `#include <atomic>
+#include <thread>
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+std::atomic<double> shared_val{0.0};
+
+void complex_worker() {
+    for(int i = 0; i < 1000; i++) {
+        // Step 1: Read current value
+        double expected = shared_val.load(std::memory_order_relaxed);
+        bool success = false;
+        
+        while (!success) {
+            // Step 2: Compute new value (impossible with simple fetch_add!)
+            double new_val = expected + std::abs(std::sin(expected)) + 1.0;
+            
+            // Step 3: CAS Loop
+            // Check if shared_val STILL equals 'expected'. If yes, update it to 'new_val'.
+            // If it failed (some other thread changed it), CAS returns false AND 
+            // automatically updates 'expected' to the NEW current value.
+            success = shared_val.compare_exchange_weak(
+                expected, new_val,
+                std::memory_order_release, 
+                std::memory_order_relaxed  
+            );
+        }
+    }
+}
+
+int main() {
+    std::vector<std::thread> threads;
+    for(int i=0; i<5; i++) threads.emplace_back(complex_worker);
+    for(auto& t : threads) t.join();
+    
+    std::cout << "Final compound CAS value: " << shared_val.load() << "\n";
+    return 0;
+}`,
+        explanation: 'CAS (Compare-and-Swap) is the heart of all lock-free algorithms. It resolves race conditions by saying "I will update this memory, BUT ONLY IF nobody else changed it while I was doing my math." Use the weak version inside loops because it produces faster code on some CPU architectures like ARM.',
+        useCase: 'Compound updates to single atomic variables, building lock-free algorithms.'
+    },
+    {
+        id: 'lock-free-04-stack',
+        title: 'Lock-Free Step 4: Lock-Free Stack',
+        standard: 'multithreading',
+        description: 'Building a simple lock-free stack to learn CAS on pointers.',
+        codeExample: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// Note: This stack leaks memory! Safe memory reclamation for lock-free 
+// structures is highly complex (requires hazard pointers, EBR, etc).
+template<typename T>
+class LockFreeStack {
+    struct Node {
+        T data;
+        Node* next;
+        Node(T d) : data(d), next(nullptr) {}
+    };
+    std::atomic<Node*> head{nullptr};
+
+public:
+    void push(T data) {
+        Node* new_node = new Node(data);
+        new_node->next = head.load(std::memory_order_relaxed);
+        
+        // CAS loop to push
+        while (!head.compare_exchange_weak(
+            new_node->next, // expected (will be updated on failure)
+            new_node,       // desired
+            std::memory_order_release,
+            std::memory_order_relaxed)) 
+        {
+            // loop repeats if 'head' was changed by another thread!
+        }
+    }
+
+    bool pop(T& result) {
+        Node* expected = head.load(std::memory_order_acquire);
+        
+        while (expected != nullptr) {
+            // CAS loop to pop
+            if (head.compare_exchange_weak(
+                    expected, expected->next,
+                    std::memory_order_acquire,
+                    std::memory_order_relaxed)) {
+                result = expected->data;
+                // NOT memory safe! Another thread might be reading expected!
+                // Memory leaks here for educational simplicity.
+                return true; 
+            }
+        }
+        return false;
+    }
+};
+
+int main() {
+    LockFreeStack<int> s;
+    s.push(1); s.push(2);
+    
+    int val;
+    if (s.pop(val)) std::cout << "Popped: " << val << "\n";
+    return 0;
+}`,
+        explanation: 'A lock-free stack represents the most fundamental data structure using CAS. Pushing is just: create node, link to head, then atomically swap the head pointer. Popping is the reverse. The major downfall is safe memory reclamation, which gives rise to the ABA problem.',
+        useCase: 'High performance LIFO queues in games, memory pool allocators, and job schedulers.'
+    },
+    {
+        id: 'lock-free-06-atomic-ref',
+        title: 'Lock-Free Step 6: std::atomic_ref (C++20)',
+        standard: 'cpp20',
+        description: 'Applying lock-free atomic operations directly on non-atomic legacy variables.',
+        codeExample: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// Legacy struct that we cannot or do not want to modify to use std::atomic
+struct GameStats {
+    long hits;
+    long misses;
+    long damageDealt;
+};
+
+void session_worker(GameStats& global_stats) {
+    for (int i = 0; i < 50000; ++i) {
+        // Create an atomic reference directly referencing the existing field!
+        // This is zero-overhead to instantiate.
+        std::atomic_ref<long> hits_ref(global_stats.hits);
+        std::atomic_ref<long> dmg_ref(global_stats.damageDealt);
+        
+        // Now safely increment concurrently
+        hits_ref.fetch_add(1, std::memory_order_relaxed);
+        dmg_ref.fetch_add(15, std::memory_order_relaxed);
+        
+        if (i % 100 == 0) {
+            std::atomic_ref<long> misses_ref(global_stats.misses);
+            misses_ref.fetch_add(1, std::memory_order_relaxed);
+        }
+    }
+}
+
+int main() {
+    GameStats stats = {0, 0, 0}; // Regular initialization, can still use memcpy!
+    
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 4; ++i) {
+        threads.emplace_back(session_worker, std::ref(stats));
+    }
+    for (auto& t : threads) t.join();
+    
+    // Read normally when threads are joined.
+    std::cout << "Final Hits:   " << stats.hits << "\n";
+    std::cout << "Final Misses: " << stats.misses << "\n";
+    std::cout << "Final Damage: " << stats.damageDealt << "\n";
+    
+    return 0;
+}`,
+        explanation: 'Introduced in C++20, std::atomic_ref allows atomic operations on regular non-atomic variables. When accessing an object via atomic_ref, ALL concurrent access MUST be via atomic_ref to avoid data races. This replaces the old pattern of casting to volatile or wrapping types just to support concurrency.',
+        useCase: 'Interfacing with C libraries, keeping memory strictly packed for SIMD or memcpy, or only occasionally modifying a value atomically in a codebase that primarily reads it sequentially.'
+    },
+    {
+        id: 'lock-free-05-queue',
+        title: 'Lock-Free Step 5: Lock-Free Queue',
+        standard: 'multithreading',
+        description: 'Michael-Scott queue demonstrating thread cooperation.',
+        codeExample: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+
+// Michael & Scott Queue Algorithm (Simplification)
+template<typename T>
+class MSQueue {
+    struct Node {
+        T data;
+        std::atomic<Node*> next{nullptr};
+        Node(T d) : data(d) {}
+        Node() {} // dummy
+    };
+    std::atomic<Node*> head;
+    std::atomic<Node*> tail;
+
+public:
+    MSQueue() {
+        Node* dummy = new Node();
+        head.store(dummy); tail.store(dummy);
+    }
+
+    void enqueue(T value) {
+        Node* new_node = new Node(value);
+        while (true) {
+            Node* t = tail.load(std::memory_order_acquire);
+            Node* next = t->next.load(std::memory_order_acquire);
+
+            if (t == tail.load(std::memory_order_acquire)) {
+                if (next == nullptr) {
+                    // It TRULY is the last node. Let's link it!
+                    if (t->next.compare_exchange_weak(next, new_node)) {
+                        // Success! Update tail. If this fails, another thread helped us!
+                        tail.compare_exchange_strong(t, new_node);
+                        return;
+                    }
+                } else {
+                    // Another thread linked a node but didn't update tail. Help them!
+                    tail.compare_exchange_strong(t, next);
+                }
+            }
+        }
+    }
+};
+
+int main() {
+    MSQueue<int> q;
+    q.enqueue(42);
+    q.enqueue(100);
+    std::cout << "Enqueued 42 and 100 concurrently safe!\n";
+    return 0;
+}`,
+        explanation: 'A Queue requires managing TWO pointers (head and tail). The lock-free queue is distinguished by "helping" - if thread A gets interrupted while enqueuing, thread B notices the tail pointer is lagging and updates it *on behalf* of thread A before trying its own enqueue.',
+        useCase: 'Producer-consumer patterns with strict latency requirements (e.g. audio processing, network packet queues).'
     }
 ];
