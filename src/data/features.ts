@@ -9749,5 +9749,138 @@ int main() {
 }`,
         explanation: 'A Queue requires managing TWO pointers (head and tail). The lock-free queue is distinguished by "helping" - if thread A gets interrupted while enqueuing, thread B notices the tail pointer is lagging and updates it *on behalf* of thread A before trying its own enqueue.',
         useCase: 'Producer-consumer patterns with strict latency requirements (e.g. audio processing, network packet queues).'
+    },
+    {
+        id: 'seq-cst-vs-acqrel',
+        title: 'seq_cst vs Acquire/Release: When Total Order Matters',
+        standard: 'performance',
+        description: 'Understand the one scenario where seq_cst is strictly required over acquire/release: the store-buffer (Dekker-style) litmus test',
+        codeExample: `#include <atomic>
+#include <barrier>
+#include <iomanip>
+#include <iostream>
+#include <thread>
+
+// ── The Key Insight ────────────────────────────────────────────────────────
+//
+// acquire/release creates a directed happens-before edge between ONE producer
+// and ONE consumer via a SINGLE shared variable:
+//
+//   producer: data = 42; flag.store(1, release);   // publish
+//   consumer: while (!flag.load(acquire)) {}        // wait & acquire visibility
+//             assert(data == 42);                   // guaranteed to see 42
+//
+// This is sufficient for the classic producer-consumer pattern.
+//
+// But acquire/release FAILS when two threads SIMULTANEOUSLY write their own
+// flag and then check the other's flag — the "store-buffer" litmus test:
+//
+//   Thread A:  x.store(1, release);   r1 = y.load(acquire)
+//   Thread B:  y.store(1, release);   r2 = x.load(acquire)
+//
+// With acq/rel: r1==0 && r2==0 is POSSIBLE (both threads missed each other)
+// With seq_cst: r1==0 && r2==0 is IMPOSSIBLE (total order forbids it)
+//
+// ── Why acq/rel fails: CPU store buffers ──────────────────────────────────
+//
+//  [Thread A core]           [Thread B core]
+//  store x=1 → store buffer  store y=1 → store buffer
+//  load  y   ← cache (y=0!)  load  x   ← cache (x=0!)
+//  store buffer drains...    store buffer drains...
+//
+//  Both loads see 0 because each thread's store is still in its private
+//  store buffer when the load executes.  A release store does NOT drain
+//  the store buffer; it only prevents later writes from reordering before it.
+//
+// ── Why seq_cst works: full memory fence ──────────────────────────────────
+//
+//  seq_cst store → MOV x, 1; MFENCE   (x86)
+//                             ^^^^^^^^ drains store buffer before load
+//  seq_cst store → STL + DMB ISH       (ARM)
+//
+//  The fence ensures x=1 is globally visible BEFORE y is loaded,
+//  enforcing a total order that makes both-zeros impossible.
+//
+// ── Proof that seq_cst forbids r1==0 && r2==0 ────────────────────────────
+//
+//  All seq_cst ops share a total order <_T respecting program order:
+//    x.store <_T y.load    (Thread A)
+//    y.store <_T x.load    (Thread B)
+//
+//  Assume r1==0.  Then y.load <_T y.store (load saw y before store).
+//  Chain: x.store <_T y.load <_T y.store <_T x.load → r2 = x.load sees 1.
+//  So r1==0 forces r2==1. By symmetry, r2==0 forces r1==1. QED.
+
+// ---------------------------------------------------------------------------
+// Experiment: run N trials and count how often r1==0 && r2==0 appears
+// Uses a 3-party std::barrier to synchronise threads per trial.
+// ---------------------------------------------------------------------------
+static long long run_experiment(
+    const char*       label,
+    std::memory_order store_mo,
+    std::memory_order load_mo,
+    int               trials)
+{
+    std::atomic<int> x{0}, y{0};
+    int r1 = 0, r2 = 0;
+    long long bad = 0;
+
+    std::barrier<> sync{3};
+
+    std::thread ta([&] {
+        for (int i = 0; i < trials; ++i) {
+            sync.arrive_and_wait();
+            x.store(1, store_mo);
+            r1 = y.load(load_mo);
+            sync.arrive_and_wait();
+        }
+    });
+
+    std::thread tb([&] {
+        for (int i = 0; i < trials; ++i) {
+            sync.arrive_and_wait();
+            y.store(1, store_mo);
+            r2 = x.load(load_mo);
+            sync.arrive_and_wait();
+        }
+    });
+
+    for (int i = 0; i < trials; ++i) {
+        x.store(0, std::memory_order_relaxed);
+        y.store(0, std::memory_order_relaxed);
+        sync.arrive_and_wait();
+        sync.arrive_and_wait();
+        if (r1 == 0 && r2 == 0) ++bad;
+    }
+
+    ta.join(); tb.join();
+
+    std::cout << std::setw(9) << label << ":  "
+              << bad << " / " << trials << " trials with r1==0 && r2==0\\n";
+    return bad;
+}
+
+int main() {
+    constexpr int TRIALS = 500'000;
+
+    std::cout
+        << "Store-Buffer Litmus Test\\n"
+        << "  Thread A: x.store(1, ?);  r1 = y.load(?)\\n"
+        << "  Thread B: y.store(1, ?);  r2 = x.load(?)\\n"
+        << "  Bad outcome: r1==0 AND r2==0\\n\\n";
+
+    long long bad_ar = run_experiment(
+        "acq/rel", std::memory_order_release, std::memory_order_acquire, TRIALS);
+    long long bad_sc = run_experiment(
+        "seq_cst", std::memory_order_seq_cst, std::memory_order_seq_cst, TRIALS);
+
+    std::cout << "\\n";
+    if (bad_ar > 0 && bad_sc == 0)
+        std::cout << "Confirmed: acq/rel allows the forbidden outcome; seq_cst prevents it.\\n";
+    return 0;
+}`,
+        explanation: 'acquire/release creates a directed happens-before edge between a matching store/load pair on the SAME variable. It is sufficient for producer-consumer (one writer, one reader, one shared flag). seq_cst additionally enforces a TOTAL GLOBAL ORDER across ALL seq_cst operations from ALL threads. This is strictly stronger and is the only way to prevent the "store-buffer" outcome where two threads simultaneously store-then-load independent flags and both see 0. The seq_cst store compiles to MOV+MFENCE on x86 or STL+DMB on ARM, draining the store buffer before the subsequent load. On x86, acq/rel stores are plain MOV instructions that do not drain the store buffer.',
+        useCase: 'Use seq_cst whenever two or more threads simultaneously signal each other (each writes its own flag AND reads the other\'s). Classic examples: Dekker\'s mutual exclusion, Chase-Lev work-stealing deque, lock-free publish/subscribe with independent channels. Use acq/rel for all directed one-producer→one-consumer patterns.',
+        referenceUrl: 'https://en.cppreference.com/w/cpp/atomic/memory_order'
     }
 ];

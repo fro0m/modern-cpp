@@ -894,6 +894,88 @@ int main() {
     feature: 'memory-ordering',
     relatedTheory: 'memory-ordering'
   },
+  {
+    id: 'cas-memory-ordering-pipeline',
+    title: 'CAS Memory Ordering Pipeline',
+    standard: 'performance',
+    difficulty: 'advanced',
+    description: 'Coordinate a producer, processor, and collector using CAS with release/acquire and seq_cst ordering on shared pipeline state.',
+    starterCode: `#include <atomic>
+#include <cassert>
+#include <iostream>
+#include <thread>
+
+enum class Stage : int { Idle = 0, Published = 1, Processed = 2 };
+
+struct Packet {
+    std::atomic<int> stage{static_cast<int>(Stage::Idle)};
+    int payload = 0;
+    int result = 0;
+};
+
+Packet packet;
+
+void producer() {
+    packet.payload = 21;
+    int expected = static_cast<int>(Stage::Idle);
+    while (!packet.stage.compare_exchange_weak(
+            expected,
+            static_cast<int>(Stage::Published),
+            std::memory_order_release,  // TODO: fix ordering
+            std::memory_order_relaxed)) {
+        expected = static_cast<int>(Stage::Idle);
+    }
+}
+
+void processor() {
+    int stage = packet.stage.load(std::memory_order_acquire); // TODO: fix
+    while (stage != static_cast<int>(Stage::Published)) {
+        stage = packet.stage.load(std::memory_order_acquire); // TODO: fix
+    }
+
+    packet.result = packet.payload * 3;
+
+    stage = static_cast<int>(Stage::Published);
+    while (!packet.stage.compare_exchange_weak(
+            stage,
+            static_cast<int>(Stage::Processed),
+            std::memory_order_seq_cst,  // TODO: fix
+            std::memory_order_relaxed)) {
+        stage = static_cast<int>(Stage::Published);
+    }
+}
+
+void collector() {
+    int stage = packet.stage.load(std::memory_order_seq_cst); // TODO: fix
+    while (stage != static_cast<int>(Stage::Processed)) {
+        stage = packet.stage.load(std::memory_order_seq_cst); // TODO: fix
+    }
+
+    std::cout << "Final result = " << packet.result << "\n";
+    assert(packet.result == 63);
+}
+
+int main() {
+    std::thread p(producer);
+    std::thread w(processor);
+    std::thread c(collector);
+
+    p.join();
+    w.join();
+    c.join();
+    return 0;
+}
+`,
+    expectedOutput: 'Final result = 63',
+    hints: [
+      'A CAS publish with release semantics makes prior writes visible to acquire readers.',
+      'A spin-loop waiting for a published stage must use acquire to synchronize with the release.',
+      'Use seq_cst on the final stage transition to create a globally ordered handoff.',
+      'The collector observes the processed result only after the processor completes the seq_cst transition.'
+    ],
+    feature: 'compare-and-swap',
+    relatedTheory: 'memory-ordering'
+  },
 
   // ── Compare-And-Swap exercises ───────────────────────────────────────────
   {
@@ -1062,6 +1144,178 @@ int main() {
     ],
     feature: 'compare-and-swap',
     relatedTheory: 'compare-and-swap'
+  },
+  {
+    id: 'cas-memory-ordering-advanced',
+    title: 'Advanced CAS: Multi-Thread Synchronization with Memory Ordering',
+    standard: 'performance',
+    difficulty: 'advanced',
+    description: 'Coordinate multiple producers and consumers using CAS with precise memory ordering (release/acquire/seq_cst) to safely synchronize access to shared data slots.',
+    starterCode: `#include <atomic>
+#include <iostream>
+#include <thread>
+#include <vector>
+#include <array>
+#include <optional>
+#include <chrono>
+
+enum class SlotState : int {
+    EMPTY    = 0,  // Slot is empty, producer can write
+    FILLED   = 1,  // Slot has data, consumer can read
+    TAKEN    = 2   // Slot data taken, producer can reuse
+};
+
+struct DataSlot {
+    int producer_id;
+    int sequence;
+    int payload;
+};
+
+template<int SLOT_COUNT = 4>
+class ThreadSafeBuffer {
+    std::array<DataSlot, SLOT_COUNT> slots{};
+    std::array<std::atomic<int>, SLOT_COUNT> slot_states{};
+    
+public:
+    ThreadSafeBuffer() {
+        // TODO: Initialize all slot_states to EMPTY using memory_order_relaxed
+    }
+    
+    // Producer writes data with RELEASE ordering to ensure data is visible before marking FILLED
+    bool put(int producer_id, int sequence, int payload) {
+        for (int i = 0; i < SLOT_COUNT; ++i) {
+            int expected = static_cast<int>(SlotState::EMPTY);
+            
+            // TODO: Use compare_exchange_weak to transition EMPTY->FILLED
+            // Hint: Use memory_order_release to ensure slots[i] write is visible
+            // before the state change becomes visible
+            if (slot_states[i].compare_exchange_weak(
+                expected,
+                static_cast<int>(SlotState::FILLED),
+                std::memory_order_relaxed,  // TODO: Fix this
+                std::memory_order_relaxed   // TODO: Fix this
+            )) {
+                slots[i] = DataSlot{producer_id, sequence, payload};
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // Consumer reads data with ACQUIRE/RELEASE ordering to synchronize with producer
+    std::optional<DataSlot> get() {
+        for (int i = 0; i < SLOT_COUNT; ++i) {
+            int expected = static_cast<int>(SlotState::FILLED);
+            
+            // TODO: Use compare_exchange_weak to transition FILLED->TAKEN
+            // Hint: Use memory_order_acq_rel so we:
+            //   - acquire the write from producer's put() release
+            //   - release our consumption for monitor's seq_cst reads
+            if (slot_states[i].compare_exchange_weak(
+                expected,
+                static_cast<int>(SlotState::TAKEN),
+                std::memory_order_relaxed,  // TODO: Fix this
+                std::memory_order_relaxed   // TODO: Fix this
+            )) {
+                return slots[i];
+            }
+        }
+        return std::nullopt;
+    }
+    
+    // Monitor verifies consistency using SEQ_CST for total global order
+    int count_filled_slots() const {
+        int count = 0;
+        for (int i = 0; i < SLOT_COUNT; ++i) {
+            // TODO: Load with seq_cst to ensure total order with all other threads
+            int state = slot_states[i].load(std::memory_order_relaxed);
+            if (state == static_cast<int>(SlotState::FILLED)) {
+                count++;
+            }
+        }
+        return count;
+    }
+};
+
+ThreadSafeBuffer<4> buffer;
+std::atomic<int> total_produced{0};
+std::atomic<int> total_consumed{0};
+std::atomic<bool> stop_flag{false};
+
+void producer_thread(int producer_id, int count) {
+    for (int i = 0; i < count; ++i) {
+        int payload = producer_id * 1000 + i;
+        while (!buffer.put(producer_id, i, payload)) {
+            std::this_thread::yield();
+        }
+        total_produced.fetch_add(1, std::memory_order_acq_rel);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+
+void consumer_thread(int consumer_id) {
+    while (!stop_flag.load(std::memory_order_acquire)) {
+        if (auto data = buffer.get()) {
+            total_consumed.fetch_add(1, std::memory_order_acq_rel);
+        } else {
+            std::this_thread::yield();
+        }
+    }
+}
+
+void monitor_thread() {
+    for (int i = 0; i < 5; ++i) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        int filled = buffer.count_filled_slots();
+        int produced = total_produced.load(std::memory_order_seq_cst);
+        int consumed = total_consumed.load(std::memory_order_seq_cst);
+        if (produced > 0 && produced == consumed) break;
+    }
+}
+
+int main() {
+    total_produced.store(0, std::memory_order_relaxed);
+    total_consumed.store(0, std::memory_order_relaxed);
+    stop_flag.store(false, std::memory_order_relaxed);
+    
+    std::vector<std::thread> threads;
+    threads.emplace_back(producer_thread, 1, 6);
+    threads.emplace_back(producer_thread, 2, 6);
+    threads.emplace_back(consumer_thread, 1);
+    threads.emplace_back(consumer_thread, 2);
+    threads.emplace_back(monitor_thread);
+    
+    threads[0].join();
+    threads[1].join();
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    stop_flag.store(true, std::memory_order_release);
+    
+    for (auto& t : threads) {
+        if (t.joinable()) t.join();
+    }
+    
+    int final_produced = total_produced.load(std::memory_order_seq_cst);
+    int final_consumed = total_consumed.load(std::memory_order_seq_cst);
+    
+    std::cout << "Produced: " << final_produced << ", Consumed: " << final_consumed << "\\n";
+    if (final_produced == final_consumed && final_produced == 12) {
+        std::cout << "Test PASSED\\n";
+        return 0;
+    } else {
+        std::cout << "Test FAILED\\n";
+        return 1;
+    }
+}`,
+    expectedOutput: 'Produced: 12, Consumed: 12\nTest PASSED',
+    hints: [
+      'put() must use memory_order_release so the slot data write is visible before state changes',
+      'get() must use memory_order_acq_rel to acquire the producer\'s release and release for the monitor\'s seq_cst',
+      'count_filled_slots() uses memory_order_seq_cst to observe a consistent global snapshot',
+      'The key insight: RELEASE/ACQUIRE pairs synchronize data; SEQ_CST provides total global order when needed',
+      'Without proper ordering, consumers might read uninitialized slot data or monitor might see stale state'
+    ],
+    feature: 'compare-and-swap',
+    relatedTheory: 'memory-ordering'
   },
 
   // ── Lock-Free Data Structures exercises ──────────────────────────────────
@@ -6510,5 +6764,145 @@ int main() {
         ],
         feature: 'lock-free-04-stack',
         relatedTheory: 'lock-free-04-stack'
+    },
+
+  // ── seq_cst vs Acquire/Release exercise ───────────────────────────────────
+  {
+    id: 'seq-cst-store-buffer',
+    title: 'Fix the Store-Buffer Race with seq_cst',
+    standard: 'performance',
+    difficulty: 'advanced',
+    description: 'The store-buffer litmus test is the one scenario where acquire/release is insufficient. Both threads write their own flag then read the other\'s — with acq/rel, both can see 0 simultaneously. Use seq_cst to enforce a total order that prevents this.',
+    starterCode: `#include <atomic>
+#include <barrier>
+#include <iostream>
+#include <thread>
+
+// ── Scenario ─────────────────────────────────────────────────────────────
+// Two threads each signal "I am ready" and then check whether the other
+// is ready.  With acquire/release both threads can see the other as "not
+// ready" even after both have already stored 1.
+//
+// Thread A: x.store(1, <ORDER>);   r1 = y.load(<ORDER>)
+// Thread B: y.store(1, <ORDER>);   r2 = x.load(<ORDER>)
+//
+// Forbidden outcome: r1==0 AND r2==0
+//   With acquire/release this outcome CAN HAPPEN — a correctness bug.
+//   With seq_cst      this outcome is IMPOSSIBLE.
+//
+// Your tasks:
+//   PART 1 — change the four memory_order_seq_cst placeholders in
+//             run_acqrel() to the correct acquire/release orderings.
+//             Run and observe that bad_count > 0.
+//
+//   PART 2 — change the four memory_order_relaxed placeholders in
+//             run_seqcst() to memory_order_seq_cst.
+//             Run and verify that bad_count == 0.
+
+static constexpr int TRIALS = 300'000;
+
+long long run_acqrel() {
+    std::atomic<int> x{0}, y{0};
+    int r1 = 0, r2 = 0;
+    long long bad = 0;
+
+    std::barrier<> sync{3};
+
+    std::thread ta([&] {
+        for (int i = 0; i < TRIALS; ++i) {
+            sync.arrive_and_wait();
+            // TODO PART 1: replace seq_cst with the correct ordering for a store
+            x.store(1, std::memory_order_seq_cst);
+            // TODO PART 1: replace seq_cst with the correct ordering for a load
+            r1 = y.load(std::memory_order_seq_cst);
+            sync.arrive_and_wait();
+        }
+    });
+
+    std::thread tb([&] {
+        for (int i = 0; i < TRIALS; ++i) {
+            sync.arrive_and_wait();
+            // TODO PART 1: replace seq_cst with the correct ordering for a store
+            y.store(1, std::memory_order_seq_cst);
+            // TODO PART 1: replace seq_cst with the correct ordering for a load
+            r2 = x.load(std::memory_order_seq_cst);
+            sync.arrive_and_wait();
+        }
+    });
+
+    for (int i = 0; i < TRIALS; ++i) {
+        x.store(0, std::memory_order_relaxed);
+        y.store(0, std::memory_order_relaxed);
+        sync.arrive_and_wait();
+        sync.arrive_and_wait();
+        if (r1 == 0 && r2 == 0) ++bad;
     }
+    ta.join(); tb.join();
+    return bad;
+}
+
+long long run_seqcst() {
+    std::atomic<int> x{0}, y{0};
+    int r1 = 0, r2 = 0;
+    long long bad = 0;
+
+    std::barrier<> sync{3};
+
+    std::thread ta([&] {
+        for (int i = 0; i < TRIALS; ++i) {
+            sync.arrive_and_wait();
+            // TODO PART 2: replace relaxed with memory_order_seq_cst
+            x.store(1, std::memory_order_relaxed);
+            // TODO PART 2: replace relaxed with memory_order_seq_cst
+            r1 = y.load(std::memory_order_relaxed);
+            sync.arrive_and_wait();
+        }
+    });
+
+    std::thread tb([&] {
+        for (int i = 0; i < TRIALS; ++i) {
+            sync.arrive_and_wait();
+            // TODO PART 2: replace relaxed with memory_order_seq_cst
+            y.store(1, std::memory_order_relaxed);
+            // TODO PART 2: replace relaxed with memory_order_seq_cst
+            r2 = x.load(std::memory_order_relaxed);
+            sync.arrive_and_wait();
+        }
+    });
+
+    for (int i = 0; i < TRIALS; ++i) {
+        x.store(0, std::memory_order_relaxed);
+        y.store(0, std::memory_order_relaxed);
+        sync.arrive_and_wait();
+        sync.arrive_and_wait();
+        if (r1 == 0 && r2 == 0) ++bad;
+    }
+    ta.join(); tb.join();
+    return bad;
+}
+
+int main() {
+    std::cout << "PART 1  acq/rel : ";
+    long long bad_ar = run_acqrel();
+    std::cout << bad_ar << " / " << TRIALS << " bad outcomes\\n";
+
+    std::cout << "PART 2  seq_cst : ";
+    long long bad_sc = run_seqcst();
+    std::cout << bad_sc << " / " << TRIALS << " bad outcomes\\n";
+
+    if (bad_ar > 0 && bad_sc == 0)
+        std::cout << "PASS: acq/rel allows the forbidden outcome; seq_cst prevents it.\\n";
+    return 0;
+}`,
+    expectedOutput: 'PART 1  acq/rel : >0 / 300000 bad outcomes\nPART 2  seq_cst : 0 / 300000 bad outcomes\nPASS: acq/rel allows the forbidden outcome; seq_cst prevents it.',
+    hints: [
+      'PART 1: A store that "signals" should use memory_order_release; a load that "observes" should use memory_order_acquire',
+      'PART 2: memory_order_seq_cst on ALL four operations (both stores AND both loads) is required',
+      'acquire/release creates a happens-before edge only between PAIRED ops on the SAME variable — it does not help when each thread reads a DIFFERENT variable than it writes',
+      'seq_cst enforces a total global order; combined with program order this makes r1==0 && r2==0 a logical contradiction (see the proof in the theory section)',
+      'On x86 the acq/rel violation may be rare due to TSO — increase TRIALS to 2000000 if you see 0 bad outcomes in PART 1'
+    ],
+    feature: 'seq-cst-vs-acqrel',
+    relatedTheory: 'seq-cst-vs-acqrel'
+  }
 ];
